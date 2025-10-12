@@ -6,7 +6,7 @@ src/черновик.txt
 src/черновик.rs
 /.idea/runConfigurations
 /.idea
-/книги
+/книги/*
 /2словари
 /книги2
 /вывод
