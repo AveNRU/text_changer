@@ -11,7 +11,7 @@ pub struct Пути_Общие {
     pub вывод: String,
     pub вывод_пропуски: String,
     //файлы
-    pub вывод_сообщений:String,
+    pub вывод_сообщений: String,
 }
 
 impl Default for Пути_Общие {
@@ -30,7 +30,7 @@ impl Default for Пути_Общие {
 //содержимое
 #[derive(Debug, Default, Clone)]
 pub struct Сообщения {
-    pub  общие:Vec<String>,
+    pub общие: Vec<String>,
 }
 //содержимое
 #[derive(Debug, Default, Clone)]

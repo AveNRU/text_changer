@@ -24,12 +24,12 @@ pub fn sz_пусто(строка: &String) -> bool {
     return false;
 }
 
-pub  fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<String> {
-    let mut порядок:Vec<usize>=vec![0;ряд.len()];
+pub fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<String> {
+    let mut порядок: Vec<usize> = vec![0; ряд.len()];
     sz::argsort_permutation(&ряд, &mut порядок).unwrap();
-    let mut новый_ряд:Vec<String>=Vec::new();
+    let mut новый_ряд: Vec<String> = Vec::new();
     for число in порядок.into_iter() {
         новый_ряд.push(ряд[число].clone());
     }
-    return  новый_ряд
+    return новый_ряд;
 }
