@@ -1,6 +1,8 @@
 #![crate_type = "lib"]
 use regex::Regex;
 use std::collections::HashMap;
+use foldhash::fast::RandomState;
+
 //пути
 #[derive(Debug, Clone)]
 pub struct Пути_Общие {
@@ -47,7 +49,7 @@ pub struct Книги {
     pub название_книги: String,  //имя книги
     pub вложения: Vec<Вложения>, //содержимое
     pub расширение: String,      //формат
-    pub архив: HashMap<String, Vec<u8>>, //для zip
+    pub архив: HashMap<String, Vec<u8>, RandomState>, //для zip
                                  //pub содержимое:Vec<String>,//сами строки
 }
 //содержимое - имя файла и его содержимое
@@ -106,6 +108,12 @@ pub struct ПолныйСловарь {
     pub замена_вездесущее_нижнее: Vec<String>,  //сложные и составные
     pub замена_вездесущее_верхнее: Vec<String>, //сложные и составные
     pub счётчик_вездесущее: Vec<usize>, //количество замен сложных и составных слов (в 1 очередь)
+}
+//итоговый общий словарь
+#[derive(Debug, Default, Clone)]
+pub struct Быстрый_Словарь {
+    //одиночные
+    pub простое: Vec<String>,                 //одиночные слова
 }
 
 fn main() {}
