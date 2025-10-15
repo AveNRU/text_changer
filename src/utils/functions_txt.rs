@@ -3,6 +3,7 @@ use crate::{lib, utils::functions_add::system_pause};
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use std::str::FromStr;
+use rayon::prelude::*;
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
@@ -22,11 +23,14 @@ pub fn вложить_строку_в_ряд_с_проверкой(
 pub fn вложена_ли_строка_в_ряд(
     ряд: &Vec<String>, строка: &String
 ) -> bool {
-    for i in 0..ряд.len() {
-        if ряд[i].as_str() == строка.as_str() {
-            return true;
-        }
+    if ряд.par_iter().any(|i|i.as_str()==строка.as_str()) {
+        return true;
     }
+    //for i in 0..ряд.len() {
+    //    if ряд[i].as_str() == строка.as_str() {
+   //         return true;
+    //    }
+   // }
     return false;
 }
 pub fn есть_ли_строка_в_куче(

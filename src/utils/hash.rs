@@ -3,6 +3,8 @@ use foldhash::{HashMap, HashMapExt, HashSet};
 use lazy_static::lazy_static;
 use regex::Regex;
 use time::Month::January;
+use rayon::prelude::*;
+use std::sync::Mutex;
 
 pub fn fb2_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
@@ -123,9 +125,22 @@ pub fn fb2_получить_указатели_на_пропуки(
     }
     //получение значений
 
-    let mut пропуски: HashSet<usize> = HashSet::default();
+   // let mut пропуски: HashSet<usize> = HashSet::default();
+    let пропуски = Mutex::new(HashSet::default());
     //прогон
-    for указатель in 0..содержимое.len() {
+    содержимое.par_iter().enumerate().for_each(
+        |(указатель,строка)| {
+            if !есть_ли_кириллица(&строка) {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+            if fb2_проверка_содержимого_на_условия(&строка)
+            {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+        }
+    );
+    let mut пропуски = пропуски.into_inner().unwrap();
+    /*for указатель in 0..содержимое.len() {
         if !есть_ли_кириллица(&содержимое[указатель]) {
             пропуски.insert(указатель);
             continue;
@@ -134,7 +149,7 @@ pub fn fb2_получить_указатели_на_пропуки(
         {
             пропуски.insert(указатель);
         }
-    }
+    }*/
     //исключения для расширения
 
     //если возвращает истину - то переход на следующую строку

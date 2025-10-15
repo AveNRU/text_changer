@@ -1,7 +1,7 @@
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
 use regex::Regex;
-use foldhash::{HashSet, HashSetExt, quality::FixedState, fast::RandomState, HashMap};
 use std::fmt;
 //use std::fs::File;
 //use std::io::prelude::*;
@@ -149,7 +149,8 @@ pub fn считать_книги(
         //если архивный файл
         else if fb3_epub(&пути_до_книг[i]) {
             //println!("это архив");
-            let архив: foldhash::HashMap<String, Vec<u8>> = foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let архив: foldhash::HashMap<String, Vec<u8>> =
+                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
             let mut книга_в_озу: VirtualFs = архив;
             zip_архив_в_память(&пути_до_книг[i], &mut книга_в_озу).unwrap();
             let mut приложения_книги: Vec<lib::Вложения> = Vec::new();
@@ -180,7 +181,8 @@ pub fn считать_книги(
                 &mut содержимое_папки.файлы,
                 &пути_до_книг[i],
             );
-            let архив: foldhash::HashMap<String, Vec<u8>> = foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let архив: foldhash::HashMap<String, Vec<u8>> =
+                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
             //вложение содержимого всего архива в стопку
             стопки_книг.push(lib::Книги {
                 вложения: приложения_книги,
@@ -205,7 +207,8 @@ pub fn считать_книги(
                 &mut содержимое_папки.файлы,
                 &название_книги,
             );
-            let архив: foldhash::HashMap<String, Vec<u8>> = foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let архив: foldhash::HashMap<String, Vec<u8>> =
+                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
             стопки_книг.push(lib::Книги {
                 вложения: Vec::new(),
                 архив,

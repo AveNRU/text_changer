@@ -1,9 +1,8 @@
-
+use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
 use std::io::{Cursor, SeekFrom};
 use std::time::Instant;
 use std::{fmt, fs};
 use zip::{ZipArchive, ZipWriter};
-use foldhash::{HashSet, HashSetExt, quality::FixedState, fast::RandomState, HashMap};
 pub type VirtualFs = HashMap<String, Vec<u8>>;
 
 #[derive(Debug)]
@@ -41,7 +40,8 @@ impl Zips {
     // Конструктор: читает файл в память, создаёт Cursor и пустой виртуальный FS
     fn new(путь: &str) -> Result<Self, ZipsError> {
         let данные = fs::read(путь).map_err(|_| ZipsError::FileNotFound).unwrap();
-        let пустая_стопка_hashmap: foldhash::HashMap<String, Vec<u8>> = foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+        let пустая_стопка_hashmap: foldhash::HashMap<String, Vec<u8>> =
+            foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
         Ok(Self {
             указатель: Cursor::new(данные),
             хранение_в_озу: пустая_стопка_hashmap,

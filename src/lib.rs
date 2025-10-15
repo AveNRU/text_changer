@@ -1,7 +1,7 @@
 #![crate_type = "lib"]
+use foldhash::fast::RandomState;
 use regex::Regex;
 use std::collections::HashMap;
-use foldhash::fast::RandomState;
 
 //пути
 #[derive(Debug, Clone)]
@@ -14,6 +14,8 @@ pub struct Пути_Общие {
     pub вывод_пропуски: String,
     //файлы
     pub вывод_сообщений: String,
+    pub вывод_кучи_словаря: String,
+    pub вывод_кучи_словаря_ключи: String,
 }
 
 impl Default for Пути_Общие {
@@ -26,6 +28,8 @@ impl Default for Пути_Общие {
             вывод: "./вывод/".to_string(),
             вывод_пропуски: "./вывод/книги/пропуски/".to_string(),
             вывод_сообщений: "./вывод/сообщения.txt".to_string(),
+            вывод_кучи_словаря: "./вывод/куча_словарь.txt".to_string(),
+            вывод_кучи_словаря_ключи: "./вывод/куча_словарь_ключи.txt".to_string(),
         }
     }
 }
@@ -113,7 +117,7 @@ pub struct ПолныйСловарь {
 #[derive(Debug, Default, Clone)]
 pub struct Быстрый_Словарь {
     //одиночные
-    pub простое: Vec<String>,                 //одиночные слова
+    pub простое: Vec<String>, //одиночные слова
 }
 
 fn main() {}

@@ -7,11 +7,11 @@ use crate::utils::regex::{
     fb2_rtf_mhtml, fb3_epub, md_fs_yml, изображение_расширение
 };
 use crate::utils::zip::{VirtualFs, pack_zip_from_memory};
-use foldhash::{HashSet, HashSetExt, quality::FixedState, fast::RandomState, HashMap};
 use encoding_rs::{
     WINDOWS_1251,
     //    DecoderResult
 };
+use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
 use rust_xlsxwriter::*;
 use sha2::{Digest, Sha256, Sha512};
 use std::fs::{self, File};
@@ -97,7 +97,8 @@ pub fn сохранить_книгу(
         //если это архивное разрешение
         else if fb3_epub(&стопки_книг[i].путь) {
             //вторая FS virtual чтобы собрать в файл .zip в виде Vec<u8>
-            let пустая_стопка_hashmap: foldhash::HashMap<String, Vec<u8>> = foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let пустая_стопка_hashmap: foldhash::HashMap<String, Vec<u8>> =
+                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
             let mut вторичная_fs_в_озу: VirtualFs = пустая_стопка_hashmap;
             //перебор содержимого архива
             for k in 0..стопки_книг[i].вложения.len() {
