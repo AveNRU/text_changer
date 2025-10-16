@@ -1,8 +1,7 @@
 #![allow(non_ascii_idents)]
 
 //use std::fs::read_to_string;
-use crate::lib;
-use crate::lib::Содержимое_папок;
+use crate::lib::{self,Содержимое_папок};
 use crate::utils::regex::{
     fb2_rtf_mhtml, fb3_epub, md_fs_yml, изображение_расширение
 };
@@ -15,16 +14,12 @@ use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedSt
 use rust_xlsxwriter::*;
 use sha2::{Digest, Sha256, Sha512};
 use std::fs::{self, File};
-use std::io::{
-    self,
-    //BufRead, BufReader,
-    Error,
-    Write,
-};
+use std::io::{self, BufReader, Error, Write,Cursor};
 use std::path::Path;
 use std::sync::Mutex;
 //use xml::Encoding::Default;
 use crate::utils::read::read_utf8;
+use calamine::*;
 
 pub fn сохранить_книгу(
     стопки_книг: &Vec<lib::Книги>,
@@ -55,7 +50,7 @@ pub fn сохранить_книгу(
                     &путь_сохранения,
                     &стопки_книг[i].вложения[гл_указатель].содержимое,
                     &mut сообщения.общие,
-                    true,//вывод на экран
+                    true, //вывод на экран
                 ) {
                     Ok(true) => {
                         //println!("Внешне: Перезапись")
@@ -167,6 +162,7 @@ fn utf8_to_windows1251(utf8_str: &str) -> Vec<u8> {
 }
 
 //output словарей
+/*
 pub fn excel_dictionary_write(
     ряд_словарей: &Vec<lib::Словарь>,
     //mode: String,           //Стопка из файла .xlsx взята или самостоятельно высчитана
@@ -428,7 +424,7 @@ pub fn excel_dictionary_write(
         }
 
         //путь сохранения
-        let _path: String = format!("./end/dictionary/{}.xlsx", ряд_словарей[i].имя);
+        let путь: String = format!("./end/dictionary/{}.xlsx", ряд_словарей[i].имя);
         страница.autofit();
         everywhere.autofit();
         рабочая_страница.autofit();
@@ -436,17 +432,21 @@ pub fn excel_dictionary_write(
         рабочая_книга.push_worksheet(вкладка);
         рабочая_книга.push_worksheet(binding2);
         рабочая_книга.push_worksheet(binding3);
-        рабочая_книга.save(_path).unwrap();
+        рабочая_книга.save(путь).unwrap();
     }
     Ok(())
 }
+
+ */
 
 //output главного словаря
 pub fn вывод_всех_словарей_в_xls(
     словарь: &lib::ПолныйСловарь,
     //mode: String,           //Стопка из файла .xlsx взята или самостоятельно высчитана
     //path_name_spd: &String, //имя .spd файла
-) -> Result<(), XlsxError> {
+) -> Result<(), rust_xlsxwriter::XlsxError> {
+    use std::fs;
+    use std::path::Path;
     // Create a new Excel file object.
     let пути_общие: lib::Пути_Общие = Default::default();
     let mut словари = Workbook::new();
@@ -718,14 +718,152 @@ pub fn вывод_всех_словарей_в_xls(
     словари.push_worksheet(стр_сложных_слов);
     словари.push_worksheet(binding2);
     словари.push_worksheet(binding3);
-    словари.save(путь_сохранения).unwrap();
+    xlsx_сохранить_с_проверкой(&mut словари,&путь_сохранения);
 
     Ok(())
 }
+//xlsx перед сохранением на накопителе проверяет есть ли уже такой, если есть то совпадает ли содержимое
+pub fn xlsx_сохранить_с_проверкой(содержимое:&mut Workbook,путь_сохранения:&String) {
+    //let mut временное_содержимое=содержимое.clone();
+    // 2️⃣ Сохраняем в буфер в памяти
+    let озу:Vec<u8>=содержимое.save_to_buffer().unwrap();
+    // 3️⃣ Читаем существующий файл с диска
+    let путь = Path::new(&путь_сохранения);
+    let условие = if путь.exists() {
+        //let содержимое_с_накопителя = fs::read(путь).unwrap();
+        // содержимое_с_накопителя == озу
+        let содержимое_буффера=прочитать_xlsx_из_буфера(&озу).unwrap();
+        let данные_с_диска=прочитать_xlsx_с_диска(&путь_сохранения).unwrap();
+        if сравнить_данные(&содержимое_буффера,&данные_с_диска) {
+            println!("XLSX файл: {} полностью совпадает с существующим XLSX файлом. Отаз от перезаписи.",путь_сохранения);
+            true
+        } else {
+            println!("XLSX файл: {} не совпадает с существующим. Перезапись.",путь_сохранения);
+            содержимое.save(путь_сохранения).unwrap();
+            false
+        }
+        // false
+    } else {
+        println!("XLSX файл: {} не уществует. Создание и запись.",путь_сохранения);
+        содержимое.save(путь_сохранения).unwrap();
+        false
+    };
+
+
+}
+pub fn прочитать_xlsx_с_диска(
+    путь: &str,
+) -> Result<HashMap<String, Vec<Vec<String>>>, Box<dyn std::error::Error>> {
+    let mut workbook: Xlsx<_> = open_workbook(путь).unwrap();
+    let mut данные = HashMap::default();
+
+    for sheet_name in workbook.sheet_names().clone() {
+        if let Ok(range) = workbook.worksheet_range(&sheet_name) {
+            let mut строки_листа = Vec::new();
+
+            for row in range.rows() {
+                let ячейки: Vec<String> = row.iter()
+                    .map(|cell| match cell {
+                        Data::String(s) => s.clone(),
+                        Data::Float(f) => f.to_string(),
+                        Data::Int(i) => i.to_string(),
+                        Data::Bool(b) => b.to_string(),
+                        Data::DateTime(dt) => dt.to_string(),
+                        Data::DateTimeIso(s) => s.clone(),      // Добавлено
+                        Data::DurationIso(s) => s.clone(),      // Добавлено
+                        Data::Empty => String::new(),
+                        Data::Error(e) => format!("Ошибка: {:?}", e),
+                    })
+                    .collect();
+
+                строки_листа.push(ячейки);
+            }
+
+            данные.insert(sheet_name, строки_листа);
+        }
+    }
+
+    Ok(данные)
+}
+// 3. Сравнение исходных и прочитанных данных
+pub fn сравнить_данные(
+    исходные: &HashMap<String, Vec<Vec<String>>>,
+    прочитанные: &HashMap<String, Vec<Vec<String>>>,
+) -> bool {
+    if исходные.len() != прочитанные.len() {
+     //   println!("❌ Разное количество листов: {} vs {}", исходные.len(), прочитанные.len());
+        return false;
+    }
+
+    for (имя_листа, исходные_строки) in исходные {
+        match прочитанные.get(имя_листа) {
+            Some(прочитанные_строки) => {
+                if исходные_строки != прочитанные_строки {
+        //            println!("❌ Лист '{}': данные различаются", имя_листа);
+                    return false;
+                }
+            }
+            None => {
+           //     println!("❌ Лист '{}' отсутствует в прочитанных данных", имя_листа);
+                return false;
+            }
+        }
+    }
+
+    //println!("✓ Данные идентичны!");
+    true
+}
+// 2. Чтение из buffer через calamine
+pub fn прочитать_xlsx_из_буфера(
+    buffer: &[u8],
+) -> Result<HashMap<String, Vec<Vec<String>>>, Box<dyn std::error::Error>> {
+    let cursor = Cursor::new(buffer);
+    let mut workbook: Xlsx<_> = Xlsx::new(cursor).unwrap();
+    let mut данные = HashMap::default();
+
+    //println!("Чтение XLSX из буфера...");
+
+    for sheet_name in workbook.sheet_names().clone() {
+        println!("  Обработка листа: {}", sheet_name);
+
+        if let Ok(range) = workbook.worksheet_range(&sheet_name) {
+            let mut строки_листа = Vec::new();
+            let mut количество_строк = 0;
+
+            for row in range.rows() {
+                let ячейки: Vec<String> = row.iter()
+                    .map(|cell| match cell {
+                        Data::String(s) => s.clone(),
+                        Data::Float(f) => f.to_string(),
+                        Data::Int(i) => i.to_string(),
+                        Data::Bool(b) => b.to_string(),
+                        Data::DateTime(dt) => dt.to_string(),
+                        Data::DateTimeIso(s) => s.clone(),      // Добавлено
+                        Data::DurationIso(s) => s.clone(),      // Добавлено
+                        Data::Empty => String::new(),
+                        Data::Error(e) => format!("Ошибка: {:?}", e),
+                    })
+                    .collect();
+
+                строки_листа.push(ячейки);
+            }
+
+            данные.insert(sheet_name, строки_листа);
+         //   println!("    Прочитано строк: {}", количество_строк);
+        } else {
+       //     println!("    ❌ Ошибка чтения листа: {}", sheet_name);
+        }
+    }
+
+  //  println!("✓ XLSX прочитан из буфера, листов: {}", данные.len());
+    Ok(данные)
+}
+
+
 //output заголовкой на странице
 pub fn вывод_заголовков_на_странице(
     рабочая_страница: &mut Worksheet,
-) -> Result<(), XlsxError> {
+) -> Result<(), rust_xlsxwriter::XlsxError> {
     рабочая_страница.write(0, 0, "Изначальные слова").unwrap();
     рабочая_страница.write(0, 1, "Regex").unwrap();
     рабочая_страница.write(0, 2, "Замена").unwrap();
@@ -807,13 +945,19 @@ pub fn вывод_содержимого_папок_по_умолчанию(
     проверка_наличия_папок_в_случае_их_отсутствия_создать_папки(&путь_вывода);
     //ошибки сначала
     let путь: String = format!("{}/ошибки.txt", путь_вывода);
-    вывод_содержимого_в_txt(&содержимое_папок.ошибки, &путь, &mut сообщения,true).unwrap();
+    вывод_содержимого_в_txt(&содержимое_папок.ошибки, &путь, &mut сообщения, true).unwrap();
     //сами файлы
     let путь: String = format!("{}/содержимое.txt", путь_вывода);
-    вывод_содержимого_в_txt(&содержимое_папок.файлы, &путь, &mut сообщения,false).unwrap();
+    вывод_содержимого_в_txt(&содержимое_папок.файлы, &путь, &mut сообщения, false).unwrap();
     //сами файлы
     let путь: String = format!("{}/не_вложено.txt", путь_вывода);
-    вывод_содержимого_в_txt(&содержимое_папок.не_вложено, &путь, &mut сообщения,false).unwrap();
+    вывод_содержимого_в_txt(
+        &содержимое_папок.не_вложено,
+        &путь,
+        &mut сообщения,
+        false,
+    )
+    .unwrap();
     Ok(())
 }
 
@@ -821,10 +965,10 @@ pub fn вывод_содержимого_в_txt(
     ряд: &Vec<String>,
     путь: &String,
     mut сообщения: &mut Vec<String>,
-    условие:bool,
+    условие: bool,
 ) -> Result<(), Error> {
     //сравнение образов
-    match запись_если_есть_разница(&путь, &ряд, &mut сообщения,условие)
+    match запись_если_есть_разница(&путь, &ряд, &mut сообщения, условие)
     {
         Ok(true) => {
             //println!("Внешне: Перезапись")
@@ -921,7 +1065,10 @@ fn запись_если_есть_разница(
             } else {
                 вложить_строку_в_ряд_с_проверкой(
                     &mut сообщения,
-                    &format!("Запись:  книга {} не существует файл. Запись. Условие {условие}", путь),
+                    &format!(
+                        "Запись:  книга {} не существует файл. Запись. Условие {условие}",
+                        путь
+                    ),
                 )
             }
 
@@ -938,13 +1085,14 @@ fn запись_если_есть_разница(
     //сравнение строк
     if *новый_ряд_строк == существующий_файл_ряд_строк {
         if условие {
-        вывод_сообщения_на_экран_и_вложение_в_ряд(
-            format!(
-                "Запись: книга {}. Полное совпадение. Отказ от перезаписи",
-                путь
-            ),
-            &mut сообщения,
-        )} else {
+            вывод_сообщения_на_экран_и_вложение_в_ряд(
+                format!(
+                    "Запись: книга {}. Полное совпадение. Отказ от перезаписи",
+                    путь
+                ),
+                &mut сообщения,
+            )
+        } else {
             вложить_строку_в_ряд_с_проверкой(
                 &mut сообщения,
                 &format!(
@@ -956,13 +1104,14 @@ fn запись_если_есть_разница(
         Ok(false)
     } else {
         if условие {
-        вывод_сообщения_на_экран_и_вложение_в_ряд(
-            format!(
-                "Запись:  книга {}. Не соответствие содержимого. Перезапись",
-                путь
-            ),
-            &mut сообщения,
-        )} else {
+            вывод_сообщения_на_экран_и_вложение_в_ряд(
+                format!(
+                    "Запись:  книга {}. Не соответствие содержимого. Перезапись",
+                    путь
+                ),
+                &mut сообщения,
+            )
+        } else {
             вложить_строку_в_ряд_с_проверкой(
                 &mut сообщения,
                 &format!(
@@ -974,4 +1123,94 @@ fn запись_если_есть_разница(
         //fs::write(&путь, новое_содержимое).unwrap();
         Ok(true)
     }
+}
+
+//проверка .xlsx файла
+
+fn сравнить_xlsx_файлы(
+    mut первый: Sheets<BufReader<File>>,
+    mut второй: Sheets<BufReader<File>>,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    //let mut первый: Sheets<BufReader<File>> = open_workbook_auto(path1).unwrap();
+    //let mut второй: Sheets<BufReader<File>>  = open_workbook_auto(path2).unwrap();
+
+    let sheets1 = первый.sheet_names().to_owned();
+    let sheets2 = второй.sheet_names().to_owned();
+
+    if sheets1 != sheets2 {
+        println!("❌ Разные наборы листов: {:?} vs {:?}", sheets1, sheets2);
+        return Ok(false);
+    }
+
+    for sheet_name in sheets1 {
+        let range1 = первый.worksheet_range(&sheet_name).unwrap();
+        let range2 = второй.worksheet_range(&sheet_name).unwrap();
+
+        if range1.get_size() != range2.get_size() {
+            println!("❌ Разные размеры листа '{}'", sheet_name);
+            return Ok(false);
+        }
+
+        for (row, col, val1) in range1.cells() {
+            let val2 = range2
+                .get_value((row.try_into().unwrap(), col.try_into().unwrap()))
+                .unwrap_or(&Data::Empty);
+
+            if val1 != val2 {
+                println!(
+                    "❌ Разное значение в листе '{}' ячейка ({}, {}): {:?} vs {:?}",
+                    sheet_name, row, col, val1, val2
+                );
+                return Ok(false);
+            }
+        }
+    }
+
+    Ok(true)
+}
+
+pub fn сравнение_xlsx_файлов_2_пути<P: AsRef<Path>>(
+    путь_1: P,
+    путь_2: P,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut первый = open_workbook_auto(путь_1).unwrap();
+    let mut второй = open_workbook_auto(путь_2).unwrap();
+    let same = сравнить_xlsx_файлы(первый, второй).unwrap();
+    if same {
+        println!("✅ Файлы идентичны по содержимому");
+    } else {
+        println!("⚠️  Файлы отличаются");
+    }
+    Ok(())
+}
+/*
+pub fn сравнение_xlsx_файлов_2_путь_и_озу<P: AsRef<Path>>(
+    первый: &Vec<u8>,
+    путь_2: P,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut первый = open_workbook_from_rs(*первый).unwrap();
+    let mut второй: Sheets<BufReader<File>> = open_workbook_auto(путь_2).unwrap();
+    let same = сравнить_xlsx_файлы(первый, второй).unwrap();
+    if same {
+        println!("✅ Файлы идентичны по содержимому");
+    } else {
+        println!("⚠️  Файлы отличаются");
+    }
+    Ok(())
+}
+
+ */
+
+pub fn main2() -> Result<(), Box<dyn std::error::Error>> {
+    let первый = "./запас словарей/Главный словарь1.xlsx".to_string();
+    let второй = "./запас словарей/Главный словарь2.xlsx".to_string();
+    let mut первый = open_workbook_auto(первый).unwrap();
+    //
+    let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+    let buf = cursor.into_inner();
+    //Write::write_all(&mut file, &buf).unwrap();
+    //
+    let mut второй: Sheets<BufReader<File>> = open_workbook_auto(второй).unwrap();
+
+    Ok(())
 }

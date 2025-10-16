@@ -38,6 +38,8 @@ pretty_assertions = "1.4.1"
 console = "0.16.1"
 rand = "0.10.0-rc.0"
 sha2 = "0.10.9"
+blake3 = "1.8.2"
+serde = { version = "1.0.228", features = ["derive"] }
 [workspace]
 members = [
     "rzhavchina_proc_macro",

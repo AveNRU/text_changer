@@ -5,6 +5,7 @@ use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
+use regex::Regex;
 use stringzilla::sz;
 
 pub fn sz_найти(строка: &String, образец: &str) -> bool {
@@ -58,7 +59,14 @@ pub fn sz_упорядочить_кучу(ряд: HashSet<String>) -> Vec<String
 pub fn sz_упорядочить_словарь(
     полный_словарь: ПолныйСловарь,
 ) -> ПолныйСловарь {
-    let mut временный_словарь: ПолныйСловарь = ПолныйСловарь::default();
+    let mut временный_словарь: ПолныйСловарь = ПолныйСловарь{
+      //  re_простое:vec![Regex::new(r"").unwrap();полный_словарь.re_простое.len()],
+       // re_вездесущее:vec![Regex::new(r"").unwrap();полный_словарь.re_вездесущее.len()],
+       // re_составное:vec![Regex::new(r"").unwrap();полный_словарь.re_составное.len()],
+        //re_составное_важное:vec![Regex::new(r"").unwrap();полный_словарь.re_составное_важное.len()],
+       // простое:vec![],
+        ..Default::default()
+    };
     //одиночное
     let mut порядок: Vec<usize> = vec![0; полный_словарь.простое.len()];
     sz::argsort_permutation(&полный_словарь.простое, &mut порядок).unwrap();
