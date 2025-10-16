@@ -442,7 +442,7 @@ pub fn excel_dictionary_write(
 
 //output главного словаря
 pub fn вывод_всех_словарей_в_xls(
-    _dictionary: &lib::ПолныйСловарь,
+    словарь: &lib::ПолныйСловарь,
     //mode: String,           //Стопка из файла .xlsx взята или самостоятельно высчитана
     //path_name_spd: &String, //имя .spd файла
 ) -> Result<(), XlsxError> {
@@ -460,63 +460,63 @@ pub fn вывод_всех_словарей_в_xls(
     //worksheet.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
     let mut _row_point: u32 = u32::try_from(1).unwrap().into();
     //общий счётчик замен слов
-    let mut _count_change: usize = 0;
+    let mut счётчик_шага: usize = 0;
     //let column_point: u16 = u16::try_from(i + 1).unwrap().into();
     //перебор всех словарей
     println!();
     println!("Общий словарь");
 
     //перебор одиночных слов
-    for j in 0.._dictionary.простое.len() {
+    for j in 0..словарь.простое.len() {
         //добавление количества замен
-        _count_change += _dictionary.простое_счётчик_замен[j];
+        счётчик_шага += словарь.счётчик_простое[j];
         книга
-            .write((j + 1) as u32, 0, &_dictionary.простое[j])
+            .write((j + 1) as u32, 0, &словарь.простое[j])
             .unwrap();
         книга
-            .write((j + 1) as u32, 1, _dictionary.re_простое[j].to_string())
+            .write((j + 1) as u32, 1, словарь.re_простое[j].to_string())
             .unwrap();
         книга
             .write(
                 (j + 1) as u32,
                 2,
-                _dictionary.замена_простому[j].to_string(),
+                словарь.замена_простому[j].to_string(),
             )
             .unwrap();
         книга
             .write(
                 (j + 1) as u32,
                 3,
-                _dictionary.простое_счётчик_замен[j].to_string(),
+                словарь.счётчик_простое[j].to_string(),
             )
             .unwrap();
         _row_point += 1;
         //println!("{}",&_dictionary.простое[j]);
     }
     //если все слова равны
-    if _dictionary.простое.len() == _dictionary.re_простое.len()
-        && _dictionary.простое.len() == _dictionary.замена_простому.len()
+    if словарь.простое.len() == словарь.re_простое.len()
+        && словарь.простое.len() == словарь.замена_простому.len()
     {
         println!(
             "длина словаря (простого) : {}, замен: {}",
-            _dictionary.простое.len(),
-            &_count_change
+            словарь.простое.len(),
+            &счётчик_шага
         );
     }
     //если длина словаря не равна
     else {
-        println!("длина слов простых: {}", _dictionary.простое.len());
-        println!("длина слов re_простых: {}", _dictionary.re_простое.len());
+        println!("длина слов простых: {}", словарь.простое.len());
+        println!("длина слов re_простых: {}", словарь.re_простое.len());
         println!(
             "длина слов замен (простых): {}",
-            _dictionary.замена_простому.len()
+            словарь.замена_простому.len()
         );
     }
     книга
         .write((_row_point + 1) as u32, 0, "Итого замен: ")
         .unwrap();
     книга
-        .write((_row_point + 1) as u32, 3, _count_change.to_string())
+        .write((_row_point + 1) as u32, 3, счётчик_шага.to_string())
         .unwrap();
     книга.autofilter(0, 0, _row_point + 1, 4).unwrap();
     //2-я страница с составными словами
@@ -537,26 +537,26 @@ pub fn вывод_всех_словарей_в_xls(
     //перебор всех словарей
 
     //перебор одиночных слов
-    for j in 0.._dictionary.составное.len() {
-        _count_change += _dictionary.составное_счётчик_замен[j];
+    for j in 0..словарь.составное.len() {
+        _count_change += словарь.счётчик_составное[j];
         стр_2
-            .write(_row_point, 0, _dictionary.составное[j].clone())
+            .write(_row_point, 0, словарь.составное[j].clone())
             .unwrap();
         стр_2
-            .write(_row_point, 1, _dictionary.re_составное[j].to_string())
+            .write(_row_point, 1, словарь.re_составное[j].to_string())
             .unwrap();
         стр_2
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_составное[j].to_string(),
+                словарь.замена_составное[j].to_string(),
             )
             .unwrap();
         стр_2
             .write(
                 _row_point,
                 3,
-                _dictionary.составное_счётчик_замен[j].to_string(),
+                словарь.счётчик_составное[j].to_string(),
             )
             .unwrap();
         //println!("{}",&_dictionary.complex[j]);
@@ -564,22 +564,22 @@ pub fn вывод_всех_словарей_в_xls(
         //println!("{}",&_dictionary.простое[j]);
     }
     //если количество слов равно
-    if _dictionary.составное.len() == _dictionary.re_составное.len()
-        && _dictionary.составное.len() == _dictionary.замена_составное.len()
+    if словарь.составное.len() == словарь.re_составное.len()
+        && словарь.составное.len() == словарь.замена_составное.len()
     {
         println!(
             "длина словаря (сложного) : {}, количество замен: {}",
-            _dictionary.составное.len(),
+            словарь.составное.len(),
             &_count_change
         );
     }
     //если длина словаря не равна
     else {
-        println!("длина слов сложных: {}", _dictionary.составное.len());
-        println!("длина слов re_сложных: {}", _dictionary.re_составное.len());
+        println!("длина слов сложных: {}", словарь.составное.len());
+        println!("длина слов re_сложных: {}", словарь.re_составное.len());
         println!(
             "длина слов замен (сложных): {}",
-            _dictionary.замена_составное.len()
+            словарь.замена_составное.len()
         );
     }
     стр_2
@@ -606,47 +606,47 @@ pub fn вывод_всех_словарей_в_xls(
     //перебор всех словарей
 
     //перебор одиночных слов
-    for j in 0.._dictionary.вездесущее.len() {
-        _count_change += _dictionary.счётчик_вездесущее[j];
+    for j in 0..словарь.вездесущее.len() {
+        _count_change += словарь.счётчик_вездесущее[j];
         everywhere
-            .write(_row_point, 0, _dictionary.вездесущее[j].clone())
+            .write(_row_point, 0, словарь.вездесущее[j].clone())
             .unwrap();
         everywhere
-            .write(_row_point, 1, _dictionary.re_вездесущее[j].to_string())
+            .write(_row_point, 1, словарь.re_вездесущее[j].to_string())
             .unwrap();
         everywhere
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_вездесущее[j].to_string(),
+                словарь.замена_вездесущее[j].to_string(),
             )
             .unwrap();
         everywhere
-            .write(_row_point, 3, _dictionary.счётчик_вездесущее[j].to_string())
+            .write(_row_point, 3, словарь.счётчик_вездесущее[j].to_string())
             .unwrap();
         _row_point += 1;
         //println!("{}",&_dictionary.everywhere[j]);
     }
     //если количество слов равно числу замен
-    if _dictionary.вездесущее.len() == _dictionary.re_вездесущее.len()
-        && _dictionary.вездесущее.len() == _dictionary.замена_вездесущее.len()
+    if словарь.вездесущее.len() == словарь.re_вездесущее.len()
+        && словарь.вездесущее.len() == словарь.замена_вездесущее.len()
     {
         println!(
             "длина словаря (вездесущего) : {}, количество замен: {}",
-            _dictionary.вездесущее.len(),
+            словарь.вездесущее.len(),
             &_count_change
         );
     }
     //если длина словаря не равна
     else {
-        println!("длина слов вездесущих: {}", _dictionary.вездесущее.len());
+        println!("длина слов вездесущих: {}", словарь.вездесущее.len());
         println!(
             "длина слов re_вездесущих: {}",
-            _dictionary.re_вездесущее.len()
+            словарь.re_вездесущее.len()
         );
         println!(
             "длина слов замен (вездесущих): {}",
-            _dictionary.замена_вездесущее.len()
+            словарь.замена_вездесущее.len()
         );
     }
     everywhere
@@ -674,42 +674,42 @@ pub fn вывод_всех_словарей_в_xls(
     //перебор всех словарей
 
     //перебор одиночных слов
-    for j in 0.._dictionary.составное_важное.len() {
-        _count_change += _dictionary.счётчик_составное_важное[j];
+    for j in 0..словарь.составное_важное.len() {
+        _count_change += словарь.счётчик_составное_важное[j];
         complex_first
-            .write(_row_point, 0, _dictionary.составное_важное[j].clone())
+            .write(_row_point, 0, словарь.составное_важное[j].clone())
             .unwrap();
         complex_first
             .write(
                 _row_point,
                 1,
-                _dictionary.re_составное_важное[j].to_string(),
+                словарь.re_составное_важное[j].to_string(),
             )
             .unwrap();
         complex_first
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_составное_важное[j].to_string(),
+                словарь.замена_составное_важное[j].to_string(),
             )
             .unwrap();
         complex_first
             .write(
                 _row_point,
                 2,
-                _dictionary.счётчик_составное_важное[j].to_string(),
+                словарь.счётчик_составное_важное[j].to_string(),
             )
             .unwrap();
         _row_point += 1;
         //println!("{}",&_dictionary.complex_first[j]);
     }
     //если количество слов равно числу замен
-    if _dictionary.составное_важное.len() == _dictionary.re_составное_важное.len()
-        && _dictionary.составное_важное.len() == _dictionary.замена_составное_важное.len()
+    if словарь.составное_важное.len() == словарь.re_составное_важное.len()
+        && словарь.составное_важное.len() == словарь.замена_составное_важное.len()
     {
         println!(
             "длина словаря (сложного (в 1 очередь) )  : {}, количество замен: {}",
-            _dictionary.составное_важное.len(),
+            словарь.составное_важное.len(),
             &_count_change
         );
         println!();
@@ -718,15 +718,15 @@ pub fn вывод_всех_словарей_в_xls(
     else {
         println!(
             "длина слов сложных (в 1 очередь): {}",
-            _dictionary.составное_важное.len()
+            словарь.составное_важное.len()
         );
         println!(
             "длина слов re_сложных (в 1 очередь): {}",
-            _dictionary.re_составное_важное.len()
+            словарь.re_составное_важное.len()
         );
         println!(
             "длина слов замен (сложных (в 1 очередь)): {}",
-            _dictionary.замена_составное_важное.len()
+            словарь.замена_составное_важное.len()
         );
         println!();
     }
@@ -872,6 +872,7 @@ pub fn вывод_содержимого_в_txt(
     }
     Ok(())
 }
+
 /*
 pub fn запись_если_hash_различается(
     путь_сохранения: &str,

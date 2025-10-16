@@ -43,7 +43,7 @@ static SPARKLE: Emoji<'_, '_> = Emoji("✨ ", ":-)");
 use lazy_static::lazy_static;
 use rayon::iter::IntoParallelRefIterator;
 use regex::Regex;
-pub fn изображение_расширение(word: &String) -> bool {
+pub fn изображение_расширение(стог_сена: &String) -> bool {
     lazy_static! {
         static ref re_расширения_изображений: Vec<Regex> = vec![
             Regex::new(r"(?i)\.jpeg$").unwrap(),
@@ -58,11 +58,11 @@ pub fn изображение_расширение(word: &String) -> bool {
     }
     re_расширения_изображений
         .par_iter()
-        .find_any(|строка| строка.is_match(word));
+        .find_any(|строка| строка.is_match(стог_сена));
     return false;
 }
 //если это архивный файл
-pub fn fb3_epub(word: &String) -> bool {
+pub fn fb3_epub(стог_сена: &String) -> bool {
     lazy_static! {
         static ref re_расширения_архивные:Vec<Regex> = vec![
         Regex::new(r"(?i)\.fb3$").unwrap(),
@@ -73,10 +73,10 @@ pub fn fb3_epub(word: &String) -> bool {
     }
     return re_расширения_архивные
         .par_iter()
-        .any(|строка| строка.is_match(word));
+        .any(|строка| строка.is_match(стог_сена));
 }
 //если это архивный файл
-pub fn doc_docx(word: &String) -> bool {
+pub fn doc_docx(стог_сена: &String) -> bool {
     lazy_static! {
            static ref re_расширения_word:Vec<Regex> = vec![
         //Regex::new(r"(?i)\.fb3$").unwrap(),
@@ -87,9 +87,9 @@ pub fn doc_docx(word: &String) -> bool {
     }
     return re_расширения_word
         .par_iter()
-        .any(|строка| строка.is_match(word));
+        .any(|строка| строка.is_match(стог_сена));
 }
-pub fn md_fs_yml(word: &String) -> bool {
+pub fn md_fs_yml(стог_сена: &String) -> bool {
     lazy_static! {
            static ref re_расширения_word:Vec<Regex> = vec![
         //Regex::new(r"(?i)\.fb3$").unwrap(),
@@ -101,11 +101,11 @@ pub fn md_fs_yml(word: &String) -> bool {
     }
     return re_расширения_word
         .par_iter()
-        .any(|строка| строка.is_match(word));
+        .any(|строка| строка.is_match(стог_сена));
     //return false;
 }
 //если это не архивный файл
-pub fn fb2_rtf_mhtml(word: &String) -> bool {
+pub fn fb2_rtf_mhtml(стог_сена: &String) -> bool {
     lazy_static! {
         static ref re_расширения_не_архивные: Vec<Regex> = vec![
             Regex::new(r"(?i)\.fb2$").unwrap(),
@@ -115,23 +115,20 @@ pub fn fb2_rtf_mhtml(word: &String) -> bool {
     }
     return re_расширения_не_архивные
         .par_iter()
-        .any(|строка| строка.is_match(word));
+        .any(|строка| строка.is_match(стог_сена));
 }
 //захват слов
 //есть ли маты
-pub fn есть_ли_маты(hay: &String) -> bool {
+pub fn есть_ли_маты(стог_сена: &String) -> bool {
     lazy_static! {
             //маты
      static ref re_матершина_слова:Vec<Regex> = vec![
         Regex::new(r"(?i)\s*([\w]…)\s*").unwrap(),
      ];
     }
-    for строка in re_матершина_слова.iter() {
-        if строка.is_match(hay) {
-            return true;
-        }
-    }
-    return false;
+    return re_матершина_слова.par_iter().any(|образец|{
+        образец.is_match(стог_сена)
+    });
 }
 
 //выдел строки
@@ -398,6 +395,7 @@ pub fn замена_слов_через_кучу(
     // Создаем атомарные счетчики для каждого шаблона
     let атомарные_счетчики: Vec<AtomicUsize> =
         (0..re_образцы.len()).map(|_| AtomicUsize::new(0)).collect();
+  
 
     let количество_шагов = re_образцы.len() * содержимое.len();
     let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);

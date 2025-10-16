@@ -247,20 +247,7 @@ pub fn считать_книги(
             );
         }
     }
-    //let mut ряд_матерных_слов: Vec<String> = Vec::new();
     //перебор содержимого книги на предмет наличия трех точек подряд
-    /*
-    for i in 0.._book_struct.len() {
-        for i2 in 0.._book_struct[i].file.len() {
-            if _book_struct[i].file[i2].имя.contains("document.xml") {
-                 println!("имя: {}", _book_struct[i].file[i2].имя);
-                if _book_struct[i].file[i2].содержимое.contains("…s") {
-
-                }
-                 println!("содержимое: {:?}", _book_struct[i].file[i2].содержимое);
-            }
-        }
-    }*/
     crate::output::write::вывод_содержимого_папок_по_умолчанию(
         &содержимое_папки,
         "книги",
