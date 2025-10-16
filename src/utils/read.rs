@@ -1,12 +1,15 @@
 use crate::utils::functions::строка_удалить_utf8_концы_строк;
 use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::sz_найти;
+use rayon::prelude::*;
 use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::sync::{
+    Mutex,
+    atomic::{AtomicU64, AtomicUsize, Ordering},
+};
 use walkdir::WalkDir;
-use rayon::prelude::*;
-use std::sync::{Mutex, atomic::{AtomicU64, Ordering,AtomicUsize}};
 
 //чтение файла в UTF-8
 pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {

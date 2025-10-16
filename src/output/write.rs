@@ -480,7 +480,7 @@ pub fn вывод_всех_словарей_в_xls(
             .write(
                 (j + 1) as u32,
                 2,
-                _dictionary.замена_простому_нижнее[j].to_string(),
+                _dictionary.замена_простому[j].to_string(),
             )
             .unwrap();
         книга
@@ -495,7 +495,7 @@ pub fn вывод_всех_словарей_в_xls(
     }
     //если все слова равны
     if _dictionary.простое.len() == _dictionary.re_простое.len()
-        && _dictionary.простое.len() == _dictionary.замена_простому_нижнее.len()
+        && _dictionary.простое.len() == _dictionary.замена_простому.len()
     {
         println!(
             "длина словаря (простого) : {}, замен: {}",
@@ -509,7 +509,7 @@ pub fn вывод_всех_словарей_в_xls(
         println!("длина слов re_простых: {}", _dictionary.re_простое.len());
         println!(
             "длина слов замен (простых): {}",
-            _dictionary.замена_простому_нижнее.len()
+            _dictionary.замена_простому.len()
         );
     }
     книга
@@ -549,7 +549,7 @@ pub fn вывод_всех_словарей_в_xls(
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_составное_нижнее[j].to_string(),
+                _dictionary.замена_составное[j].to_string(),
             )
             .unwrap();
         стр_2
@@ -565,7 +565,7 @@ pub fn вывод_всех_словарей_в_xls(
     }
     //если количество слов равно
     if _dictionary.составное.len() == _dictionary.re_составное.len()
-        && _dictionary.составное.len() == _dictionary.замена_составное_нижнее.len()
+        && _dictionary.составное.len() == _dictionary.замена_составное.len()
     {
         println!(
             "длина словаря (сложного) : {}, количество замен: {}",
@@ -579,7 +579,7 @@ pub fn вывод_всех_словарей_в_xls(
         println!("длина слов re_сложных: {}", _dictionary.re_составное.len());
         println!(
             "длина слов замен (сложных): {}",
-            _dictionary.замена_составное_нижнее.len()
+            _dictionary.замена_составное.len()
         );
     }
     стр_2
@@ -618,7 +618,7 @@ pub fn вывод_всех_словарей_в_xls(
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_вездесущее_нижнее[j].to_string(),
+                _dictionary.замена_вездесущее[j].to_string(),
             )
             .unwrap();
         everywhere
@@ -629,7 +629,7 @@ pub fn вывод_всех_словарей_в_xls(
     }
     //если количество слов равно числу замен
     if _dictionary.вездесущее.len() == _dictionary.re_вездесущее.len()
-        && _dictionary.вездесущее.len() == _dictionary.замена_вездесущее_нижнее.len()
+        && _dictionary.вездесущее.len() == _dictionary.замена_вездесущее.len()
     {
         println!(
             "длина словаря (вездесущего) : {}, количество замен: {}",
@@ -646,7 +646,7 @@ pub fn вывод_всех_словарей_в_xls(
         );
         println!(
             "длина слов замен (вездесущих): {}",
-            _dictionary.замена_вездесущее_нижнее.len()
+            _dictionary.замена_вездесущее.len()
         );
     }
     everywhere
@@ -690,7 +690,7 @@ pub fn вывод_всех_словарей_в_xls(
             .write(
                 _row_point,
                 2,
-                _dictionary.замена_составное_важное_нижнее[j].to_string(),
+                _dictionary.замена_составное_важное[j].to_string(),
             )
             .unwrap();
         complex_first
@@ -705,7 +705,7 @@ pub fn вывод_всех_словарей_в_xls(
     }
     //если количество слов равно числу замен
     if _dictionary.составное_важное.len() == _dictionary.re_составное_важное.len()
-        && _dictionary.составное_важное.len() == _dictionary.замена_составное_важное_нижнее.len()
+        && _dictionary.составное_важное.len() == _dictionary.замена_составное_важное.len()
     {
         println!(
             "длина словаря (сложного (в 1 очередь) )  : {}, количество замен: {}",
@@ -726,7 +726,7 @@ pub fn вывод_всех_словарей_в_xls(
         );
         println!(
             "длина слов замен (сложных (в 1 очередь)): {}",
-            _dictionary.замена_составное_важное_нижнее.len()
+            _dictionary.замена_составное_важное.len()
         );
         println!();
     }

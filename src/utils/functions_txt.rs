@@ -1,9 +1,14 @@
 use crate::utils::stringzilla::*;
 use crate::{lib, utils::functions_add::system_pause};
 use lazy_static::lazy_static;
+use rayon::prelude::*;
 use std::collections::HashSet;
 use std::str::FromStr;
-use rayon::prelude::*;
+use std::sync::{
+    Mutex,
+    atomic::{AtomicU64, AtomicUsize, Ordering},
+};
+use regex::Regex;   
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
@@ -16,34 +21,48 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if ряд.par_iter().any(|i|i.as_str()==строка.as_str()) {
-    //if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
+    if !ряд.par_iter().any(|i| i.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
 }
 pub fn есть_ли_повторно_строка_в_ряде(
-    ряд: &Vec<String>, сообщение: &str,
-)  {
+    ряд: &Vec<String>, сообщение: &str
+)->bool {
     //поиск уже добавленных слов
-    (0..ряд.len())
-        .into_par_iter()
-        .for_each(|i| {
-            ((i + 1)..ряд.len())
-                .into_par_iter()
-                .for_each(|j| {
-                    if ряд[i] == ряд[j] {
-                        println!(
-                            "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
-                             ряд[i],i, j
-                        );
-                    }
-                });
-        });
-    }
+    (0..ряд.len()).into_par_iter().any(|i| {
+        ((i + 1)..ряд.len()).into_par_iter().any(|j| {
+            if ряд[i].as_str() == ряд[j].as_str()  {
+                println!(
+                    "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
+                    ряд[i], i, j
+                );
+                true
+            } else {false}
+            
+        })
+    })
+}
+
+pub fn есть_ли_повторно_строка_в_ряде_regex(
+    ряд: &Vec<Regex>, сообщение: &str
+) ->bool{
+    //поиск уже добавленных слов
+    (0..ряд.len()).into_par_iter().any(|i| {
+        ((i + 1)..ряд.len()).into_par_iter().any(|j| {
+            if ряд[i].as_str()  == ряд[j].as_str()  {
+                println!(
+                    "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
+                    ряд[i], i, j
+                );
+                true 
+            } else {false}
+        })
+    })
+}
 pub fn вложена_ли_строка_в_ряд(
     ряд: &Vec<String>, строка: &String
 ) -> bool {
-    if ряд.par_iter().any(|i|i.as_str()==строка.as_str()) {
+    if ряд.par_iter().any(|i| i.as_str() == строка.as_str()) {
         return true;
     }
     return false;
@@ -51,11 +70,12 @@ pub fn вложена_ли_строка_в_ряд(
 pub fn есть_ли_строка_в_куче(
     куча: &HashSet<String>, строка: &String
 ) -> bool {
-    for содержимое in куча.iter() {
-        if содержимое.as_str() == строка.as_str() {
-            return true;
-        }
-    }
+    if куча
+        .par_iter()
+        .any(|строка_в_куче| строка_в_куче.as_str() == строка.as_str())
+    {
+        return true;
+    };
     return false;
 }
 
@@ -63,10 +83,9 @@ pub fn вложить_строку_в_ряд_с_проверкой_и_пробе
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
-        ряд.push(строка.clone());
+    if !вложена_ли_строка_в_ряд(&ряд, &строка) {
+        ряд.push("".to_string())
     }
-    ряд.push("".to_string())
 }
 pub fn содержит_ли_ряд_строку(
     ряд: &Vec<String>, строка: &String
@@ -84,21 +103,6 @@ pub fn ряд_в_строку(ряд: &Vec<String>, ошибка: &str) -> Strin
     return итог;
 }
 
-pub fn выводы_питания_в_строку(
-    выводы_питания: &Vec<String>
-) -> String {
-    let mut строка: String = String::new();
-    if выводы_питания.len() == 1 {
-        return выводы_питания[0].clone().to_string();
-    }
-    for i in 0..выводы_питания.len() {
-        //if i!=power_pins.len()-1 {
-        строка = format!("{строка}|{}", выводы_питания[i].clone());
-        //}
-    }
-
-    return строка;
-}
 //все ли цепи являются цепями земли
 pub fn являются_ли_все_цепи_цепями_земли_или_нет(
     цепи_земли: &Vec<String>,
@@ -117,17 +121,17 @@ pub fn являются_ли_все_цепи_цепями_земли_или_не
 }
 
 //вложение одного вектора в основной, если в нём данная строка отсутствует
-pub fn вложить_строки_ряд_в_ряд(vec_1: &mut Vec<String>, vec_2: &Vec<String>) {
+pub fn вложить_строки_ряд_в_ряд(
+    ряд_1: &mut Vec<String>, ряд_2: &Vec<String>
+) {
+    let ряд_1_mutex = Mutex::new(ряд_1);
     //перебор вспомогательного вектора
-    for i in 0..vec_2.len() {
-        //если в 1 векторе нет строки из второго вектора
-        let _строка = vec_2[i].clone();
-        if !vec_1.iter().any(|n| n.as_str() == _строка.as_str()) {
-            // println!("не нашло: {}",&vec_2[i]);
-            //вложение в 1 вектор строки из второго
-            vec_1.push(vec_2[i].clone());
+    ряд_2.par_iter().for_each(|строка_искомая| {
+        let mut guard = ряд_1_mutex.lock().unwrap();
+        if !guard.iter().any(|j| j == строка_искомая) {
+            guard.push(строка_искомая.clone());
         }
-    }
+    });
 }
 pub fn получить_напряжение_по_указателю_на_этаж(
     указатель: usize,

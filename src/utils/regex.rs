@@ -1,15 +1,17 @@
 use crate::utils::stringzilla::*;
 //use clap::error::ErrorKind::Format;
 use console::{Emoji, style};
-use foldhash::{HashSet, HashSetExt, quality::FixedState, HashMap};
+use foldhash::{HashMap, HashSet, HashSetExt, quality::FixedState};
 use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, ProgressStyle};
 use rand::{Rng, prelude::*};
+use rayon::prelude::*;
+use std::sync::{
+    Mutex,
+    atomic::{AtomicU64, AtomicUsize, Ordering},
+};
 use std::thread;
 use std::time::{Duration, Instant};
 use std::{cmp::min, fmt::Write};
-use rayon::prelude::*;
-use std::sync::{Mutex, atomic::{AtomicU64, Ordering,AtomicUsize}};
-
 
 static PACKAGES: &[&str] = &[
     "fs-events",
@@ -54,7 +56,9 @@ pub fn изображение_расширение(word: &String) -> bool {
             Regex::new(r"(?i)\.eps$").unwrap(),
         ];
     }
-    re_расширения_изображений.par_iter().find_any(|строка| строка.is_match(word));
+    re_расширения_изображений
+        .par_iter()
+        .find_any(|строка| строка.is_match(word));
     return false;
 }
 //если это архивный файл
@@ -67,7 +71,9 @@ pub fn fb3_epub(word: &String) -> bool {
         //Regex::new(r"(?i)\.doc$").unwrap(),
      ];
     }
-    return re_расширения_архивные.par_iter().any(|строка| строка.is_match(word))
+    return re_расширения_архивные
+        .par_iter()
+        .any(|строка| строка.is_match(word));
 }
 //если это архивный файл
 pub fn doc_docx(word: &String) -> bool {
@@ -79,7 +85,9 @@ pub fn doc_docx(word: &String) -> bool {
         Regex::new(r"(?i)\.doc$").unwrap(),
      ];
     }
-return re_расширения_word.par_iter().any(|строка| строка.is_match(word))
+    return re_расширения_word
+        .par_iter()
+        .any(|строка| строка.is_match(word));
 }
 pub fn md_fs_yml(word: &String) -> bool {
     lazy_static! {
@@ -91,7 +99,9 @@ pub fn md_fs_yml(word: &String) -> bool {
             Regex::new(r"(?i)\.fs$").unwrap(),
      ];
     }
-    return re_расширения_word.par_iter().any(|строка| строка.is_match(word))
+    return re_расширения_word
+        .par_iter()
+        .any(|строка| строка.is_match(word));
     //return false;
 }
 //если это не архивный файл
@@ -103,7 +113,9 @@ pub fn fb2_rtf_mhtml(word: &String) -> bool {
             Regex::new(r"(?i)\.mhtml$").unwrap(),
         ];
     }
-    return re_расширения_не_архивные.par_iter().any(|строка| строка.is_match(word))
+    return re_расширения_не_архивные
+        .par_iter()
+        .any(|строка| строка.is_match(word));
 }
 //захват слов
 //есть ли маты
@@ -165,7 +177,7 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
             Regex::new(r"(?i).+/(.+)\.").unwrap(),
         ];
     }
-    
+
     re_пути_до_книг
         .par_iter()
         .find_map_any(|образец| {
@@ -179,7 +191,7 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
             })
         })
         .unwrap_or_else(|| panic!("Не удалось выдрать имя файла: {}", стог_сена))
-        /*
+    /*
     for образец in re_пути_до_книг.iter() {
         if let Some(строка) = образец.captures(&стог_сена) {
             let строка = строка[1].trim().to_string();
@@ -192,7 +204,7 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
         };
     }
     panic!("ошибка при выдирания сама строка : {}", &стог_сена);
-    
+
          */
 }
 /*
@@ -279,8 +291,8 @@ pub fn замена_слов_через_regex(
     // if итоговый_ряд_строк==*содержимое { println!("векторы равны :{}",сообщение) }
     // return итоговый_ряд_строк;
 }
-*/
 
+*/
 //многопоточность
 pub fn замена_слов_через_regex(
     re_образцы: &[Regex],
@@ -294,7 +306,11 @@ pub fn замена_слов_через_regex(
     куча_пропусков: &HashSet<usize>,
 ) {
     *указатель_захода += 1;
-    println!("{} {}Завершено...", style(сообщение).bold().dim(), LOOKING_GLASS);
+    println!(
+        "{} {}Завершено...",
+        style(сообщение).bold().dim(),
+        LOOKING_GLASS
+    );
 
     // Создаем атомарные счетчики для каждого шаблона
     let атомарные_счетчики: Vec<AtomicUsize> =
@@ -308,47 +324,49 @@ pub fn замена_слов_через_regex(
         ProgressStyle::with_template(
             "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
         )
-            .unwrap()
-            .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
-                write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
-            })
-            .progress_chars("#>-"),
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+        })
+        .progress_chars("#>-"),
     );
 
     // Обрабатываем каждую строку параллельно
-    содержимое.par_iter_mut().enumerate().for_each(|(указатель, строка)| {
-        if куча_пропусков.contains(&указатель) {
-            // Пропускаем строку, но все равно считаем прогресс
-            let шаги_для_этой_строки = re_образцы.len() as u64;
-            шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
-            счетчик_внутренний.inc(шаги_для_этой_строки);
-            return;
-        }
-
-        // Сохраняем оригинальную строку для проверки
-            //  let оригинальная_строка = строка.clone();
-
-        for указатель_образца in 0..re_образцы.len() {
-            let re_образец = &re_образцы[указатель_образца];
-
-            if sz_найти(&строка, &искомое_слово[указатель_образца]) {
-                let замененная_строка = re_образец.replace_all(
-                    &строка,
-                    &замены[указатель_образца],
-                );
-
-                // Заменяем строку
-                *строка = замененная_строка.to_string();
-
-                // Увеличиваем атомарный счетчик
-                атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
+    содержимое
+        .par_iter_mut()
+        .enumerate()
+        .for_each(|(указатель, строка)| {
+            if куча_пропусков.contains(&указатель) {
+                // Пропускаем строку, но все равно считаем прогресс
+                let шаги_для_этой_строки = re_образцы.len() as u64;
+                шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
+                счетчик_внутренний.inc(шаги_для_этой_строки);
+                return;
             }
 
-            // Обновляем прогресс
-            let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-            счетчик_внутренний.set_position(текущий_шаг);
-        }
-    });
+            // Сохраняем оригинальную строку для проверки
+            //  let оригинальная_строка = строка.clone();
+
+            for указатель_образца in 0..re_образцы.len() {
+                let re_образец = &re_образцы[указатель_образца];
+
+                if sz_найти(&строка, &искомое_слово[указатель_образца])
+                {
+                    let замененная_строка =
+                        re_образец.replace_all(&строка, &замены[указатель_образца]);
+
+                    // Заменяем строку
+                    *строка = замененная_строка.to_string();
+
+                    // Увеличиваем атомарный счетчик
+                    атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
+                }
+
+                // Обновляем прогресс
+                let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
+                счетчик_внутренний.set_position(текущий_шаг);
+            }
+        });
 
     // Копируем результаты из атомарных счетчиков
     for (i, атомарный) in атомарные_счетчики.iter().enumerate() {
@@ -368,10 +386,14 @@ pub fn замена_слов_через_кучу(
     расширение: &str,
     указатель_захода: &mut usize,
     куча_пропусков: &HashSet<usize>,
-    словарь_куча:&HashMap<String, HashSet<usize>>,
+    словарь_куча: &HashMap<String, HashSet<usize>>,
 ) {
     *указатель_захода += 1;
-    println!("{} {}Завершено...", style(сообщение).bold().dim(), LOOKING_GLASS);
+    println!(
+        "{} {}Завершено...",
+        style(сообщение).bold().dim(),
+        LOOKING_GLASS
+    );
 
     // Создаем атомарные счетчики для каждого шаблона
     let атомарные_счетчики: Vec<AtomicUsize> =
@@ -385,50 +407,52 @@ pub fn замена_слов_через_кучу(
         ProgressStyle::with_template(
             "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
         )
-            .unwrap()
-            .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
-                write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
-            })
-            .progress_chars("#>-"),
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+        })
+        .progress_chars("#>-"),
     );
 
     // Обрабатываем каждую строку параллельно
-    содержимое.par_iter_mut().enumerate().for_each(|(указатель, строка)| {
-        if куча_пропусков.contains(&указатель) {
-            // Пропускаем строку, но все равно считаем прогресс
-            let шаги_для_этой_строки = re_образцы.len() as u64;
-            шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
-            счетчик_внутренний.inc(шаги_для_этой_строки);
-            return;
-        }
-        
-        for (образец,куча_указателей) in словарь_куча.iter() {
-           // let re_образец = &re_образцы[указатель_образца];
-            //если образец из кучи есть в строке
-            if sz_найти(&строка, &образец) {
-                //перебор укзаталей в куче от самого искомого слова (в котором удалено окончание)
-                for указатель_образца in куча_указателей.iter() {
-                    //поиск уже образца точного в строке
-                    if sz_найти(&строка, &искомое_слово[*указатель_образца]) {
-                        let замененная_строка = &re_образцы[*указатель_образца].replace_all(
-                            &строка,
-                            &замены[*указатель_образца],
-                        );
-
-                        // Заменяем строку
-                        *строка = замененная_строка.to_string();
-
-                        // Увеличиваем атомарный счетчик
-                        атомарные_счетчики[*указатель_образца].fetch_add(1, Ordering::Relaxed);
-                    }
-                }
+    содержимое
+        .par_iter_mut()
+        .enumerate()
+        .for_each(|(указатель, строка)| {
+            if куча_пропусков.contains(&указатель) {
+                // Пропускаем строку, но все равно считаем прогресс
+                let шаги_для_этой_строки = re_образцы.len() as u64;
+                шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
+                счетчик_внутренний.inc(шаги_для_этой_строки);
+                return;
             }
 
-            // Обновляем прогресс
-            let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-            счетчик_внутренний.set_position(текущий_шаг);
-        }
-    });
+            for (образец, куча_указателей) in словарь_куча.iter() {
+                // let re_образец = &re_образцы[указатель_образца];
+                //если образец из кучи есть в строке
+                if sz_найти(&строка, &образец) {
+                    //перебор укзаталей в куче от самого искомого слова (в котором удалено окончание)
+                    for указатель_образца in куча_указателей.iter() {
+                        //поиск уже образца точного в строке
+                        if sz_найти(&строка, &искомое_слово[*указатель_образца])
+                        {
+                            let замененная_строка = &re_образцы[*указатель_образца]
+                                .replace_all(&строка, &замены[*указатель_образца]);
+
+                            // Заменяем строку
+                            *строка = замененная_строка.to_string();
+
+                            // Увеличиваем атомарный счетчик
+                            атомарные_счетчики[*указатель_образца].fetch_add(1, Ordering::Relaxed);
+                        }
+                    }
+                }
+
+                // Обновляем прогресс
+                let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
+                счетчик_внутренний.set_position(текущий_шаг);
+            }
+        });
 
     // Копируем результаты из атомарных счетчиков
     for (i, атомарный) in атомарные_счетчики.iter().enumerate() {
