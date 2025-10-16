@@ -20,10 +20,10 @@ pub mod utils;
 pub mod xlsx;
 pub mod yamish;
 //use time::*; //{self,OffsetDateTime};
-
+use crate::output::write;
 fn main() {
     //output книги
-    use crate::output::write;
+
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
 
@@ -64,14 +64,14 @@ fn main() {
     //println!("{:?}",&books_struct_original);
     //сама замена слов
 
-    let измененные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
+    let выходные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
         &склад_словарей,
-        &исходная_книга,
+        исходная_книга,
         &mut сообщения,
     );
     println!(); // Переход на новую строку после завершения
 
-    write::сохранить_книгу(&измененные_книги, &mut сообщения).unwrap();
+    write::сохранить_книгу(&выходные_книги, &mut сообщения).unwrap();
     //let _ = write::write_book(&books_struct_original);
     //время затраченное в итоге
     let пути_общие: lib::Пути_Общие = Default::default();

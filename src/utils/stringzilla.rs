@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 use stringzilla::sz;
+use rayon::prelude::*;
+use std::sync::{Mutex, atomic::{AtomicU64, Ordering,AtomicUsize}};
 
 pub fn sz_найти(строка: &String, образец: &str) -> bool {
     if let Some(указатель) = sz::find(&строка, образец) {
@@ -9,12 +11,15 @@ pub fn sz_найти(строка: &String, образец: &str) -> bool {
 }
 
 pub fn sz_найти_в_ряде(ряд: &Vec<String>, образец: &str) -> bool {
-    for строка in ряд.iter() {
-        if sz_найти(&строка, &образец) {
-            return true;
+    ряд.into_par_iter().enumerate().find_map_any(|(указатель,строка)|
+        {
+            if sz_найти(строка, образец) {
+                Some(true) // возвращаем Some с любым значением, важно что не None
+            } else {
+                None
+            }
         }
-    }
-    return false;
+    ).is_some()
 }
 
 pub fn sz_пусто(строка: &String) -> bool {

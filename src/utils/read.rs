@@ -5,11 +5,12 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use walkdir::WalkDir;
+use rayon::prelude::*;
+use std::sync::{Mutex, atomic::{AtomicU64, Ordering,AtomicUsize}};
 
 //чтение файла в UTF-8
-pub fn read_utf8(rpt_path: &String) -> Vec<String> {
+pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
     let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
-    let путь_до_файла: &str = rpt_path; //путь до файла
     let содержимое: Box<dyn BufRead> = считать_файл(путь_до_файла); //чтение файла
     for (указатель, содержимое_в_байтах) in содержимое.split(b'\n').enumerate()
     {
@@ -22,18 +23,18 @@ pub fn read_utf8(rpt_path: &String) -> Vec<String> {
     return итог;
 }
 //чтение файла
-fn считать_файл(file_path: &str) -> Box<dyn BufRead> {
-    let file = match fs::File::open(file_path) {
+fn считать_файл(путь: &str) -> Box<dyn BufRead> {
+    let содержимое = match fs::File::open(путь) {
         //попытка открытия файла
         Ok(успех) => успех,
         Err(почему) => {
             //если ошибка
-            println!("Ошибка при открытии файла: \"{file_path}\" по причине: \n{почему:?}");
+            println!("Ошибка при открытии файла: \"{путь}\" по причине: \n{почему:?}");
             system_pause();
-            panic!("Ошибка при открытии файла: \"{file_path}\" по причине: \n{почему:?}")
+            panic!("Ошибка при открытии файла: \"{путь}\" по причине: \n{почему:?}")
         }
     };
-    Box::new(BufReader::new(file))
+    Box::new(BufReader::new(содержимое))
 }
 
 pub fn попытка_открыть_файл(путь: &String) {

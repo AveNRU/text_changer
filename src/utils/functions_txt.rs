@@ -16,21 +16,36 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
+    if ряд.par_iter().any(|i|i.as_str()==строка.as_str()) {
+    //if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
 }
+pub fn есть_ли_повторно_строка_в_ряде(
+    ряд: &Vec<String>, сообщение: &str,
+)  {
+    //поиск уже добавленных слов
+    (0..ряд.len())
+        .into_par_iter()
+        .for_each(|i| {
+            ((i + 1)..ряд.len())
+                .into_par_iter()
+                .for_each(|j| {
+                    if ряд[i] == ряд[j] {
+                        println!(
+                            "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
+                             ряд[i],i, j
+                        );
+                    }
+                });
+        });
+    }
 pub fn вложена_ли_строка_в_ряд(
     ряд: &Vec<String>, строка: &String
 ) -> bool {
     if ряд.par_iter().any(|i|i.as_str()==строка.as_str()) {
         return true;
     }
-    //for i in 0..ряд.len() {
-    //    if ряд[i].as_str() == строка.as_str() {
-   //         return true;
-    //    }
-   // }
     return false;
 }
 pub fn есть_ли_строка_в_куче(

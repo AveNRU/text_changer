@@ -1,6 +1,8 @@
 use crate::lib;
 use std::fs;
 use std::path::Path;
+use rayon::prelude::*;
+use std::sync::{Mutex, atomic::{AtomicU64, Ordering,AtomicUsize}};
 
 pub fn проверка_наличия_папки(путь: &String) {
     match создать_вложенные_папки(путь.as_str()) {
@@ -31,18 +33,15 @@ pub fn заменить_путь_выходным_книгам(ряд: &Vec<Stri
     //начало
     let пути_общие: lib::Пути_Общие = Default::default();
     //
-    let mut выводной_ряд: Vec<String> = Vec::new();
-    for строка in ряд.iter() {
-        // let путь_конечный:String=format!("{}/",&пути_общие.вывод);
-        let строка: String = строка.replace(&пути_общие.книги, &пути_общие.вывод_книги);
-        //let строка:String=format!("{}/{}/", строка, доп);
-        //  println!("{}",строка);
-        выводной_ряд.push(строка);
-    }
-    for путь in выводной_ряд {
-        // println!("создать: {}",путь);
-        проверка_наличия_папки(&путь)
-    }
+    let mut выводной_ряд: Vec<String> = 
+    ряд.par_iter().map(|строка|{
+        строка.replace(&пути_общие.книги, &пути_общие.вывод_книги)
+    }).collect();
+    выводной_ряд.par_iter().for_each(|путь|
+        {
+            проверка_наличия_папки(путь)
+        }
+    );
     //
 }
 
