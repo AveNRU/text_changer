@@ -53,8 +53,7 @@ impl Zips {
 
         self.указатель.seek(SeekFrom::Start(0)).unwrap();
         let mut архив = ZipArchive::new(&mut self.указатель).unwrap();
-            
-        
+
         for i in 0..архив.len() {
             let mut файл = архив.by_index(i).unwrap();
             let имя = файл.mangled_name().to_string_lossy().into_owned();

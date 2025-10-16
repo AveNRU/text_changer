@@ -2,13 +2,13 @@ use crate::utils::stringzilla::*;
 use crate::{lib, utils::functions_add::system_pause};
 use lazy_static::lazy_static;
 use rayon::prelude::*;
+use regex::Regex;
 use std::collections::HashSet;
 use std::str::FromStr;
 use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
-use regex::Regex;   
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
@@ -26,36 +26,41 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     }
 }
 pub fn есть_ли_повторно_строка_в_ряде(
-    ряд: &Vec<String>, сообщение: &str
-)->bool {
+    ряд: &Vec<String>,
+    сообщение: &str,
+) -> bool {
     //поиск уже добавленных слов
     (0..ряд.len()).into_par_iter().any(|i| {
         ((i + 1)..ряд.len()).into_par_iter().any(|j| {
-            if ряд[i].as_str() == ряд[j].as_str()  {
+            if ряд[i].as_str() == ряд[j].as_str() {
                 println!(
                     "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
                     ряд[i], i, j
                 );
                 true
-            } else {false}
-            
+            } else {
+                false
+            }
         })
     })
 }
 
 pub fn есть_ли_повторно_строка_в_ряде_regex(
-    ряд: &Vec<Regex>, сообщение: &str
-) ->bool{
+    ряд: &Vec<Regex>,
+    сообщение: &str,
+) -> bool {
     //поиск уже добавленных слов
     (0..ряд.len()).into_par_iter().any(|i| {
         ((i + 1)..ряд.len()).into_par_iter().any(|j| {
-            if ряд[i].as_str()  == ряд[j].as_str()  {
+            if ряд[i].as_str() == ряд[j].as_str() {
                 println!(
                     "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
                     ряд[i], i, j
                 );
-                true 
-            } else {false}
+                true
+            } else {
+                false
+            }
         })
     })
 }
