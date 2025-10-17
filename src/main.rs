@@ -23,7 +23,8 @@ pub mod yamish;
 use crate::output::write;
 fn main() {
     //output книги
-
+    crate::xlsx::import_xlsx::открыть_xlsx();
+/*
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
 
@@ -68,7 +69,7 @@ fn main() {
     );
     println!(); // Переход на новую строку после завершения
 
-    write::сохранить_книгу(&выходные_книги, &mut сообщения).unwrap();
+    write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
     //время затраченное в итоге
     let пути_общие: lib::Пути_Общие = Default::default();
     //вывод сообщений
@@ -90,6 +91,8 @@ fn main() {
     // ).unwrap();
 
     //crate::write::main2();
+    
+ */
 }
 
 //} //рдавчина

@@ -43,23 +43,68 @@ static SPARKLE: Emoji<'_, '_> = Emoji("✨ ", ":-)");
 use lazy_static::lazy_static;
 use rayon::iter::IntoParallelRefIterator;
 use regex::Regex;
-pub fn изображение_расширение(стог_сена: &String) -> bool {
+pub fn изображение_расширение_с_точкой(стог_сена: &String) -> bool {
     lazy_static! {
         static ref re_расширения_изображений: Vec<Regex> = vec![
-            Regex::new(r"(?i)\.jpeg$").unwrap(),
-            Regex::new(r"(?i)\.jpg$").unwrap(),
-            Regex::new(r"(?i)\.tiff$").unwrap(),
+            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
             Regex::new(r"(?i)\.png$").unwrap(),
             Regex::new(r"(?i)\.bmp$").unwrap(),
             Regex::new(r"(?i)\.wmf$").unwrap(),
             Regex::new(r"(?i)\.wpg$").unwrap(),
+            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
+            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)\.svg$").unwrap(),
             Regex::new(r"(?i)\.eps$").unwrap(),
         ];
     }
-    re_расширения_изображений
+    return re_расширения_изображений
         .par_iter()
-        .find_any(|строка| строка.is_match(стог_сена));
-    return false;
+        .any(|строка| строка.is_match(стог_сена))
+}
+
+pub fn изображение_расширение_без_точки(стог_сена: &String) -> bool {
+    lazy_static! {
+        static ref re_расширения_изображений: Vec<Regex> = vec![
+            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
+            Regex::new(r"(?i)\.png$").unwrap(),
+            Regex::new(r"(?i)\.bmp$").unwrap(),
+            Regex::new(r"(?i)\.wmf$").unwrap(),
+            Regex::new(r"(?i)\.wpg$").unwrap(),
+            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
+            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)\.svg$").unwrap(),
+            Regex::new(r"(?i)\.avif$").unwrap(),
+        ];
+    }
+    return re_расширения_изображений
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена))
+}
+
+pub fn не_является_изображением(стог_сена: &String) -> bool {
+    lazy_static! {
+        static ref re_расширения_изображений: Vec<Regex> = vec![
+            Regex::new(r"(?i)jpe?g$").unwrap(),  // Объединил jpg и jpeg
+            Regex::new(r"(?i)tiff?$").unwrap(),  // Объединил tif и tiff
+            Regex::new(r"(?i)bmp$").unwrap(),
+            Regex::new(r"(?i)gif$").unwrap(),    // Добавил $ в конец
+            Regex::new(r"(?i)webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)svg$").unwrap(),
+            Regex::new(r"(?i)avif$").unwrap(),
+            Regex::new(r"(?i)jpeg$").unwrap(),
+            Regex::new(r"(?i)jpg$").unwrap(),
+            Regex::new(r"(?i)tiff$").unwrap(),
+            Regex::new(r"(?i)png$").unwrap(),
+            Regex::new(r"(?i)wmf$").unwrap(),
+            Regex::new(r"(?i)wpg$").unwrap(),
+            Regex::new(r"(?i)eps$").unwrap(),
+        ];
+    }
+    return re_расширения_изображений
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена));
 }
 //если это архивный файл
 pub fn fb3_epub(стог_сена: &String) -> bool {

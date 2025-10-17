@@ -42,6 +42,7 @@ impl Default for Пути_Общие {
 #[derive(Debug, Default, Clone)]
 pub struct Сообщения {
     pub общие: Vec<String>,
+    pub запись_и_чтение: Vec<String>,
 }
 //содержимое
 #[derive(Debug, Default, Clone)]
