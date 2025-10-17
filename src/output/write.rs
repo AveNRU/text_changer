@@ -799,12 +799,12 @@ pub fn сравнить_данные(
         match прочитанные.get(имя_листа) {
             Some(прочитанные_строки) => {
                 if исходные_строки != прочитанные_строки {
-        //            println!("❌ Лист '{}': данные различаются", имя_листа);
+                    println!("❌ Лист '{}': данные различаются", имя_листа);
                     return false;
                 }
             }
             None => {
-           //     println!("❌ Лист '{}' отсутствует в прочитанных данных", имя_листа);
+                println!("❌ Лист '{}' отсутствует в прочитанных данных", имя_листа);
                 return false;
             }
         }
@@ -824,7 +824,7 @@ pub fn прочитать_xlsx_из_буфера(
     //println!("Чтение XLSX из буфера...");
 
     for sheet_name in workbook.sheet_names().clone() {
-        println!("  Обработка листа: {}", sheet_name);
+       // println!("  Обработка листа: {}", sheet_name);
 
         if let Ok(range) = workbook.worksheet_range(&sheet_name) {
             let mut строки_листа = Vec::new();
