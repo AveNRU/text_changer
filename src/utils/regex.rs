@@ -44,19 +44,17 @@ use lazy_static::lazy_static;
 use rayon::iter::IntoParallelRefIterator;
 use regex::Regex;
 
-pub fn мусорное_содержимое_архивов(
-    стог_сена: &String
-) -> bool {
+pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
     lazy_static! {
         static ref re_расширения_мусорные: Vec<Regex> = vec![
-            Regex::new(r"(?i)\.css$").unwrap(), 
-              Regex::new(r"(?i)\.rels$").unwrap(), 
-              Regex::new(r"(?i)\.ttf$").unwrap(), 
+            Regex::new(r"(?i)\.css$").unwrap(),
+              Regex::new(r"(?i)\.rels$").unwrap(),
+              Regex::new(r"(?i)\.ttf$").unwrap(),
             Regex::new(r"(?i)\.xhtml$").unwrap(),
             //целиком имя
              Regex::new(r"(?i)mimetype$").unwrap(),
             //
-            
+
         ];
     }
     return re_расширения_мусорные
@@ -211,16 +209,18 @@ pub fn re_получить_имя_файла_без_пути(стог_сена: 
         static ref первая_палка:Regex= Regex::new(r"(?i)\\").unwrap();
         static ref вторая_палка:Regex= Regex::new(r"(?i)/").unwrap();
     }
-    if первая_палка.find_iter(стог_сена).count()==0 &&
-        вторая_палка.find_iter(стог_сена).count()==0 {
+    if первая_палка.find_iter(стог_сена).count() == 0
+        && вторая_палка.find_iter(стог_сена).count() == 0
+    {
         return стог_сена.to_string();
     }
-    for указатель in  0..без_пути.len() {
-        if let Some(строка) = без_пути[указатель].captures(&стог_сена) {
+    for указатель in 0..без_пути.len() {
+        if let Some(строка) = без_пути[указатель].captures(&стог_сена)
+        {
             return строка[1].trim().to_string();
-        } 
+        }
     }
-   
+
     panic!(
         "ошибка при выдирания имени файла без пути к нему |{}|",
         &стог_сена,
@@ -479,7 +479,12 @@ pub fn замена_слов_через_кучу(
     указатель_захода: &mut usize,
     куча_пропусков: &HashSet<usize>,
     словарь_куча: &HashMap<String, HashSet<usize>>,
+    проверка_двойного_входа:&mut Vec<String>,
 ) {
+    //if sz_найти_в_ряде(&проверка_двойного_входа,&сообщение) {
+    //    println!("Двойной вход: {сообщение}")
+   // }
+    //проверка_двойного_входа.push(сообщение.to_string());
     *указатель_захода += 1;
     let spinner_style = ProgressStyle::with_template("{wide_msg}")
         .unwrap()
@@ -487,16 +492,6 @@ pub fn замена_слов_через_кучу(
     let m = MultiProgress::new();
     let pb = m.add(ProgressBar::new(15));
     pb.set_style(spinner_style.clone());
-   // pb.set_message(format!("{}", сообщение));
-    //pb.set_message(format!("{сообщение}: {сообщение}"));
-
-    /*
-     //println!(
-     //    "{} {} проход....",
-     //    style(сообщение).bold().dim(),
-    //     LOOKING_GLASS
-     );
-      */
 
     let mut счётчик_словаря_внутренний: Mutex<Vec<usize>> =
         Mutex::new(vec![0; re_образцы.len()]);

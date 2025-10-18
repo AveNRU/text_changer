@@ -16,4 +16,6 @@ logs/xvba_debug.log
 .run/Обновление.run.xml
 .run/Проверка.run.xml
 /logs
+/*.xlsx
 /вывод2
+*~

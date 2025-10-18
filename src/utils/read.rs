@@ -1,16 +1,16 @@
 use crate::utils::functions::строка_удалить_utf8_концы_строк;
 use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::sz_найти;
+use encoding_rs::WINDOWS_1251;
+use encoding_rs_io::DecodeReaderBytesBuilder;
 use rayon::prelude::*;
-use std::fs::{self,File};
-use std::io::{BufRead, BufReader,Cursor,Read};
+use std::fs::{self, File};
+use std::io::{BufRead, BufReader, Cursor, Read};
 use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use walkdir::WalkDir;
-use encoding_rs::WINDOWS_1251;
-use encoding_rs_io::DecodeReaderBytesBuilder;
 
 //чтение файла в UTF-8
 pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
@@ -28,14 +28,17 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
 }
 
 // Чтение данных из Vec<u8> как UTF-8 текста с разделением на строки
-pub fn read_utf8_из_ряда_u8(ряд_байтов: &Vec<u8>,имя_файла:&String) -> Vec<String> {
+pub fn read_utf8_из_ряда_u8(
+    ряд_байтов: &Vec<u8>, имя_файла: &String
+) -> Vec<String> {
     let mut итог: Vec<String> = Vec::new();
 
     // Создаем BufRead из Vec<u8>
     let курсор = Cursor::new(ряд_байтов.clone());
 
     // Читаем построчно
-    for (указатель, строка_результат) in курсор.clone().lines().enumerate() {
+    for (указатель, строка_результат) in курсор.clone().lines().enumerate()
+    {
         let указатель_строки: usize = указатель + 1;
 
         match строка_результат {
@@ -60,17 +63,18 @@ pub fn read_utf8_из_ряда_u8(ряд_байтов: &Vec<u8>,имя_файл�
                     }
                 };
                 буффер
-                
+
                  */
-                
-                
+
                 // Обработка ошибок UTF-8
-                eprintln!("Файл: {имя_файла} | Ошибка в строке {}: {}", указатель_строки, ошибка);
+                eprintln!(
+                    "Файл: {имя_файла} | Ошибка в строке {}: {}",
+                    указатель_строки, ошибка
+                );
 
                 // Альтернатива: использовать lossy конверсию
-                let потерянная_строка = String::from_utf8_lossy(
-                    &ряд_байтов[курсор.position() as usize..]
-                ).to_string();
+                let потерянная_строка =
+                    String::from_utf8_lossy(&ряд_байтов[курсор.position() as usize..]).to_string();
                 итог.push(потерянная_строка);
                 break;
             }

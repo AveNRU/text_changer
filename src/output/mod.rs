@@ -2,3 +2,4 @@
 pub mod dir;
 pub mod functions;
 pub mod write;
+pub mod check;

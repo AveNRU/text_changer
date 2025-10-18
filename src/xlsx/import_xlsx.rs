@@ -10,6 +10,8 @@ extern crate rayon;
 use crate::dictionary_0::добавить_все_слова_в_словарь;
 use crate::utils::stringzilla::{sz_найти, sz_упорядочить_словарь};
 use rayon::prelude::*;
+use std::fs::File;
+use std::io::BufReader;
 use xml::Encoding::Default;
 
 //загрузка словаря
@@ -35,22 +37,21 @@ pub fn загрузка_словарей(
             имя: имя_словаря,                      //его имя
             ..Default::default()
         });
-        (0..4).into_par_iter().enumerate().for_each(|(i2, i3)| {
-            //for i2 in 0..4 {
-            //начало
-            let mut рабочая_книга: Xlsx<_> = match open_workbook(&ряд_пути_до_словарей[i])
-            {
-                Ok(успех) => успех,
+        //начало Mutex<Xlsx<BufReader<File>>>
+        // Начало - используем Mutex
+        let рабочая_книга: Mutex<Xlsx<BufReader<File>>> =
+            match open_workbook(&ряд_пути_до_словарей[i]) {
+                Ok(успех) => Mutex::new(успех),
                 Err(ошибка) => panic!(
                     "Не могу открыть файл .xlsx в папке {}: {}\r\nпо причине:{}",
                     пути_общие.словари, ряд_пути_до_словарей[i], ошибка
                 ),
             };
-            //    .expect("Не могу открыть файл .xlsx в папке ./dictionary/");
-            //имена страниц
-            let имена_страниц = рабочая_книга.sheet_names();
-            //println!("имена страниц: {:?}",&имена_страниц);
-            //чтение содержимого всех страниц
+        //имена страниц
+        let имена_страниц = рабочая_книга.lock().unwrap().sheet_names().to_vec();
+        //чтение содержимого всех страниц
+        (0..4).into_par_iter().for_each(|(i2)| {
+            //for i2 in 0..4 {
             //вектор слов
             let mut ряд_искомые_слова: Vec<String> = Vec::new();
             //вектор замен
@@ -68,8 +69,12 @@ pub fn загрузка_словарей(
             };
             //println!("имя страницы: {}", &имя_страницы);
             //рабочая область
-            let рабочая_страница: Result<calamine::Range<Data>, calamine::XlsxError> =
-                рабочая_книга.worksheet_range(&имя_страницы);
+            // let рабочая_страница: Result<calamine::Range<Data>, calamine::XlsxError> =
+            //     рабочая_книга.worksheet_range(&имя_страницы);
+            let рабочая_страница = {
+                let mut книга_guard = рабочая_книга.lock().unwrap();
+                книга_guard.worksheet_range(&имя_страницы)
+            };
             //открытие страницы книги
             //открытие страницы j
             let содержимое_страницы: calamine::Range<Data> = match рабочая_страница {
@@ -85,7 +90,9 @@ pub fn загрузка_словарей(
 
             // рабочая_страница.expect("не получилось открыть главную страницу в файле .xlsx ");
             //получение значения последней ячейки (строка)
-            let последняя_строка = содержимое_страницы.get_size().0;
+            let первая_строка = содержимое_страницы.start().unwrap_or((0, 0));
+            let последняя_строка = содержимое_страницы.end().unwrap_or((0, 0));
+            // let последняя_строка = содержимое_страницы.get_size().0;
             //println!(
             //     "Последняя строка на {i2} странице в словаре: {}",
             //     &последняя_строка
@@ -100,7 +107,7 @@ pub fn загрузка_словарей(
 
             // Перебор всех слов
             // (0..последняя_строка).into_par_iter().for_each(|k| {
-            for k in 0..последняя_строка {
+            for k in первая_строка.0..последняя_строка.0 {
                 // Извлечение слов, переделка их под заглавные буквы и маленькие
                 добавить_слова_в_словарь(
                     считать_значение_ячейки(&содержимое_страницы, k, 0),
@@ -322,10 +329,10 @@ pub fn добавить_слова_замены_и_re_в_словарь(
 //получение значения из строки, где i - номер строки, j - номер столбца
 pub fn считать_значение_ячейки(
     main_components: &calamine::Range<Data>,
-    i: usize,
-    j: usize,
+    i: u32,
+    j: u32,
 ) -> String {
-    let временная_строка = match main_components.get_value((i as u32, j as u32)) {
+    let временная_строка = match main_components.get_value((i, j)) {
         None => "".to_string(),
         Some(Data::Empty) => "".to_string(),
         Some(Data::String(v)) => v.to_string(),
@@ -414,7 +421,7 @@ pub fn добавить_слова_в_словарь(
     ряд_искомые_слова: &mut Vec<String>, //все общее количество слов, где все буквы нижние и первая заглавная
     ряд_замены_слов: &mut Vec<String>,   //замены слов
     этаж_страницы: usize,                //номер страницы
-    k: usize,                            //номер ячейки
+    k: u32,                              //номер ячейки
 ) {
     //запрос на слово искомое в строке
     //вложение искомого слова
@@ -602,25 +609,26 @@ pub fn определение_имени_словаря(
     return имя_словаря.to_string();
 }
 pub fn открыть_xlsx() {
-    (0..4).into_par_iter().enumerate().for_each(|(i2, i3)| {
-        let путь = "2.xlsx".to_string();
+    let путь = "2.xlsx".to_string();
 
-        //начало
-        let mut рабочая_книга: Xlsx<_> = match open_workbook(&путь) {
-            Ok(успех) => успех,
-            Err(ошибка) => panic!(
-                "Не могу открыть файл .xlsx в {}\r\nпо причине:{}",
-                путь, ошибка
-            ),
-        };
-        //имена страниц
-        let имена_страниц = рабочая_книга.sheet_names();
-        //чтение содержимого всех страниц
-        //вектор слов
-        let mut ряд_искомые_слова: Vec<String> = Vec::new();
-        //вектор замен
-        let mut ряд_замены: Vec<String> = Vec::new();
-        //получение имени страницы
+    //начало
+    let рабочая_книга: Mutex<Xlsx<BufReader<File>>> = match open_workbook(&путь) {
+        Ok(успех) => Mutex::new(успех),
+        Err(ошибка) => panic!(
+            "Не могу открыть файл .xlsx  {}\r\nпо причине:{}",
+            путь, ошибка
+        ),
+    };
+
+    //имена страниц
+    let имена_страниц = рабочая_книга.lock().unwrap().sheet_names().to_vec();
+    //чтение содержимого всех страниц
+    //вектор слов
+    let mut ряд_искомые_слова: Vec<String> = Vec::new();
+    //вектор замен
+    let mut ряд_замены: Vec<String> = Vec::new();
+    //получение имени страницы
+    (0..4).into_par_iter().for_each(|i2| {
         //рабочая страница
         match безопасный_доступ(&имена_страниц, i2) {
             Some(значение) => (), //println!("Найдено: {}", значение),
@@ -632,8 +640,14 @@ pub fn открыть_xlsx() {
             _ => return,
         };
         //рабочая область
-        let рабочая_страница: Result<calamine::Range<Data>, calamine::XlsxError> =
-            рабочая_книга.worksheet_range(&имя_страницы);
+        //let рабочая_страница: Result<calamine::Range<Data>, calamine::XlsxError> =
+        //    рабочая_книга.worksheet_range(&имя_страницы);
+        //
+        // Рабочая область - получаем доступ через Mutex
+        let рабочая_страница = {
+            let mut книга_guard = рабочая_книга.lock().unwrap();
+            книга_guard.worksheet_range(&имя_страницы)
+        };
         //открытие страницы книги
         //открытие страницы j
         let содержимое_страницы: calamine::Range<Data> = match рабочая_страница {
@@ -648,13 +662,39 @@ pub fn открыть_xlsx() {
         };
         // рабочая_страница.expect("не получилось открыть главную страницу в файле .xlsx ");
         //получение значения последней ячейки (строка)
+        let start = содержимое_страницы.start().unwrap_or((0, 0));
+        let end = содержимое_страницы.end().unwrap_or((0, 0));
         let последняя_строка = содержимое_страницы.get_size().0;
-        println!(
-            "Последняя строка на {i2} странице в словаре: {}",
-            &последняя_строка
-        );
+        println!("Первая строка на {i2} странице в словаре: {}", &start.0);
+        println!("Последняя строка на {i2} странице в словаре: {}", &end.0);
     });
     fn безопасный_доступ<T>(вектор: &[T], индекс: usize) -> Option<&T> {
         вектор.get(индекс)
+    }
+}
+
+pub fn main2() {
+    let path = "2.xlsx";
+
+    let mut workbook: Xlsx<_> = open_workbook(&path).expect("cannot open excel file");
+
+    let sheet_names = workbook.sheet_names();
+
+    for sheet_name in sheet_names {
+        let range = workbook.worksheet_range(&sheet_name).unwrap();
+
+        let start = range.start().unwrap_or((0, 0));
+        let end = range.end().unwrap_or((0, 0));
+
+        let start_row = start.0;
+        let start_col = start.1;
+        let end_row = end.0;
+        let end_col = end.1;
+        let height = range.height();
+        let width = range.width();
+
+        println!("Sheet '{sheet_name}' has range: start  = ({start_row}, {start_col})",);
+        println!("Sheet '{sheet_name}' has range: end    = ({end_row}, {end_col})",);
+        println!("Sheet '{sheet_name}' has range: height = {height}, width = {width}\n",);
     }
 }

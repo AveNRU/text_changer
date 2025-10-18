@@ -1,15 +1,18 @@
+use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
 use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
 use std::io::{Cursor, SeekFrom};
 use std::time::Instant;
 use std::{fmt, fs};
 use zip::{ZipArchive, ZipWriter};
-pub type VirtualFs = HashMap<String, Vec<u8>>;
+
+pub type Архив_в_озу = HashMap<String, Vec<u8>>;
 
 #[derive(Debug)]
 enum ZipsError {
     FileNotFound,
     IoError(std::io::Error),
     ZipError(zip::result::ZipError),
+    Пустойфайл,
 }
 impl From<std::io::Error> for ZipsError {
     fn from(e: std::io::Error) -> Self {
@@ -23,7 +26,7 @@ impl From<zip::result::ZipError> for ZipsError {
 }
 struct Zips {
     указатель: Cursor<Vec<u8>>,
-    хранение_в_озу: VirtualFs,
+    хранение_в_озу: Архив_в_озу,
 }
 impl fmt::Display for ZipsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -31,6 +34,7 @@ impl fmt::Display for ZipsError {
             ZipsError::FileNotFound => write!(f, "File not found"),
             ZipsError::IoError(e) => write!(f, "IO error: {}", e),
             ZipsError::ZipError(e) => write!(f, "ZIP error: {}", e),
+            ZipsError::Пустойфайл=> write!(f, "Пустое содержимое",),
         }
     }
 }
@@ -52,6 +56,9 @@ impl Zips {
         use std::io::{Read, Seek};
 
         self.указатель.seek(SeekFrom::Start(0)).unwrap();
+        if self.указатель.clone().into_inner().len() == 0 {
+            return Err(ZipsError::Пустойфайл);
+        }
         let mut архив = ZipArchive::new(&mut self.указатель).unwrap();
 
         for i in 0..архив.len() {
@@ -68,13 +75,16 @@ impl Zips {
     }
 }
 pub fn zip_архив_в_память(
-    строка: &String,
-    virt_fs: &mut VirtualFs,
+    путь: &String,
+    virt_fs: &mut Архив_в_озу,
 ) -> Result<(), Box<dyn std::error::Error>> {
     //HashMap<String, Vec<u8>>{
-    let mut zips = Zips::new(строка).unwrap();
-
-    zips.распаковать_архив_в_озу().unwrap();
+    let mut zips = Zips::new(путь).unwrap();
+    match zips.распаковать_архив_в_озу() {
+        Ok(zip) => (),
+        Err(ZipsError::Пустойфайл) => return Err(format!("Пустой файл").into()),
+        Err(ошибка)=>panic!("Ошибка при распаковке файла в архив: {путь}. Ошибка: {ошибка}"),
+    }
     for (путь, содержимое) in zips.хранение_в_озу.iter() {
         virt_fs.insert(путь.clone(), содержимое.clone());
     }
@@ -82,7 +92,7 @@ pub fn zip_архив_в_память(
 }
 
 /// Запаковывает виртуальную файловую систему в Vec<u8>
-pub fn pack_zip_from_memory(virtual_fs: &VirtualFs) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn pack_zip_from_memory(virtual_fs: &Архив_в_озу) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     use std::io::Write;
 
     //println!("запуск запаковки");
