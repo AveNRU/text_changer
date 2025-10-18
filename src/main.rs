@@ -21,6 +21,8 @@ pub mod xlsx;
 pub mod yamish;
 //use time::*; //{self,OffsetDateTime};
 use crate::output::write;
+use crate::utils::functions_add::system_pause;
+
 fn main() {
     //output книги
     //crate::xlsx::import_xlsx::открыть_xlsx();
@@ -84,6 +86,7 @@ fn main() {
     // ).unwrap();
 
     //crate::write::main2();
+    system_pause();
 }
 
 //} //рдавчина

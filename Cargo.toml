@@ -48,3 +48,9 @@ members = [
 # Явно указываем разрешение не-ASCII идентификаторов
 [package.metadata]
 non_ascii_idents = true
+
+[profile.dev]
+debug = true  # Включить отладочную информацию
+
+[profile.release]
+debug = true  # Также
