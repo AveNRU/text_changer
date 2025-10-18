@@ -121,6 +121,13 @@ pub struct Словарь {
     pub re_вездесушее: Vec<Regex>,            //сложные и составные Regex
     pub замена_вездесушее: Vec<String>,       //сложные и составные
 }
+//словарь
+#[derive(Debug, Default, Clone)]
+pub struct Ячейка_словаря {
+    pub искомое_слово:String,
+    pub re_образец:String,
+    pub замена:String,
+}
 
 //случаи замены
 
