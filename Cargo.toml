@@ -27,18 +27,18 @@ stringzilla = "4.2.1"
 time = "0.3.44"
 chrono = "0.4.42"
 unirust = "0.1.0"
-rzhavchina = { path = "./rzhavchina_proc_macro/" }
+#rzhavchina = { path = "./rzhavchina_proc_macro/" }
 sysinfo = "0.37.2"
 vergen = "9.0.6"
 rayon = "1.11.0"
 docx-rust = "0.1.10"
 xml-rs = "1.0.0"
-quick-xml = "0.38.3"
+#quick-xml = "0.38.3"
 pretty_assertions = "1.4.1"
 console = "0.16.1"
 rand = "0.10.0-rc.0"
-sha2 = "0.10.9"
-blake3 = "1.8.2"
+#sha2 = "0.10.9"
+#blake3 = "1.8.2"
 serde = { version = "1.0.228", features = ["derive"] }
 [workspace]
 members = [
