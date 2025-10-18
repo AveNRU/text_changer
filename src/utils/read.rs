@@ -2,14 +2,15 @@ use crate::utils::functions::строка_удалить_utf8_концы_стр�
 use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::sz_найти;
 use rayon::prelude::*;
-use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::fs::{self,File};
+use std::io::{BufRead, BufReader,Cursor,Read};
 use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use walkdir::WalkDir;
+use encoding_rs::WINDOWS_1251;
+use encoding_rs_io::DecodeReaderBytesBuilder;
 
 //чтение файла в UTF-8
 pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
@@ -24,6 +25,59 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
         итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
     }
     return итог;
+}
+
+// Чтение данных из Vec<u8> как UTF-8 текста с разделением на строки
+pub fn read_utf8_из_ряда_u8(ряд_байтов: &Vec<u8>,имя_файла:&String) -> Vec<String> {
+    let mut итог: Vec<String> = Vec::new();
+
+    // Создаем BufRead из Vec<u8>
+    let курсор = Cursor::new(ряд_байтов.clone());
+
+    // Читаем построчно
+    for (указатель, строка_результат) in курсор.clone().lines().enumerate() {
+        let указатель_строки: usize = указатель + 1;
+
+        match строка_результат {
+            Ok(строка) => {
+                итог.push(строка);
+            }
+            Err(ошибка) => {
+                /*let mut данные = DecodeReaderBytesBuilder::new()
+                    .encoding(Some(WINDOWS_1251))
+                    .build(ряд_байтов.as_slice());
+                let mut буффер = String::new();
+                let _number_of_bytes = match данные.read_to_string(&mut буффер) {
+                    Ok(указатель) => указатель,
+                    Err(why) => {
+                        eprintln!("Сбой при чтении данных из файла в ОЗУ!");
+                        eprintln!("Строка № {указатель_строки}");
+                        eprintln!("Используемая кодировка: WINDOWS_1251.");
+                        eprintln!("Попробуйте другой вид кодировки!");
+                        println!("Ошибка при преобразовании данных в UTF-8 по причине: {why}");
+                        system_pause();
+                        panic!("Ошибка при преобразовании данных в UTF-8 по причине: {why}")
+                    }
+                };
+                буффер
+                
+                 */
+                
+                
+                // Обработка ошибок UTF-8
+                eprintln!("Файл: {имя_файла} | Ошибка в строке {}: {}", указатель_строки, ошибка);
+
+                // Альтернатива: использовать lossy конверсию
+                let потерянная_строка = String::from_utf8_lossy(
+                    &ряд_байтов[курсор.position() as usize..]
+                ).to_string();
+                итог.push(потерянная_строка);
+                break;
+            }
+        }
+    }
+    //println!("UTF8: {имя_файла} количество строк: {}",итог.len());
+    итог
 }
 //чтение файла
 fn считать_файл(путь: &str) -> Box<dyn BufRead> {

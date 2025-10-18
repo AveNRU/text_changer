@@ -23,8 +23,8 @@ pub mod yamish;
 use crate::output::write;
 fn main() {
     //output книги
-    crate::xlsx::import_xlsx::открыть_xlsx();
-/*
+    //crate::xlsx::import_xlsx::открыть_xlsx();
+
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
 
@@ -91,8 +91,6 @@ fn main() {
     // ).unwrap();
 
     //crate::write::main2();
-    
- */
 }
 
 //} //рдавчина

@@ -9,10 +9,208 @@ use regex::Regex;
 use std::sync::Mutex;
 use time::Month::January;
 
+pub fn xml_получить_указатели_на_пропуски(
+    содержимое: &Vec<String>,
+) -> HashSet<usize> {
+    lazy_static! {
+
+             static ref fb3_исключения_простые: Vec<String> = vec![
+            r#"<fb3-body xmlns="#.to_string(),
+            r#"<rootfile"#.to_string(),
+            "<rootfiles>".to_string(),
+            "<container version".to_string(),
+            r#"<?xml version="1.0"?>"#.to_string(),
+        ];
+
+        static ref fb3_исключения: Vec<String> = vec![
+            r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
+            //вложения
+            "</section></body><binary".to_string(),
+            //содержание
+            "<description>".to_string(),
+            "<title-info>".to_string(),
+            "</title-info>".to_string(),
+            "<author>".to_string(),
+            "</author>".to_string(),
+            "<annotation>".to_string(),
+            "</annotation>".to_string(),
+            "<coverpage>".to_string(),
+            "</coverpage>".to_string(),
+            "<history>".to_string(),
+            "</history>".to_string(),
+            "<publisher>".to_string(),
+            "</publisher>".to_string(),
+            "<document-info>".to_string(),
+            "</document-info>".to_string(),
+            "<publish-info>".to_string(),
+            "</publish-info>".to_string(),
+            "</description>".to_string(),
+            "<lang>".to_string(),
+            "<version>".to_string(),
+             "<book-name>".to_string(),
+              "<id>".to_string(),
+              "<src-url>".to_string(),
+             "<program-used>".to_string(),
+                "<date value=".to_string(),
+                "<city>".to_string(),
+             "<year>".to_string(),
+             "<isbn>".to_string(),
+             "<image".to_string(),
+             "<body>".to_string(),
+             "</body>".to_string(),
+            "<section>".to_string(),
+             "</section>".to_string(),
+                "<epigraph>".to_string(),
+             "</epigraph>".to_string(),
+              "<FictionBook>".to_string(),
+             "</FictionBook>".to_string(),
+            "<p>…</p>".to_string(),
+            "<date>".to_string(),
+                 "<nickname>".to_string(),
+             "<empty-line/>".to_string(),
+             "<title>".to_string(),
+                "</title>".to_string(),
+            "<section id=".to_string(),
+            "</container>".to_string(),
+                    "</rootfiles>".to_string(),
+        ];
+        static ref fb3_обязалово: Vec<String> = vec!["<".to_string(), ">".to_string(),];
+        static ref fb3_re_исключения: Vec<Regex> = vec![
+            Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
+                //вложения
+            Regex::new(r"(?i)^</section></body><binary").unwrap(),
+                      //содержание
+            Regex::new(r"(?i)^<description>$").unwrap(),
+            Regex::new(r"(?i)^\s*<title-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*</title-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*<author>$").unwrap(),
+            Regex::new(r"(?i)^\s*</author>$").unwrap(),
+            Regex::new(r"(?i)^\s*<annotation>$").unwrap(),
+            Regex::new(r"(?i)^\s*</annotation>$").unwrap(),
+            Regex::new(r"(?i)^\s*<coverpage>$").unwrap(),
+            Regex::new(r"(?i)^\s*</coverpage>$").unwrap(),
+            Regex::new(r"(?i)^\s*<history>$").unwrap(),
+            Regex::new(r"(?i)^\s*</history>$").unwrap(),
+            Regex::new(r"(?i)^\s*<publisher>$").unwrap(),
+            Regex::new(r"(?i)^\s*</publisher>$").unwrap(),
+            Regex::new(r"(?i)^\s*<document-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*</document-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*<publish-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*</publish-info>$").unwrap(),
+            Regex::new(r"(?i)^\s*</description>$").unwrap(),
+            Regex::new(r"(?i)^\s*<lang>.+</lang>$").unwrap(),
+            Regex::new(r"(?i)^\s*<version>\</version>$").unwrap(),
+            Regex::new(r"(?i)^\s*<book-name>.*</book-name>$").unwrap(),
+                  Regex::new(r"(?i)^\s*<id>.*</id>$").unwrap(),
+                     Regex::new(r"(?i)^\s*<src-url>.*</src-url>$").unwrap(),
+            Regex::new(r"(?i)^\s*<program-used>.*</program-used>$").unwrap(),
+            Regex::new(r"(?i)^\s*<date value=.*</date>$").unwrap(),
+             Regex::new(r"(?i)^\s*<city>.*</city>$").unwrap(),
+                Regex::new(r"(?i)^\s*<year>.*</year>$").unwrap(),
+              Regex::new(r"(?i)^\s*<isbn>.*</isbn>$").unwrap(),
+             Regex::new(r#"(?i)^\s*<image.*\.jpg"/>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<body>$"#).unwrap(),
+              Regex::new(r#"(?i)^\s*</body>$"#).unwrap(),
+             Regex::new(r#"(?i)^\s*<section>$"#).unwrap(),
+              Regex::new(r#"(?i)^\s*</section>$"#).unwrap(),
+              Regex::new(r#"(?i)^\s*<epigraph>$"#).unwrap(),
+              Regex::new(r#"(?i)^\s*</epigraph>$"#).unwrap(),
+                 Regex::new(r#"(?i)^\s*<FictionBook>$"#).unwrap(),
+              Regex::new(r#"(?i)^\s*</FictionBook>$"#).unwrap(),
+                    Regex::new(r#"(?i)^\s*<p>…</p>$"#).unwrap(),
+             Regex::new(r#"(?i)^\s*<date>.+</date>$"#).unwrap(),
+                       Regex::new(r#"(?i)^\s*<nickname>.+</nickname>$"#).unwrap(),
+             Regex::new(r#"(?i)^\s*<empty-line/>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<title>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</title>$"#).unwrap(),
+             Regex::new(r#"(?i)^\s*<section id=".+">$"#).unwrap(),
+             Regex::new(r#"(?i)^\s*</container>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</rootfiles>$"#).unwrap(),
+        ];
+          static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
+         static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
+    }
+    let mut исключения_для_проверки: HashSet<usize> = HashSet::default();
+    исключения_для_проверки.insert(0);
+    if !проверка_образцов_для_кучи(
+        &fb3_исключения,
+        &fb3_re_исключения,
+        &исключения_для_проверки,
+    ) {
+        panic!()
+    }
+    //получение значений
+
+    // let mut пропуски: HashSet<usize> = HashSet::default();
+    let пропуски = Mutex::new(HashSet::default());
+    //прогон
+    содержимое
+        .par_iter()
+        .enumerate()
+        .for_each(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка) {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+            if fb3_проверка_содержимого_на_условия(
+                &строка,
+            ) {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+        });
+    let mut пропуски = пропуски.into_inner().unwrap();
+    return пропуски;
+
+    //если истина-то переход к следующей строке
+  
+    //исключения для расширения
+
+    //если возвращает истину - то переход на следующую строку
+    fn fb3_обязательное_содержимое(стог_сена: &String) -> bool {
+        //проверка что нет пустоты
+        if стог_сена.is_empty() {
+            return true;
+        }
+        //сначала что есть скобки
+        return fb3_обязалово
+            .par_iter()
+            .any(|образец| sz_найти(&стог_сена, &образец));
+    }
+    fn fb3_проверка_содержимого_на_условия(
+        стог_сена: &String,
+    ) -> bool {
+        //обязательно должны быть скобки
+        if !fb3_обязательное_содержимое(стог_сена) {
+          return true;
+        }
+        //поиск
+        for образец in  fb3_исключения_простые.iter() {
+            if sz_найти(&стог_сена,&образец) {
+              //  println!("b3_исключения_простые: {стог_сена}");
+                return true;
+            }
+        }
+        
+      if fb3_исключения_простые
+          .par_iter()
+          .any(|образец| sz_найти(&стог_сена, &образец))
+      {
+          //println!("b3_исключения_простые: {стог_сена}");
+          return true;
+      }
+              //проверка концов и окончаний строк
+              //сначала что есть скобки
+              return проверка_исключений_в_стоге_сена(
+                  &fb3_исключения,
+                  &fb3_re_исключения,
+                  &стог_сена,
+              );
+    }
+}
 pub fn fb2_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
     lazy_static! {
+
         static ref fb2_исключения: Vec<String> = vec![
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
             //вложения
@@ -143,6 +341,7 @@ pub fn fb2_получить_указатели_на_пропуки(
             }
         });
     let mut пропуски = пропуски.into_inner().unwrap();
+    return пропуски;
     /*for указатель in 0..содержимое.len() {
         if !есть_ли_кириллица(&содержимое[указатель]) {
             пропуски.insert(указатель);
@@ -198,18 +397,82 @@ pub fn fb2_получить_указатели_на_пропуки(
         );
     }
     //если истина-то переход к следующей строке
-    return пропуски;
+
 }
 
+fn html_получить_указатели_на_пропуски(
+    содержимое: &Vec<String>,
+) -> HashSet<usize> {
+
+    let пропуски = Mutex::new(HashSet::default());
+    содержимое
+        .par_iter()
+        .enumerate()
+        .for_each(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка) {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+            if html_проверка_содержимого_на_условия(&строка) {
+                пропуски.lock().unwrap().insert(указатель);
+            }
+        });
+    let mut пропуски = пропуски.into_inner().unwrap();
+    return пропуски;
+
+    fn html_проверка_содержимого_на_условия(
+        стог_сена: &String
+    ) -> bool {
+        lazy_static! {
+             static ref html_исключения: Vec<String> = vec![
+            r#"<!DOCTYPE html PUBLIC"#.to_string(),
+            
+            ];
+            static ref html_исключения_с_проверкой: Vec<String> = vec![
+            "<blockquote><div>".to_string(),
+                "</div></body></html>".to_string(),
+                ];
+             static ref re_html_исключения_с_проверкой: Vec<Regex> = vec![
+                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
+                   Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
+                ];
+    }
+        
+        //поиск
+        if html_исключения.par_iter().any(|образец| {
+            sz_найти(&стог_сена,образец)
+        }) {return true}
+
+        return проверка_исключений_в_стоге_сена(
+            &html_исключения_с_проверкой,
+            &re_html_исключения_с_проверкой,
+            &стог_сена,
+        )
+        //проверка концов и окончаний строк
+        //сначала что есть скобки
+        
+    }
+}
 pub fn проверка_содержимого_в_зависимости_от_расширения_книги(
     содержимое: &Vec<String>,
-    расширение: &String,
+    имя_файла: &String,
+    расширение_книги: &String,
 ) -> HashSet<usize> {
     //fb2
-    if расширение.as_str() == "fb2".to_string() {
+    if расширение_книги.as_str() == "fb2".to_string() {
         return fb2_получить_указатели_на_пропуки(&содержимое);
-    } else if расширение.as_str() == "md".to_string() {
+    } else if расширение_книги.as_str() == "md".to_string() {
         return md_получить_указатели_на_пропуки(&содержимое);
+    } else if расширение_книги.as_str() == "fb3".to_string()||
+        расширение_книги.as_str() == "epub".to_string()
+        {
+            if !sz_найти(имя_файла,".rels"){
+        if sz_найти(имя_файла, ".xml") {
+            return xml_получить_указатели_на_пропуски(&содержимое)
+        }
+                 if sz_найти(имя_файла, ".html") {
+                    return html_получить_указатели_на_пропуски(&содержимое)
+                }
+        }
     }
     return HashSet::default();
 }

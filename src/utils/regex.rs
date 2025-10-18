@@ -43,7 +43,30 @@ static SPARKLE: Emoji<'_, '_> = Emoji("✨ ", ":-)");
 use lazy_static::lazy_static;
 use rayon::iter::IntoParallelRefIterator;
 use regex::Regex;
-pub fn изображение_расширение_с_точкой(стог_сена: &String) -> bool {
+
+pub fn мусорное_содержимое_архивов(
+    стог_сена: &String
+) -> bool {
+    lazy_static! {
+        static ref re_расширения_мусорные: Vec<Regex> = vec![
+            Regex::new(r"(?i)\.css$").unwrap(), 
+              Regex::new(r"(?i)\.rels$").unwrap(), 
+              Regex::new(r"(?i)\.ttf$").unwrap(), 
+            Regex::new(r"(?i)\.xhtml$").unwrap(),
+            //целиком имя
+             Regex::new(r"(?i)mimetype$").unwrap(),
+            //
+            
+        ];
+    }
+    return re_расширения_мусорные
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена));
+}
+
+pub fn изображение_расширение_с_точкой(
+    стог_сена: &String
+) -> bool {
     lazy_static! {
         static ref re_расширения_изображений: Vec<Regex> = vec![
             Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
@@ -60,10 +83,12 @@ pub fn изображение_расширение_с_точкой(стог_се
     }
     return re_расширения_изображений
         .par_iter()
-        .any(|строка| строка.is_match(стог_сена))
+        .any(|строка| строка.is_match(стог_сена));
 }
 
-pub fn изображение_расширение_без_точки(стог_сена: &String) -> bool {
+pub fn изображение_расширение_без_точки(
+    стог_сена: &String
+) -> bool {
     lazy_static! {
         static ref re_расширения_изображений: Vec<Regex> = vec![
             Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
@@ -80,7 +105,7 @@ pub fn изображение_расширение_без_точки(стог_с
     }
     return re_расширения_изображений
         .par_iter()
-        .any(|строка| строка.is_match(стог_сена))
+        .any(|строка| строка.is_match(стог_сена));
 }
 
 pub fn не_является_изображением(стог_сена: &String) -> bool {
@@ -177,6 +202,32 @@ pub fn есть_ли_маты(стог_сена: &String) -> bool {
 }
 
 //выдел строки
+pub fn re_получить_имя_файла_без_пути(стог_сена: &String) -> String {
+    lazy_static! {
+        static ref без_пути:Vec<Regex> = vec![
+            Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
+        //     Regex::new(r"(?i)(.[^\\]+)$").unwrap(),
+        ];
+        static ref первая_палка:Regex= Regex::new(r"(?i)\\").unwrap();
+        static ref вторая_палка:Regex= Regex::new(r"(?i)/").unwrap();
+    }
+    if первая_палка.find_iter(стог_сена).count()==0 &&
+        вторая_палка.find_iter(стог_сена).count()==0 {
+        return стог_сена.to_string();
+    }
+    for указатель in  0..без_пути.len() {
+        if let Some(строка) = без_пути[указатель].captures(&стог_сена) {
+            return строка[1].trim().to_string();
+        } 
+    }
+   
+    panic!(
+        "ошибка при выдирания имени файла без пути к нему |{}|",
+        &стог_сена,
+    );
+}
+
+//выдел строки
 pub fn re_получить_строку_с_описанием(
     стог_сена: &String,
     образец: &Regex,
@@ -198,7 +249,6 @@ pub fn re_получить_строку_с_описанием(
     };
     return строка[1].trim().to_string();
 }
-
 //выдел строки
 /*
 pub fn получить_строку_из_ряда_re_с_описанием(стог_сена: &String, образец: &Vec<Regex>,ошибка:&str) -> String {
@@ -431,15 +481,28 @@ pub fn замена_слов_через_кучу(
     словарь_куча: &HashMap<String, HashSet<usize>>,
 ) {
     *указатель_захода += 1;
-    println!(
-        "{} {}Завершено...",
-        style(сообщение).bold().dim(),
-        LOOKING_GLASS
-    );
-    let mut счётчик_словаря_внутренний:Mutex<Vec<usize>>=Mutex::new(vec![0;re_образцы.len()]);
+    let spinner_style = ProgressStyle::with_template("{wide_msg}")
+        .unwrap()
+        .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ");
+    let m = MultiProgress::new();
+    let pb = m.add(ProgressBar::new(15));
+    pb.set_style(spinner_style.clone());
+   // pb.set_message(format!("{}", сообщение));
+    //pb.set_message(format!("{сообщение}: {сообщение}"));
+
+    /*
+     //println!(
+     //    "{} {} проход....",
+     //    style(сообщение).bold().dim(),
+    //     LOOKING_GLASS
+     );
+      */
+
+    let mut счётчик_словаря_внутренний: Mutex<Vec<usize>> =
+        Mutex::new(vec![0; re_образцы.len()]);
     // Создаем атомарные счетчики для каждого шаблона
-   // let атомарные_счетчики: Vec<AtomicUsize> =
-   //     (0..re_образцы.len()).map(|_| AtomicUsize::new(0)).collect();
+    // let атомарные_счетчики: Vec<AtomicUsize> =
+    //     (0..re_образцы.len()).map(|_| AtomicUsize::new(0)).collect();
 
     let количество_шагов = re_образцы.len() * содержимое.len();
     let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
@@ -447,7 +510,7 @@ pub fn замена_слов_через_кучу(
 
     счетчик_внутренний.set_style(
         ProgressStyle::with_template(
-            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
+            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg:.green}",
         )
         .unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
@@ -455,6 +518,7 @@ pub fn замена_слов_через_кучу(
         })
         .progress_chars("#>-"),
     );
+    счетчик_внутренний.set_message(format!("{}", сообщение));
 
     // Обрабатываем каждую строку параллельно
     содержимое
@@ -487,11 +551,12 @@ pub fn замена_слов_через_кучу(
                                 let замененная_строка = замененная_строка.to_string();
                                 if замененная_строка.as_str() != строка.as_str()
                                 {
-                                    let mut страж = счётчик_словаря_внутренний.lock().unwrap();
+                                    let mut страж =
+                                        счётчик_словаря_внутренний.lock().unwrap();
                                     страж[*указатель_образца] += 1;
                                     // Увеличиваем атомарный счетчик
-                                //    атомарные_счетчики[*указатель_образца]
-                                //        .fetch_add(1, Ordering::Relaxed);
+                                    //    атомарные_счетчики[*указатель_образца]
+                                    //        .fetch_add(1, Ordering::Relaxed);
                                 }
                                 // Заменяем строку
                                 *строка = замененная_строка;
@@ -507,11 +572,11 @@ pub fn замена_слов_через_кучу(
 
                             let замененная_строка = замененная_строка.to_string();
                             if замененная_строка.as_str() != строка.as_str() {
-                               let mut страж = счётчик_словаря_внутренний.lock().unwrap();
+                                let mut страж = счётчик_словаря_внутренний.lock().unwrap();
                                 страж[*указатель_образца] += 1;
                                 // Увеличиваем атомарный счетчик
-                              //  атомарные_счетчики[*указатель_образца]
-                              //      .fetch_add(1, Ordering::Relaxed);
+                                //  атомарные_счетчики[*указатель_образца]
+                                //      .fetch_add(1, Ordering::Relaxed);
                             }
                             // Заменяем строку
                             *строка = замененная_строка;
@@ -527,11 +592,15 @@ pub fn замена_слов_через_кучу(
                 счетчик_внутренний.set_position(текущий_шаг);
             }
         });
-    let счётчик_словаря_внутренний=счётчик_словаря_внутренний.into_inner().unwrap();
+    let счётчик_словаря_внутренний = счётчик_словаря_внутренний.into_inner().unwrap();
     for указатель in 0..счётчик_словаря.len() {
-        счётчик_словаря[указатель]+=счётчик_словаря_внутренний[указатель]
+        счётчик_словаря[указатель] += счётчик_словаря_внутренний[указатель]
     }
-        /*
+    //pb.finish_with_message(format!("{} завершено...", сообщение));
+    pb.finish_and_clear();
+    m.clear().unwrap();
+    счетчик_внутренний.finish_and_clear();
+    /*
     // Копируем результаты из атомарных счетчиков
     for (i, атомарный) in атомарные_счетчики.iter().enumerate() {
         let неделимый=атомарный.load(Ordering::Relaxed);
@@ -544,9 +613,9 @@ pub fn замена_слов_через_кучу(
         }
         счётчик_словаря[i] += неделимый;
     }
-    
+
 
     счетчик_внутренний.finish_and_clear();
-    
+
          */
 }

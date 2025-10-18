@@ -58,6 +58,40 @@ pub fn строка_удалить_utf8_концы_строк(
     // remove Window new строка: "\r\n"
     строка_utf8.trim_end_matches('\r').to_string()
 }
+
+pub fn строка_utf8_без_удаления_концов_строк(
+    ряд_байтов: &Vec<u8>,
+) -> Vec<String> {
+    use std::io::Read;
+    let mut ряд_строк: Vec<String> = Vec::new();
+    let строка_utf8: String = match std::str::from_utf8(&ряд_байтов) {
+        Ok(строка) => строка.to_string(),
+        Err(_) => {
+            let mut data = DecodeReaderBytesBuilder::new()
+                .encoding(Some(WINDOWS_1251))
+                .build(ряд_байтов.as_slice());
+
+            let mut содержимое = String::new();
+            let ряд_в_байтах = match data.read_to_string(&mut содержимое) {
+                Ok(число) => число,
+                Err(почему) => {
+                    eprintln!("Сбой при чтении данных из файла в ОЗУ!");
+                    eprintln!("Строка № ", );
+                    eprintln!("Используемая кодировка: WINDOWS_1251.");
+                    eprintln!("Попробуйте другой вид кодировки!");
+                    println!("Ошибка при преобразовании данных в UTF-8 по причине: {почему}");
+                    system_pause();
+                    panic!("Ошибка при преобразовании данных в UTF-8 по причине: {почему}")
+                }
+            };
+            содержимое
+        }
+    };
+    // remove Window new строка: "\r\n"
+    vec![строка_utf8]
+    
+}
+
 //получение строки в виде UTF-8
 pub fn шкала_проход() {
     let total = 100;

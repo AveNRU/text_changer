@@ -66,8 +66,10 @@ pub struct Книги {
 #[derive(Debug, Default, Clone)]
 pub struct Вложения {
     pub содержимое: Vec<String>, //содержимое
+    pub содержимое_в_байтах:Vec<u8>,
     pub имя: String,
-    pub изображение: Vec<u8>, //если это картинки, нельзя в utf8 переводить
+    pub имя_без_пути: String,
+    //pub изображение: Vec<u8>, //если это картинки, нельзя в utf8 переводить
 }
 //словарь
 #[derive(Debug, Default, Clone)]
