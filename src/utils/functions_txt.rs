@@ -29,20 +29,17 @@ pub fn вложить_строку_в_ряд_с_проверкой(
 pub fn есть_ли_повторно_строка_в_ряде(
     ряд: &Vec<String>,
     сообщение: &str,
-) -> bool {
+)  {
     //поиск уже добавленных слов
-    (0..ряд.len()).into_par_iter().any(|i| {
-        ((i + 1)..ряд.len()).into_par_iter().any(|j| {
+    (0..ряд.len()).into_par_iter().for_each(|i| {
+        ((i + 1)..ряд.len()).into_par_iter().for_each(|j| {
             if ряд[i].as_str() == ряд[j].as_str() {
                 println!(
                     "слово в словаре: |{}| {сообщение}. Номер строки 1){}, 2){}",
                     ряд[i], i, j
-                );
-                true
-            } else {
-                false
-            }
-        })
+                );}
+               
+        });
     })
 }
 

@@ -1,4 +1,5 @@
 use crate::utils::stringzilla::*;
+use stringzilla::stringzilla::bytesum;
 //use clap::error::ErrorKind::Format;
 use console::{Emoji, style};
 use foldhash::{HashMap, HashSet, HashSetExt};
@@ -442,12 +443,15 @@ pub fn замена_слов_через_regex(
                 {
                     let замененная_строка =
                         re_образец.replace_all(&строка, &замены[указатель_образца]);
-
+                    let замененная_строка=замененная_строка.to_string();
+                    if bytesum(&замененная_строка)!=bytesum(&строка)  {
+                        // Увеличиваем атомарный счетчик
+                        атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
+                    }
                     // Заменяем строку
-                    *строка = замененная_строка.to_string();
-
-                    // Увеличиваем атомарный счетчик
-                    атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
+                    *строка = замененная_строка;
+                   
+                
                 }
 
                 // Обновляем прогресс
