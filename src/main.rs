@@ -18,19 +18,13 @@ pub mod output;
 pub mod test_0;
 pub mod utils;
 pub mod xlsx;
-pub mod yamish;
 //use time::*; //{self,OffsetDateTime};
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
 
 fn main() {
-    //output книги
-    //crate::xlsx::import_xlsx::открыть_xlsx();
-
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
-
-    // println!("{:?}", chrono::offset::Local::now());
     let исполнение = env!("CARGO_PKG_VERSION");
     let название = env!("CARGO_PKG_DESCRIPTION");
     let разработчики = env!("CARGO_PKG_DESCRIPTION");
@@ -42,19 +36,13 @@ fn main() {
     );
     let mut сообщения: lib::Сообщения = Default::default();
     //подсчёт начала запуска времени
-    //let before: Instant = Instant::now();
     //начало нового
     let время_отсчёта: Instant = Instant::now();
     unsafe { env::set_var("RUST_BACKTRACE", "full") };
     unsafe { env::set_var("RUSTFLAGS", "-Awarnings") };
     unsafe { env::set_var("RUSTFLAGS", "-A dead_code") };
-    println!();
-    //crate::yamish::main();
-    // write::edit_xml_with_quick_xml();
     //проверка файлов и папок
-    check_1::проверка_содержимого();
-    //получение имен файлов
-
+    check_1::проверка_содержимого_папок();
     //книги
     let исходная_книга: Vec<lib::Книги> = import::read::считать_книги(&mut сообщения);
     //словари
@@ -69,8 +57,6 @@ fn main() {
         исходная_книга,
         &mut сообщения,
     );
-    println!(); // Переход на новую строку после завершения
-
     write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
     //время затраченное в итоге
     //вывод сообщений
@@ -80,16 +66,9 @@ fn main() {
         "Время занятое всего выполнения (от начала до конца): {:.2?}",
         время_отсчёта.elapsed()
     );
-    //crate::write::сравнение_xlsx_файлов_2_пути(
-    //    &"./запас словарей/Главный словарь1.xlsx".to_string(),
-    //     &"./запас словарей/Главный словарь2.xlsx".to_string(),
-    // ).unwrap();
-
-    //crate::write::main2();
     system_pause();
 }
 
-//} //рдавчина
 /*
 rzhavchina::rzhavchina! {
     внешний ящик rzhavchina;

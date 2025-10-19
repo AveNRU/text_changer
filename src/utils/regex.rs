@@ -1,7 +1,7 @@
 use crate::utils::stringzilla::*;
 //use clap::error::ErrorKind::Format;
 use console::{Emoji, style};
-use foldhash::{HashMap, HashSet, HashSetExt, quality::FixedState};
+use foldhash::{HashMap, HashSet, HashSetExt};
 use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, ProgressStyle};
 use rand::{Rng, prelude::*};
 use rayon::prelude::*;
@@ -32,18 +32,12 @@ static COMMANDS: &[&str] = &[
     "make all-clean",
     "make test",
 ];
-
-static LOOKING_GLASS: Emoji<'_, '_> = Emoji("🔍  ", "");
-static TRUCK: Emoji<'_, '_> = Emoji("🚚  ", "");
-static CLIP: Emoji<'_, '_> = Emoji("🔗  ", "");
-static PAPER: Emoji<'_, '_> = Emoji("📃  ", "");
-static SPARKLE: Emoji<'_, '_> = Emoji("✨ ", ":-)");
-
+static LOOKING_GLASS :&str = "🔍";
 //если это картинка
+use crate::lib::Ячейка_словаря;
 use lazy_static::lazy_static;
 use rayon::iter::IntoParallelRefIterator;
 use regex::Regex;
-use crate::lib::Ячейка_словаря;
 
 pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
     lazy_static! {
@@ -470,7 +464,7 @@ pub fn замена_слов_через_regex(
 }
 
 pub fn замена_слов_через_кучу(
-    словарь:&[Ячейка_словаря],
+    словарь: &[Ячейка_словаря],
     содержимое: &mut [String],
     счётчик_словаря: &mut [AtomicUsize],
     сообщение: &str,
@@ -478,7 +472,7 @@ pub fn замена_слов_через_кучу(
     куча_пропусков: &HashSet<usize>,
     словарь_куча: &HashMap<String, HashSet<usize>>,
 ) {
-   let spinner_style = ProgressStyle::with_template("{wide_msg}")
+    let spinner_style = ProgressStyle::with_template("{wide_msg}")
         .unwrap()
         .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ");
     let m = MultiProgress::new();
@@ -487,9 +481,9 @@ pub fn замена_слов_через_кучу(
 
     //let mut счётчик_словаря_внутренний: Mutex<Vec<usize>> =
     //    Mutex::new(vec![0; словарь.len()]);
-     //Создаем атомарные счетчики для каждого шаблона
-     let атомарные_счетчики: Vec<AtomicUsize> =
-         (0..словарь.len()).map(|_| AtomicUsize::new(0)).collect();
+    //Создаем атомарные счетчики для каждого шаблона
+    let атомарные_счетчики: Vec<AtomicUsize> =
+        (0..словарь.len()).map(|_| AtomicUsize::new(0)).collect();
 
     let количество_шагов = словарь.len() * содержимое.len();
     let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
@@ -521,7 +515,9 @@ pub fn замена_слов_через_кучу(
                 return;
             }
 
-            for (образец, куча_указателей) in словарь_куча.iter() {
+            //(0..словарь_куча.len()).par_iter().for_each(|указатель| {
+            for (образец, куча_указателей) in словарь_куча.iter()
+            {
                 // let re_образец = &re_образцы[указатель_образца];
                 //если образец из кучи есть в строке
                 if sz_найти(&строка, &образец) {
@@ -533,7 +529,8 @@ pub fn замена_слов_через_кучу(
                             if sz_найти(&строка, &словарь[*указатель_образца].искомое_слово)
                             {
                                 let замененная_строка = &словарь
-                                    [*указатель_образца].re_образец
+                                    [*указатель_образца]
+                                    .re_образец
                                     .replace_all(&строка, &словарь[*указатель_образца].замена);
                                 //
                                 let замененная_строка = замененная_строка.to_string();
@@ -541,10 +538,10 @@ pub fn замена_слов_через_кучу(
                                 {
                                     //let mut страж =
                                     //   счётчик_словаря_внутренний.lock().unwrap();
-                                   // страж[*указатель_образца] += 1;
+                                    // страж[*указатель_образца] += 1;
                                     // Увеличиваем атомарный счетчик
-                                        атомарные_счетчики[*указатель_образца]
-                                            .fetch_add(1, Ordering::Relaxed);
+                                    атомарные_счетчики[*указатель_образца]
+                                        .fetch_add(1, Ordering::Relaxed);
                                 }
                                 // Заменяем строку
                                 *строка = замененная_строка;
@@ -555,16 +552,17 @@ pub fn замена_слов_через_кучу(
                         }
                         //если 1-2 значения в ключе
                         else {
-                            let замененная_строка = &словарь[*указатель_образца].re_образец
+                            let замененная_строка = &словарь[*указатель_образца]
+                                .re_образец
                                 .replace_all(&строка, &словарь[*указатель_образца].замена);
 
                             let замененная_строка = замененная_строка.to_string();
                             if замененная_строка.as_str() != строка.as_str() {
-                               //let mut страж = счётчик_словаря_внутренний.lock().unwrap();
-                               //страж[*указатель_образца] += 1;
+                                //let mut страж = счётчик_словаря_внутренний.lock().unwrap();
+                                //страж[*указатель_образца] += 1;
                                 // Увеличиваем атомарный счетчик
-                                  атомарные_счетчики[*указатель_образца]
-                                      .fetch_add(1, Ordering::Relaxed);
+                                атомарные_счетчики[*указатель_образца]
+                                    .fetch_add(1, Ordering::Relaxed);
                             }
                             // Заменяем строку
                             *строка = замененная_строка;
@@ -583,20 +581,20 @@ pub fn замена_слов_через_кучу(
     //let счётчик_словаря_внутренний = счётчик_словаря_внутренний.into_inner().unwrap();
     //for указатель in 0..счётчик_словаря.len() {
     //    счётчик_словаря[указатель] += счётчик_словаря_внутренний[указатель]
-    
+
     //pb.finish_with_message(format!("{} завершено...", сообщение));
-    
+
     счетчик_внутренний.finish_and_clear();
     pb.finish_and_clear();
     m.clear().unwrap();
     //счетчик_внутренний.clear().unwrap();
-    
-       
-    // Копируем результаты из атомарных счетчиков
-    атомарные_счетчики.iter().enumerate().for_each(|(указатель, число)| {
-        счётчик_словаря[указатель].fetch_add( число.load(Ordering::Relaxed), Ordering::Relaxed); //
-    });
-//счётчик_словаря
 
-         
+    // Копируем результаты из атомарных счетчиков
+    атомарные_счетчики
+        .iter()
+        .enumerate()
+        .for_each(|(указатель, число)| {
+            счётчик_словаря[указатель].fetch_add(число.load(Ordering::Relaxed), Ordering::Relaxed); //
+        });
+    //счётчик_словаря
 }

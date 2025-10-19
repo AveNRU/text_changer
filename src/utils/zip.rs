@@ -1,5 +1,5 @@
 use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
+use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use std::io::{Cursor, SeekFrom};
 use std::time::Instant;
 use std::{fmt, fs};
@@ -34,7 +34,7 @@ impl fmt::Display for ZipsError {
             ZipsError::FileNotFound => write!(f, "File not found"),
             ZipsError::IoError(e) => write!(f, "IO error: {}", e),
             ZipsError::ZipError(e) => write!(f, "ZIP error: {}", e),
-            ZipsError::Пустойфайл=> write!(f, "Пустое содержимое",),
+            ZipsError::Пустойфайл => write!(f, "Пустое содержимое",),
         }
     }
 }
@@ -83,7 +83,9 @@ pub fn zip_архив_в_память(
     match zips.распаковать_архив_в_озу() {
         Ok(zip) => (),
         Err(ZipsError::Пустойфайл) => return Err(format!("Пустой файл").into()),
-        Err(ошибка)=>panic!("Ошибка при распаковке файла в архив: {путь}. Ошибка: {ошибка}"),
+        Err(ошибка) => {
+            panic!("Ошибка при распаковке файла в архив: {путь}. Ошибка: {ошибка}")
+        }
     }
     for (путь, содержимое) in zips.хранение_в_озу.iter() {
         virt_fs.insert(путь.clone(), содержимое.clone());
@@ -92,7 +94,9 @@ pub fn zip_архив_в_память(
 }
 
 /// Запаковывает виртуальную файловую систему в Vec<u8>
-pub fn pack_zip_from_memory(virtual_fs: &Архив_в_озу) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn pack_zip_from_memory(
+    virtual_fs: &Архив_в_озу,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     use std::io::Write;
 
     //println!("запуск запаковки");

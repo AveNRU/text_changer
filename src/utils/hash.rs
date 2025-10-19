@@ -130,7 +130,7 @@ pub fn xml_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> = HashSet::default();
+    let mut исключения_для_проверки: HashSet<usize> = HashSet::with_hasher(foldhash::fast::RandomState::default());
     исключения_для_проверки.insert(0);
     if !проверка_образцов_для_кучи(
         &fb3_исключения,
@@ -142,7 +142,7 @@ pub fn xml_получить_указатели_на_пропуски(
     //получение значений
 
     // let mut пропуски: HashSet<usize> = HashSet::default();
-    let пропуски = Mutex::new(HashSet::default());
+    let пропуски:Mutex<HashSet<usize>> = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
     //прогон
     содержимое
         .par_iter()
@@ -313,7 +313,7 @@ pub fn fb2_получить_указатели_на_пропуки(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> = HashSet::default();
+    let mut исключения_для_проверки: HashSet<usize> = HashSet::with_hasher(foldhash::fast::RandomState::default());
     исключения_для_проверки.insert(0);
     if !проверка_образцов_для_кучи(
         &fb2_исключения,
@@ -325,7 +325,7 @@ pub fn fb2_получить_указатели_на_пропуки(
     //получение значений
 
     // let mut пропуски: HashSet<usize> = HashSet::default();
-    let пропуски = Mutex::new(HashSet::default());
+    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
     //прогон
     содержимое
         .par_iter()
@@ -400,7 +400,7 @@ pub fn fb2_получить_указатели_на_пропуки(
 fn html_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
-    let пропуски = Mutex::new(HashSet::default());
+    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
     содержимое
         .par_iter()
         .enumerate()
@@ -462,8 +462,12 @@ pub fn проверка_содержимого_в_зависимости_от_р
     {
         if !sz_найти(имя_файла, ".rels") {
             if sz_найти(имя_файла, ".xml") {
-                if расширение_книги.as_str() == "fb3".to_string() && !sz_найти(имя_файла, "body.xml") {
-                    return xml_получить_указатели_на_пропуски(&содержимое);
+                if расширение_книги.as_str() == "fb3".to_string()
+                    && !sz_найти(имя_файла, "body.xml")
+                {
+                    return xml_получить_указатели_на_пропуски(
+                        &содержимое,
+                    );
                 }
             }
             if sz_найти(имя_файла, ".html") {
@@ -471,7 +475,7 @@ pub fn проверка_содержимого_в_зависимости_от_р
             }
         }
     }
-    return HashSet::default();
+    return HashSet::with_hasher(foldhash::fast::RandomState::default());
 }
 
 pub fn md_получить_указатели_на_пропуки(
@@ -538,7 +542,7 @@ pub fn md_получить_указатели_на_пропуки(
         ];
         static ref md_примечание:Regex= Regex::new(r#"(?i)^#"#).unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> = HashSet::default();
+    let mut исключения_для_проверки: HashSet<usize> = HashSet::with_hasher(foldhash::fast::RandomState::default());
     исключения_для_проверки.insert(0);
     исключения_для_проверки.insert(1);
     исключения_для_проверки.insert(2);

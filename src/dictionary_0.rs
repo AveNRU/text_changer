@@ -1,5 +1,7 @@
 //use std::default;
-use crate::lib::{self, Полный_Словарь, Словарь, Сообщения_для_книги};
+use crate::lib::{
+    self, Полный_Словарь, Словарь, Сообщения_для_книги
+};
 use lazy_static::lazy_static;
 use std::thread;
 
@@ -12,21 +14,20 @@ use std::time::{
     Instant,
 };
 extern crate rayon;
-use rayon::prelude::*;
-use std::sync::{Arc, Mutex};
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use crate::utils::functions_txt::*;
 use crate::utils;
 use crate::utils::functions::*;
+use crate::utils::functions_txt::*;
 use crate::utils::stringzilla::{sz_найти, sz_упорядочить_ряд_строк};
 use crate::xlsx::import_xlsx::поиск_уже_добавленных_слов;
 use console::{Emoji, style};
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
+use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use indicatif::ProgressBar;
+use indicatif::*;
+use rayon::prelude::*;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use stringzilla::sz;
-use indicatif::*;
-
 
 #[derive(Debug, Default, Clone)]
 pub struct Исключения_для_кучи {
@@ -36,12 +37,12 @@ pub struct Исключения_для_кучи {
 //изменение слов в книге
 pub fn заменить_слова_в_книге(
     полный_словарь: &mut lib::Полный_Словарь, //вектор словарей
-    mut книги: Vec<lib::Книги>,              //книги для изменения
+    mut книги: Vec<lib::Книги>,               //книги для изменения
     сообщения: &mut lib::Сообщения,
 ) -> Vec<lib::Книги> {
     //let куча_проверочная:Mutex<HashSet<String>>=Mutex::new(HashSet::default());
     //let счётчик_проверочный= AtomicU64::new(0);
-    use crate::utils::stringzilla::{sz_найти};
+    use crate::utils::stringzilla::sz_найти;
     //шкала
     let mut временные_сообщения: Mutex<lib::Сообщения> = Mutex::new(сообщения.clone());
     let mut проверка_двойного_входа: Mutex<Vec<String>> = Mutex::new(Vec::new());
@@ -59,13 +60,15 @@ pub fn заменить_слова_в_книге(
     let pb = ProgressBar::new(0);
 
     // Настраиваем стиль прогресс-бара
-    pb.set_style(ProgressStyle::default_bar()
-        //.template("{spinner:.green} [{wide_bar:.cyan/blue}] {pos:>2}/{len:2} {msg}")
-        .template("{msg}")
-        .unwrap()
-        .progress_chars("#>-"));
-    
-    static LOOKING_GLASS: Emoji<'_, '_> = Emoji("🔍  ", "");
+    pb.set_style(
+        ProgressStyle::default_bar()
+            //.template("{spinner:.green} [{wide_bar:.cyan/blue}] {pos:>2}/{len:2} {msg}")
+            .template("{msg}")
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+
+    let LOOKING_GLASS = format!("🔍");
     /*let счётчик_составное_важное: Mutex<Vec<usize>> =
         Mutex::new(полный_словарь.счётчик_составное_важное.clone());
     let счётчик_составное: Mutex<Vec<usize>> = Mutex::new(полный_словарь.счётчик_составное.clone());
@@ -73,19 +76,24 @@ pub fn заменить_слова_в_книге(
     let счётчик_вездесущее: Mutex<Vec<usize>> =
         Mutex::new(полный_словарь.счётчик_вездесущее.clone());*/
     //
-    let mut счётчик_составное_важное: Vec<AtomicUsize> = (0..полный_словарь.счётчик_составное_важное.len())
-        .into_par_iter().map(|_| AtomicUsize::new(0))
-        .collect();
+    let mut счётчик_составное_важное: Vec<AtomicUsize> =
+        (0..полный_словарь.счётчик_составное_важное.len())
+            .into_par_iter()
+            .map(|_| AtomicUsize::new(0))
+            .collect();
     let mut счётчик_составное: Vec<AtomicUsize> = (0..полный_словарь.счётчик_составное.len())
-        .into_par_iter().map(|_| AtomicUsize::new(0))
+        .into_par_iter()
+        .map(|_| AtomicUsize::new(0))
         .collect();
     let mut счётчик_простое: Vec<AtomicUsize> = (0..полный_словарь.счётчик_простое.len())
-        .into_par_iter().map(|_| AtomicUsize::new(0))
+        .into_par_iter()
+        .map(|_| AtomicUsize::new(0))
         .collect();
     let mut счётчик_вездесущее: Vec<AtomicUsize> = (0..полный_словарь.счётчик_вездесущее.len())
-        .into_par_iter().map(|_| AtomicUsize::new(0))
+        .into_par_iter()
+        .map(|_| AtomicUsize::new(0))
         .collect();
-    
+
     //перебор
     let количество_книг = книги.len();
     книги.iter_mut().enumerate()
@@ -268,19 +276,31 @@ pub fn заменить_слова_в_книге(
     //полный_словарь.счётчик_вездесущее = счётчик_вездесущее.into_inner().unwrap();
     //полный_словарь.счётчик_простое = счётчик_простое.into_inner().unwrap();
     //вывод словаря
-    счётчик_составное_важное.iter().enumerate().for_each(|(указатель,число)|{
-        полный_словарь.счётчик_составное_важное[указатель]=число.load(Ordering::Relaxed)
-    });
-    счётчик_составное.iter().enumerate().for_each(|(указатель,число)|{
-        полный_словарь.счётчик_составное[указатель]=число.load(Ordering::Relaxed)
-    });
-    счётчик_простое.iter().enumerate().for_each(|(указатель,число)|{
-        полный_словарь.счётчик_простое[указатель]=число.load(Ordering::Relaxed)
-    });
-    счётчик_вездесущее.iter().enumerate().for_each(|(указатель,число)|{
-        полный_словарь.счётчик_вездесущее[указатель]=число.load(Ordering::Relaxed)
-    });
-    
+    счётчик_составное_важное
+        .iter()
+        .enumerate()
+        .for_each(|(указатель, число)| {
+            полный_словарь.счётчик_составное_важное[указатель] = число.load(Ordering::Relaxed)
+        });
+    счётчик_составное
+        .iter()
+        .enumerate()
+        .for_each(|(указатель, число)| {
+            полный_словарь.счётчик_составное[указатель] = число.load(Ordering::Relaxed)
+        });
+    счётчик_простое
+        .iter()
+        .enumerate()
+        .for_each(|(указатель, число)| {
+            полный_словарь.счётчик_простое[указатель] = число.load(Ordering::Relaxed)
+        });
+    счётчик_вездесущее
+        .iter()
+        .enumerate()
+        .for_each(|(указатель, число)| {
+            полный_словарь.счётчик_вездесущее[указатель] = число.load(Ordering::Relaxed)
+        });
+
     write::вывод_всех_словарей_в_xls(&полный_словарь).unwrap();
     println!(
         "Время занятое на замену слов: {:.2?}",
@@ -295,11 +315,15 @@ pub fn заменить_слова_в_книге(
         содержимое_изменённое: &Vec<lib::Вложения>,
         имя_книги: &String,
         условие: bool, //выводить на экран или нет
-    )->Vec<String> {
+    ) -> Vec<String> {
         use rayon::prelude::*;
         //let шаг_внутренний = AtomicU64::new(0);
         //создаём ряд пустой
-        let mut сообщения: Mutex<Vec<String>> = Mutex::new(vec!["".to_string();содержимое_изначальное.len()]);
+        let mut сообщения: Mutex<Vec<String>> =
+            Mutex::new(vec![
+                "".to_string();
+                содержимое_изначальное.len()
+            ]);
 
         /*for указатель in 0..содержимое_изначальное.len() {
             if изображение_расширение_с_точкой(
@@ -310,68 +334,64 @@ pub fn заменить_слова_в_книге(
                 continue;
             }
         }*/
-            содержимое_изначальное.par_iter().enumerate().filter(|(указатель,вложение)|
+        содержимое_изначальное
+            .par_iter()
+            .enumerate()
+            .filter(|(указатель, вложение)| {
                 !изображение_расширение_с_точкой(
                     &содержимое_изначальное[*указатель].имя,
                 ) && !мусорное_содержимое_архивов(
                     &содержимое_изначальное[*указатель].имя,
                 )
-            ).for_each(|(указатель,вложение)|
-                {
-                   // шаг_внутренний.fetch_add(1, Ordering::Relaxed);
-                 //   println!("{}", шаг_внутренний.load(Ordering::Relaxed));
-                    if сравнение_двух_рядов_построчно(
-                        &содержимое_изначальное[указатель].содержимое,
-                        &содержимое_изменённое[указатель].содержимое,
-                        &вложение.имя
-                    ) 
-                        
-                    {
-                        let сообщение=format!(
-                            "Книга: {}|[{}/{}]| Файл: {}  замены не были произведены",
-                            имя_книги,
-                            указатель + 1,
-                            содержимое_изначальное.len(),
-                            содержимое_изначальное[указатель].имя
-                        );
-                        if условие {
-                        
+            })
+            .for_each(|(указатель, вложение)| {
+                // шаг_внутренний.fetch_add(1, Ordering::Relaxed);
+                //   println!("{}", шаг_внутренний.load(Ordering::Relaxed));
+                if сравнение_двух_рядов_построчно(
+                    &содержимое_изначальное[указатель].содержимое,
+                    &содержимое_изменённое[указатель].содержимое,
+                    &вложение.имя,
+                ) {
+                    let сообщение = format!(
+                        "Книга: {}|[{}/{}]| Файл: {}  замены не были произведены",
+                        имя_книги,
+                        указатель + 1,
+                        содержимое_изначальное.len(),
+                        содержимое_изначальное[указатель].имя
+                    );
+                    if условие {
                         вывод_сообщения_на_экран_и_вложение_в_ряд_в_ячейку(
                             сообщение,
                             &mut сообщения.lock().unwrap(),
                             указатель,
                         )
                     } else {
-                        сообщения.lock().unwrap()[указатель]=сообщение;
+                        сообщения.lock().unwrap()[указатель] = сообщение;
                     }
-                    } else {
-                        let сообщение=format!(
-                            "Книга: {}|[{}/{}]| Файл: {}  были совершены замены",
-                            имя_книги,
-                            указатель + 1,
-                            содержимое_изначальное.len(),
-                            содержимое_изначальное[указатель].имя
-                        );
-                        if условие { 
+                } else {
+                    let сообщение = format!(
+                        "Книга: {}|[{}/{}]| Файл: {}  были совершены замены",
+                        имя_книги,
+                        указатель + 1,
+                        содержимое_изначальное.len(),
+                        содержимое_изначальное[указатель].имя
+                    );
+                    if условие {
                         вывод_сообщения_на_экран_и_вложение_в_ряд_в_ячейку(
                             сообщение,
                                 &mut сообщения.lock().unwrap(),
                                 указатель,
                             )
-                        }else {
-                            сообщения.lock().unwrap()[указатель]=сообщение;
-                        }
+                    } else {
+                        сообщения.lock().unwrap()[указатель] = сообщение;
                     }
-                    
                 }
-            );
-       
-        
-        let mut сообщения:Vec<String>=сообщения.into_inner().unwrap();
+            });
+
+        let mut сообщения: Vec<String> = сообщения.into_inner().unwrap();
         сообщения.retain(|строка| !строка.is_empty());
-        return сообщения
+        return сообщения;
     }
-   
 }
 
 //создание словаря regex
@@ -525,21 +545,39 @@ pub fn добавить_все_слова_в_словарь(
 ) -> Полный_Словарь {
     use crate::xlsx::import_xlsx::поиск_уже_добавленных_слов_в_полном_словаре;
     //итоговый словарь
-    let mut полный_словарь: Mutex<Полный_Словарь> = Mutex::new( Default::default() );
+    let mut полный_словарь: Mutex<Полный_Словарь> = Mutex::new(Default::default());
     //перебор словаря
-    ряд_словарей.par_iter().enumerate().for_each(|(указатель,ячейка)|{
-    //for i in 0..ряд_словарей.len() {
-        полный_словарь.lock().unwrap().простое.extend(ячейка.простое.clone());
-        полный_словарь.lock().unwrap().вездесущее.extend(ячейка.вездесущее.clone());
-        полный_словарь.lock().unwrap().составное.extend(ячейка.составное.clone());
-        полный_словарь.lock().unwrap().составное_важное.extend(ячейка.составное_важное.clone());
-    });
+    ряд_словарей
+        .par_iter()
+        .enumerate()
+        .for_each(|(указатель, ячейка)| {
+            //for i in 0..ряд_словарей.len() {
+            полный_словарь
+                .lock()
+                .unwrap()
+                .простое
+                .extend(ячейка.простое.clone());
+            полный_словарь
+                .lock()
+                .unwrap()
+                .вездесущее
+                .extend(ячейка.вездесущее.clone());
+            полный_словарь
+                .lock()
+                .unwrap()
+                .составное
+                .extend(ячейка.составное.clone());
+            полный_словарь
+                .lock()
+                .unwrap()
+                .составное_важное
+                .extend(ячейка.составное_важное.clone());
+        });
 
     //поиск уже добавленных слов
     return поиск_уже_добавленных_слов_в_полном_словаре(
-        полный_словарь                    //номер страницы
+        полный_словарь, //номер страницы
     );
-
 }
 
 pub fn создать_быстрый_словарь(
@@ -552,7 +590,8 @@ pub fn создать_быстрый_словарь(
     let mut ряд_вывод: Mutex<Vec<String>> = Mutex::new(Vec::new());
     let словарь_куча: HashMap<String, HashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
-    let mut ряд_временный: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
+    ;
+    let ряд_временный: Mutex<HashSet<String>> = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
     //
     словарь_куча.par_iter().for_each(|(ключ, значения)| {
         ряд_временный.lock().unwrap().insert(ключ.to_string());
@@ -580,7 +619,7 @@ pub fn создать_быстрый_словарь(
     let ряд_временный = sz_упорядочить_кучу(ряд_временный);
     //
     let пути_общие: lib::Пути_Общие = Default::default();
-    let пути_вывода:lib::Пути_Вывода = Default::default();
+    let пути_вывода: lib::Пути_Вывода = Default::default();
     let mut пустой_ряд: Vec<String> = Vec::new();
     let путь_простой: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря, вид_слов,);
     let путь_ключи: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря_ключи, вид_слов,);
@@ -961,37 +1000,52 @@ fn получить_кучи_из_словарей(
         let результаты_ref = &результаты;
 
         s.spawn(|_| {
-            let словарь =
-                создать_быстрый_словарь(
-                    &полный_словарь.простое.par_iter().map(
-                        |ячейка|ячейка.искомое_слово.to_string()).collect()
-                    , "простые");
+            let словарь = создать_быстрый_словарь(
+                &полный_словарь
+                    .простое
+                    .par_iter()
+                    .map(|ячейка| ячейка.искомое_слово.to_string())
+                    .collect(),
+                "простые",
+            );
             результаты_ref.lock().unwrap().0 = Some(словарь);
         });
 
         s.spawn(|_| {
             let словарь = создать_быстрый_словарь(
-                &полный_словарь.составное.par_iter().map(
-                    |ячейка|ячейка.искомое_слово.to_string()).collect()
-                , "составные");
+                &полный_словарь
+                    .составное
+                    .par_iter()
+                    .map(|ячейка| ячейка.искомое_слово.to_string())
+                    .collect(),
+                "составные",
+            );
 
             результаты_ref.lock().unwrap().1 = Some(словарь);
         });
 
         s.spawn(|_| {
             let словарь = создать_быстрый_словарь(
-                &полный_словарь.составное_важное.par_iter().map(
-                    |ячейка|ячейка.искомое_слово.to_string()).collect()
-                , "составные_важные");
+                &полный_словарь
+                    .составное_важное
+                    .par_iter()
+                    .map(|ячейка| ячейка.искомое_слово.to_string())
+                    .collect(),
+                "составные_важные",
+            );
 
             результаты_ref.lock().unwrap().2 = Some(словарь);
         });
 
         s.spawn(|_| {
             let словарь = создать_быстрый_словарь(
-                &полный_словарь.вездесущее.par_iter().map(
-                    |ячейка|ячейка.искомое_слово.to_string()).collect()
-                , "вездесущие");
+                &полный_словарь
+                    .вездесущее
+                    .par_iter()
+                    .map(|ячейка| ячейка.искомое_слово.to_string())
+                    .collect(),
+                "вездесущие",
+            );
 
             результаты_ref.lock().unwrap().3 = Some(словарь);
         });

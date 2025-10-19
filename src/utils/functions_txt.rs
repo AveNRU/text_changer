@@ -3,7 +3,7 @@ use crate::{lib, utils::functions_add::system_pause};
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
-use std::collections::HashSet;
+use foldhash::{HashMap, HashMapExt, HashSet};
 use std::str::FromStr;
 use std::sync::{
     Mutex,
@@ -122,15 +122,28 @@ pub fn вложить_строки_ряд_в_ряд(
     });
 }
 
-pub fn сравнение_двух_рядов_построчно(   ряд_1: &Vec<String>, ряд_2: &Vec<String>,путь: &String) -> bool {
+pub fn сравнение_двух_рядов_построчно(
+    ряд_1: &Vec<String>,
+    ряд_2: &Vec<String>,
+    путь: &String,
+) -> bool {
     //если количество строк не равно
-    if ряд_1.len()!=ряд_2.len() {return false}
-    let mut счётчик_совпадений=AtomicUsize::new(0);
+    if ряд_1.len() != ряд_2.len() {
+        return false;
+    }
+    let mut счётчик_совпадений = AtomicUsize::new(0);
     //перебор вспомогательного вектора
-    ряд_1.par_iter().enumerate().for_each(|(указатель,строка_искомая)| 
-       if ряд_1[указатель].as_str()==ряд_2[указатель].as_str() {
-           счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
-       }
-    );
-if счётчик_совпадений.load(Ordering::Relaxed) == ряд_1.len() {return true} else {return false}
+    ряд_1
+        .par_iter()
+        .enumerate()
+        .for_each(|(указатель, строка_искомая)| {
+            if ряд_1[указатель].as_str() == ряд_2[указатель].as_str() {
+                счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
+            }
+        });
+    if счётчик_совпадений.load(Ordering::Relaxed) == ряд_1.len() {
+        return true;
+    } else {
+        return false;
+    }
 }
