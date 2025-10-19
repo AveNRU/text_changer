@@ -634,6 +634,8 @@ pub fn выделить_окончание_из_слова(слово: &String) 
     куча_исключений_знак.insert('у');
     куча_исключений_знак.insert('е');
     куча_исключений_знак.insert('ю');
+    //куча_исключений_знак.insert('ь');
+    //куча_исключений_знак.insert('ъ');
 
     lazy_static! {
          static ref re_однобуквенные: Vec<Regex> = vec![
@@ -644,6 +646,7 @@ pub fn выделить_окончание_из_слова(слово: &String) 
              Regex::new(r"(?i)ь$").unwrap(),
              Regex::new(r"(?i)ы$").unwrap(),
              Regex::new(r"(?i)и$").unwrap(),
+            Regex::new(r"(?i)ъ$").unwrap(),
              //глаголы
                 Regex::new(r"(?i)у$").unwrap(),
               Regex::new(r"(?i)ю$").unwrap(),
