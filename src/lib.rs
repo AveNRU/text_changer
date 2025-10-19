@@ -1,6 +1,6 @@
 #![crate_type = "lib"]
-use regex::Regex;
 use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
+use regex::Regex;
 
 //пути
 #[derive(Debug, Clone)]

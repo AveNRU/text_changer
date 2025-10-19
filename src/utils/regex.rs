@@ -12,7 +12,7 @@ use std::sync::{
 use std::thread;
 use std::time::{Duration, Instant};
 use std::{cmp::min, fmt::Write};
-
+/*
 static PACKAGES: &[&str] = &[
     "fs-events",
     "my-awesome-module",
@@ -32,7 +32,8 @@ static COMMANDS: &[&str] = &[
     "make all-clean",
     "make test",
 ];
-static LOOKING_GLASS :&str = "🔍";
+*/
+static LOOKING_GLASS: &str = "🔍";
 //если это картинка
 use crate::lib::Ячейка_словаря;
 use lazy_static::lazy_static;
@@ -516,8 +517,7 @@ pub fn замена_слов_через_кучу(
             }
 
             //(0..словарь_куча.len()).par_iter().for_each(|указатель| {
-            for (образец, куча_указателей) in словарь_куча.iter()
-            {
+            for (образец, куча_указателей) in словарь_куча.iter() {
                 // let re_образец = &re_образцы[указатель_образца];
                 //если образец из кучи есть в строке
                 if sz_найти(&строка, &образец) {

@@ -520,7 +520,8 @@ pub fn прочитать_xlsx_с_диска(
     путь: &str,
 ) -> Result<HashMap<String, Vec<Vec<String>>>, Box<dyn std::error::Error>> {
     let mut workbook: Xlsx<_> = open_workbook(путь).unwrap();
-    let mut данные:HashMap<String, Vec<Vec<String>>> =  HashMap::with_hasher(foldhash::fast::RandomState::default());
+    let mut данные: HashMap<String, Vec<Vec<String>>> =
+        HashMap::with_hasher(foldhash::fast::RandomState::default());
 
     for sheet_name in workbook.sheet_names().clone() {
         if let Ok(range) = workbook.worksheet_range(&sheet_name) {

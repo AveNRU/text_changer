@@ -1,4 +1,5 @@
 use crate::utils::functions_add::system_pause;
+use crate::utils::regex::*;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use lazy_static::lazy_static;
@@ -108,20 +109,6 @@ pub fn шкала_проход() {
     println!();
 }
 
-fn main2() {
-    thread::spawn(|| {
-        for i in 1..10 {
-            println!("Число {i} вызвано из порожденного потока!");
-            thread::sleep(Duration::from_micros(1));
-        }
-    });
-
-    for i in 1..5 {
-        println!("Число {i} вызвано из главного потока!");
-        thread::sleep(Duration::from_micros(1));
-    }
-}
-
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
     mut ряд_сообщений: &mut Vec<String>,
@@ -146,4 +133,8 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
+}
+pub fn не_изображение_или_мусор(стог_сена: &String) -> bool {
+    return !изображение_расширение_с_точкой(&стог_сена)
+        && !мусорное_содержимое_архивов(&стог_сена);
 }

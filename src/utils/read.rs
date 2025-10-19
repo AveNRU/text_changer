@@ -134,14 +134,14 @@ fn получить_строку_в_utf8(
 pub fn получить_содержимое(путь: &str) -> Vec<String> {
     let содержимое: Vec<(String, String)> = считать_содержимое_папки(путь).unwrap();
     //println!("содержимое получить: {:?}",содержимое);
-    return содержимое.iter().map(|(имя, _)| имя.clone()).collect();
+    return содержимое.par_iter().map(|(имя, _)| имя.clone()).collect();
 }
 
 fn считать_содержимое_папки(
     путь_папки: &str,
 ) -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
     use crate::utils::functions::заменить_все_палки;
-    let mut содержимое_папки = Vec::new();
+    let mut содержимое_папки: Vec<(String, String)> = Vec::new();
     let путь_новый = путь_папки.to_string();
     for вхождение in WalkDir::new(путь_папки)
         .min_depth(0)
@@ -156,7 +156,6 @@ fn считать_содержимое_папки(
                 Ok(содержимое) => {
                     // let путь_исходный=путь.display().to_string();
                     let путь2 = заменить_все_палки(путь.display().to_string());
-                    // println!("добавленный путь: {}",путь2);
                     содержимое_папки.push((путь2, содержимое))
                 }
                 Err(ошибка) => {

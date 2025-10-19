@@ -1,7 +1,5 @@
 #![allow(non_ascii_idents)]
-
 use chrono::*;
-
 //use unirust::*;
 //use std::collections::HashMap;
 use std::env;
@@ -9,7 +7,6 @@ use std::time::{
     //Duration,
     Instant,
 };
-
 pub mod check_1;
 pub mod dictionary_0;
 pub mod import;
@@ -21,7 +18,6 @@ pub mod xlsx;
 //use time::*; //{self,OffsetDateTime};
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
-
 fn main() {
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
@@ -68,67 +64,3 @@ fn main() {
     );
     system_pause();
 }
-
-/*
-rzhavchina::rzhavchina! {
-    внешний ящик rzhavchina;
-
-    использовать std::collections::Словарь как Слов;
-
-    fn главный() {
-    println!("Hello, world!");
-    }
-}
-*/
-
-/*
-use quick_xml::events::{Event, BytesText};
-use quick_xml::reader::Reader;
-use quick_xml::writer::Writer;
-use std::fs::File;
-use std::io::BufWriter;
-
-pub fn main () {
-    replace_xml_text().unwrap();
-}
-fn replace_xml_text() -> Result<(), Box<dyn std::error::Error>> {
-    // Читаем XML файл
-    let mut reader = Reader::from_file("./books/document.xml").unwrap();
-    //reader.config().trim_text(true);
-
-    // Создаем writer для выходного файла
-    let output_file = File::create("output.xml").unwrap();
-    let mut writer = Writer::new(BufWriter::new(output_file));
-
-    let mut buf = Vec::new();
-
-    loop {
-        match reader.read_event_into(&mut buf).unwrap() {
-            Event::Text(e) => {
-                let text = String::from_utf8_lossy(e.as_ref());
-
-                // Заменяем нужный текст
-                let new_text = if text.contains("очень") {
-                    text.replace("очень опасное", "waffen")
-                } else if text.trim() == "братва" {
-                    "waffen2".to_string()
-                } else {
-                    text.to_string()
-                };
-
-                // Записываем измененный текст
-                writer.write_event(Event::Text(BytesText::from_escaped(&new_text))).unwrap();
-            }
-            Event::Eof => break,
-            other => writer.write_event(other).unwrap(),
-        }
-        buf.clear();
-    }
-    println!("готово");
-
-
-
-
-    //Ok(())
-}
-*/

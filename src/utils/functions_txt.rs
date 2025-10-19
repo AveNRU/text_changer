@@ -1,14 +1,15 @@
 use crate::utils::stringzilla::*;
 use crate::{lib, utils::functions_add::system_pause};
+use foldhash::{HashMap, HashMapExt, HashSet};
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
-use foldhash::{HashMap, HashMapExt, HashSet};
 use std::str::FromStr;
 use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
+
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
