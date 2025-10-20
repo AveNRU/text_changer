@@ -9,7 +9,7 @@ use regex::Regex;
 use std::sync::Mutex;
 use foldhash::fast::RandomState;
 use time::Month::January;
-
+//HashSet::with_hasher(foldhash::fast::RandomState::default());
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {

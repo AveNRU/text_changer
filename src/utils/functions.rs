@@ -58,6 +58,7 @@ pub fn строка_удалить_utf8_концы_строк(
     };
     // remove Window new строка: "\r\n"
     строка_utf8.trim_end_matches('\r').to_string()
+    //строка_utf8
 }
 
 pub fn строка_utf8_без_удаления_концов_строк(

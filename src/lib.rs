@@ -139,6 +139,7 @@ pub struct Куча_Словарь {
     pub составное: foldhash::HashMap<String, HashSet<usize>>,
     pub составное_важное: foldhash::HashMap<String, HashSet<usize>>,
     pub вездесущее: foldhash::HashMap<String, HashSet<usize>>,
+    //pub точные: foldhash::HashMap<String, HashSet<usize>>,
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
