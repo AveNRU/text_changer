@@ -231,239 +231,45 @@ pub fn вывод_всех_словарей_в_xls(
     use std::path::Path;
     // Create a new Excel file object.
     let пути_общие: lib::Пути_Общие = Default::default();
-    let mut словари = Workbook::new();
+    let mut словари: Workbook = Workbook::new();
+    println!("Вывод словаря:");
     // Add a worksheet to the workbook.
-    let книга = словари.add_worksheet().set_name("Простые слова").unwrap();
-    книга.write(0, 0, "Изначальные слова").unwrap();
-    книга.write(0, 1, "Regex").unwrap();
-    книга.write(0, 2, "Замена").unwrap();
-    книга.write(0, 3, "Количество случаев").unwrap();
-    книга.write(0, 4, "Строка").unwrap();
-    //worksheet.write(0, 5, "Ток потребления").unwrap();
-    //worksheet.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
-    let mut _row_point: u32 = u32::try_from(1).unwrap().into();
-    //общий счётчик замен слов
-    let mut счётчик_шага: usize = 0;
-    //let column_point: u16 = u16::try_from(i + 1).unwrap().into();
-    //перебор всех словарей
-    println!();
-    println!("Общий словарь");
-    //перебор одиночных слов
-    for j in 0..словарь.простое.len() {
-        //добавление количества замен
-        счётчик_шага += словарь.счётчик_простое[j];
-        книга
-            .write((j + 1) as u32, 0, &словарь.простое[j].искомое_слово)
-            .unwrap();
-        книга
-            .write((j + 1) as u32, 1, словарь.простое[j].re_образец.to_string())
-            .unwrap();
-        книга
-            .write((j + 1) as u32, 2, словарь.простое[j].замена.to_string())
-            .unwrap();
-        книга
-            .write((j + 1) as u32, 3, словарь.счётчик_простое[j].to_string())
-            .unwrap();
-        _row_point += 1;
-        //println!("{}",&_dictionary.простое[j]);
-    }
-
-    println!(
-        "Простое, количетсво. Словарь: {}| Куча: {} |, замен: {}",
-        словарь.простое.len(),
-        куча_словарь.простое.len(),
-        &счётчик_шага
-    );
-
-    //если длина словаря не равна
-    книга
-        .write((_row_point + 1) as u32, 0, "Итого замен: ")
-        .unwrap();
-    книга
-        .write((_row_point + 1) as u32, 3, счётчик_шага.to_string())
-        .unwrap();
-    книга.autofilter(0, 0, _row_point + 1, 4).unwrap();
-    //2-я страница с составными словами
-    let mut стр_сложных_слов = Worksheet::new();
-    let стр_2 = стр_сложных_слов.set_name("Сложные слова").unwrap();
-    стр_2.write(0, 0, "Изначальные слова").unwrap();
-    стр_2.write(0, 1, "Regex").unwrap();
-    стр_2.write(0, 2, "Замена").unwrap();
-    стр_2.write(0, 3, "Количество случаев").unwrap();
-    стр_2.write(0, 4, "Строка").unwrap();
-    //complex.write(0, 5, "Ток потребления").unwrap();
-    //complex.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
-    let mut _row_point: u32 = u32::try_from(1).unwrap().into();
-    //общий счётчик замен слов
-    let mut _count_change: usize = 0;
-    //let column_point: u16 = u16::try_from(i + 1).unwrap().into();
-
-    //перебор всех словарей
-
-    //перебор одиночных слов
-    for j in 0..словарь.составное.len() {
-        _count_change += словарь.счётчик_составное[j];
-        стр_2
-            .write(_row_point, 0, словарь.составное[j].искомое_слово.clone())
-            .unwrap();
-        стр_2
-            .write(_row_point, 1, словарь.составное[j].re_образец.to_string())
-            .unwrap();
-        стр_2
-            .write(_row_point, 2, словарь.составное[j].замена.to_string())
-            .unwrap();
-        стр_2
-            .write(_row_point, 3, словарь.счётчик_составное[j].to_string())
-            .unwrap();
-        //println!("{}",&_dictionary.complex[j]);
-        _row_point += 1;
-        //println!("{}",&_dictionary.простое[j]);
-    }
-    //если количество слов равно
-    println!(
-        "Сложное, количетсво. Словарь: {}| Куча: {} | , количество замен: {}",
-        словарь.составное.len(),
-        куча_словарь.составное.len(),
-        &_count_change
-    );
-    //если длина словаря не равна
-    стр_2
-        .write((_row_point + 1) as u32, 0, "Итого замен: ")
-        .unwrap();
-    стр_2
-        .write((_row_point + 1) as u32, 3, _count_change.to_string())
-        .unwrap();
-    стр_2.autofilter(0, 0, _row_point + 1, 4).unwrap();
-    //3-я страница с составными словами
-    let mut binding2 = Worksheet::new();
-    let everywhere = binding2.set_name("Вездесущие слова").unwrap();
-    everywhere.write(0, 0, "Изначальные слова").unwrap();
-    everywhere.write(0, 1, "Regex").unwrap();
-    everywhere.write(0, 2, "Замена").unwrap();
-    everywhere.write(0, 3, "Количество случаев").unwrap();
-    everywhere.write(0, 4, "Строка").unwrap();
-    //everywhere.write(0, 5, "Ток потребления").unwrap();
-    //everywhere.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
-    let mut _row_point: u32 = u32::try_from(1).unwrap().into();
-    //общий счётчик замен слов
-    let mut _count_change: usize = 0;
-    //let column_point: u16 = u16::try_from(i + 1).unwrap().into();
-    //перебор всех словарей
-
-    //перебор одиночных слов
-    for j in 0..словарь.вездесущее.len() {
-        _count_change += словарь.счётчик_вездесущее[j];
-        everywhere
-            .write(_row_point, 0, словарь.вездесущее[j].искомое_слово.clone())
-            .unwrap();
-        everywhere
-            .write(_row_point, 1, словарь.вездесущее[j].re_образец.to_string())
-            .unwrap();
-        everywhere
-            .write(_row_point, 2, словарь.вездесущее[j].замена.to_string())
-            .unwrap();
-        everywhere
-            .write(_row_point, 3, словарь.счётчик_вездесущее[j].to_string())
-            .unwrap();
-        _row_point += 1;
-        //println!("{}",&_dictionary.everywhere[j]);
-    }
-    //если количество слов равно числу замен
-
-    println!(
-        "Вездесущее, количетсво. Словарь: {}| Куча: {} |, количество замен: {}",
-        словарь.вездесущее.len(),
-        куча_словарь.вездесущее.len(),
-        &_count_change
-    );
-
-    //если длина словаря не равна
-    everywhere
-        .write((_row_point + 1) as u32, 0, "Итого замен: ")
-        .unwrap();
-    everywhere
-        .write((_row_point + 1) as u32, 3, _count_change.to_string())
-        .unwrap();
-    everywhere.autofilter(0, 0, _row_point + 1, 4).unwrap();
-    //составные в 1 очередь
-    //3-я страница с составными словами
-    let mut binding3 = Worksheet::new();
-    let составные_важные = binding3.set_name("Составные слова (в 1 очередь)").unwrap();
-    составные_важные.write(0, 0, "Изначальные слова").unwrap();
-    составные_важные.write(0, 1, "Regex").unwrap();
-    составные_важные.write(0, 2, "Замена").unwrap();
-    составные_важные.write(0, 3, "Количество случаев").unwrap();
-    составные_важные.write(0, 4, "Строка").unwrap();
-    //complex_first.write(0, 5, "Ток потребления").unwrap();
-    //complex_first.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
-    let mut _row_point: u32 = u32::try_from(1).unwrap().into();
-    //общий счётчик замен слов
-    let mut _count_change: usize = 0;
-    //let column_point: u16 = u16::try_from(i + 1).unwrap().into();
-    //перебор всех словарей
-
-    //перебор одиночных слов
-    for j in 0..словарь.составное_важное.len() {
-        _count_change += словарь.счётчик_составное_важное[j];
-        составные_важные
-            .write(
-                _row_point,
-                0,
-                словарь.составное_важное[j].искомое_слово.clone(),
-            )
-            .unwrap();
-        составные_важные
-            .write(
-                _row_point,
-                1,
-                словарь.составное_важное[j].re_образец.to_string(),
-            )
-            .unwrap();
-        составные_важные
-            .write(
-                _row_point,
-                2,
-                словарь.составное_важное[j].замена.to_string(),
-            )
-            .unwrap();
-        составные_важные
-            .write(
-                _row_point,
-                2,
-                словарь.счётчик_составное_важное[j].to_string(),
-            )
-            .unwrap();
-        _row_point += 1;
-        //println!("{}",&_dictionary.complex_first[j]);
-    }
-    //если количество слов равно числу замен
-    println!(
-        "Сложное важное, количетсво. Словарь: {}| Куча: {} |, количество замен: {}",
-        словарь.составное_важное.len(),
-        куча_словарь.составное_важное.len(),
-        &_count_change
-    );
-    println!();
-
-    //если длина словаря не равна
-    составные_важные
-        .write((_row_point + 1) as u32, 0, "Итого замен: ")
-        .unwrap();
-    составные_важные
-        .write((_row_point + 1) as u32, 2, _count_change.to_string())
-        .unwrap();
-    составные_важные
-        .autofilter(0, 0, _row_point + 1, 3)
-        .unwrap();
-    //путь сохранения
+    вывод_страницы_словаря(
+        &mut словари,
+        "Одиночные",
+        &словарь.простое,
+        &словарь.счётчик_простое,
+        &куча_словарь.простое,
+    ).unwrap();
+    вывод_страницы_словаря(
+        &mut словари,
+        "Составное",
+        &словарь.составное,
+        &словарь.счётчик_составное,
+        &куча_словарь.составное,
+    ).unwrap();
+    вывод_страницы_словаря(
+        &mut словари,
+        "Вездесущее",
+        &словарь.вездесущее,
+        &словарь.счётчик_вездесущее,
+        &куча_словарь.вездесущее,
+    ).unwrap();
+    вывод_страницы_словаря(
+        &mut словари,
+        "Составное важное",
+        &словарь.составное_важное,
+        &словарь.счётчик_составное_важное,
+        &куча_словарь.составное_важное,
+    ).unwrap();
+    вывод_страницы_словаря(
+        &mut словари,
+        "Неизменное",
+        &словарь.неизменное,
+        &словарь.счётчик_неизменное,
+        &куча_словарь.неизменное,
+    ).unwrap();
     let путь_сохранения: String = format!("{}Все словари вместе.xlsx", пути_общие.вывод_словари);
-    стр_2.autofit();
-    everywhere.autofit();
-    книга.autofit();
-    составные_важные.autofit();
-    словари.push_worksheet(стр_сложных_слов);
-    словари.push_worksheet(binding2);
-    словари.push_worksheet(binding3);
     xlsx_сохранить_с_проверкой(&mut словари, &путь_сохранения);
 
     Ok(())
@@ -1074,4 +880,60 @@ pub fn вывод_всей_стопки_сообщений_в_txt(
     )
     .unwrap();
     Ok(true)
+}
+
+fn вывод_страницы_словаря(mut книга:&mut Workbook,имя_страницы:&str,
+                          содержимое: &Vec<lib::Ячейка_словаря>,
+                          счётчик:&Vec<usize>,
+                          куча_словарь: &HashMap<String, HashSet<usize>>,
+
+) -> Result<(), Box<dyn std::error::Error>> {
+    let страница = книга.add_worksheet().set_name(имя_страницы).unwrap();
+    страница.write(0, 0, "Изначальные слова").unwrap();
+    страница.write(0, 1, "Regex").unwrap();
+    страница.write(0, 2, "Замена").unwrap();
+    страница.write(0, 3, "Количество случаев").unwrap();
+    страница.write(0, 4, "Строка").unwrap();
+    //worksheet.write(0, 5, "Ток потребления").unwrap();
+    //worksheet.write(0, 6, "Цепь земли (по умолчанию)").unwrap();
+    let mut _row_point: u32 = u32::try_from(1).unwrap().into();
+    //общий счётчик замен слов
+    let mut всего_замен: usize = 0;
+    //перебор одиночных слов
+    for j in 0..содержимое.len() {
+        //добавление количества замен
+        всего_замен += счётчик[j];
+        страница
+            .write((j + 1) as u32, 0, &содержимое[j].искомое_слово)
+            .unwrap();
+        страница
+            .write((j + 1) as u32, 1, содержимое[j].re_образец.to_string())
+            .unwrap();
+        страница
+            .write((j + 1) as u32, 2, содержимое[j].замена.to_string())
+            .unwrap();
+        страница
+            .write((j + 1) as u32, 3, счётчик[j].to_string())
+            .unwrap();
+        _row_point += 1;
+        //println!("{}",&_dictionary.простое[j]);
+    }
+
+    println!(
+        "{имя_страницы}, количетсво. содержимое: {}| Куча: {} |, замен: {}",
+        содержимое.len(),
+        куча_словарь.len(),
+        &всего_замен
+    );
+
+    //если длина словаря не равна
+    страница
+        .write((_row_point + 1) as u32, 0, "Итого замен: ")
+        .unwrap();
+    страница
+        .write((_row_point + 1) as u32, 3, всего_замен.to_string())
+        .unwrap();
+    страница.autofilter(0, 0, _row_point + 1, 4).unwrap();
+    страница.autofit();
+Ok(())
 }
