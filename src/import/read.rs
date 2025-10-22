@@ -76,8 +76,8 @@ pub fn считать_книги(
     use std::default::Default;
     //основной путь
     let пути_общие: lib::Пути_Общие = Default::default();
-    let mut содержимое_папки: Mutex<lib::Содержимое_папок> =
-        Mutex::new(lib::Содержимое_папок::default());
+    let mut содержимое_папки: Arc<Mutex<lib::Содержимое_папок>> =
+        Arc::new(Mutex::new(lib::Содержимое_папок::default()));
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //let полный_путь: String = полный_путь_до_файла().unwrap();
     //let стопки_книг: Mutex<Vec<lib::Книги>> = Mutex::new(Vec::new());
@@ -85,8 +85,9 @@ pub fn считать_книги(
     let пути_до_книг: Vec<String> = получить_содержимое(&пути_общие.книги);
     //получение словарей
     //чтение содержимого файлов в разделе книг
-    let сообщения: Mutex<lib::Сообщения> = Mutex::new(lib::Сообщения::default());
-    let стопки_книг: Vec<lib::Книги>= //for i in 0..пути_до_книг.len() {
+    let сообщения: Arc<Mutex<lib::Сообщения>> = Arc::new(Mutex::new(lib::Сообщения::default()));
+    //получение книг
+    let стопки_книг: Vec<lib::Книги>=
         пути_до_книг.par_iter().enumerate().filter_map(|(i,путь)|{
         //открытие файла с библиотекой
         //расширение файла
@@ -259,8 +260,8 @@ pub fn считать_книги(
             return None
         }
     }).collect();
-    let mut сообщения = сообщения.into_inner().unwrap();
-    let mut содержимое_папки = содержимое_папки.into_inner().unwrap();
+    let mut сообщения = Arc::try_unwrap(сообщения).unwrap().into_inner().unwrap();
+    let mut содержимое_папки = Arc::try_unwrap(содержимое_папки).unwrap().into_inner().unwrap();
     //перебор содержимого книги на предмет наличия трех точек подряд
     crate::output::write::вывод_содержимого_папок_по_умолчанию(
         &mut содержимое_папки,
