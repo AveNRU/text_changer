@@ -182,8 +182,8 @@ pub fn считать_книги(
                 &путь,
             );
             сообщения.lock().unwrap().чтение_книг.extend(сообщения_свои.чтение_книг);
-            let архив: foldhash::HashMap<String, Vec<u8>> =
-                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let архив: HashMap<String, Vec<u8>> =
+               HashMap::with_hasher(RandomState::default());
             //вложение содержимого всего архива в стопку
             Some(lib::Книги {
                 вложения: приложения_книги,
@@ -209,8 +209,8 @@ pub fn считать_книги(
                 &mut содержимое_папки.lock().unwrap().файлы,
                 &название_книги,
             );
-            let архив: foldhash::HashMap<String, Vec<u8>> =
-                foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+            let архив: HashMap<String, Vec<u8>> =
+                HashMap::with_hasher(RandomState::default());
             Some(lib::Книги {
                 вложения: Vec::new(),
                 архив,

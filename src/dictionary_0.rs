@@ -565,22 +565,11 @@ pub fn создать_быстрый_словарь(
     let mut ряд_вывод: Arc<Mutex<Vec<String>> >= Arc::new(Mutex::new(Vec::new()));
     let словарь_куча: HashMap<String, HashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
-    /*let my_set: HashSet<usize> = HashSet::from(
-        [1, 2, 3, 4, 5].into_iter(),
-        RandomState::default() // или RandomState::with_seed(0)
-    );*/
-    let s = RandomState::default();
-    let mut set: HashSet<String> = HashSet::with_hasher(s);
-    //let my_set:HashSet<usize>=HashSet::with_hasher(FixedState::with_seed(0));
-    //let mut hm = HashSet::with_hasher(foldhash::fast::RandomState::with_seed(42));
-    let ряд_временный: Arc<Mutex<HashSet<String>>> =
-        Arc::new(Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default())));
 
-    //
-    словарь_куча.par_iter().for_each(|(ключ, значения)| {
-        ряд_временный.lock().unwrap().insert(ключ.to_string());
-        let mut строка: Mutex<String> =
-            Mutex::new(format!("ключ: |{ключ}| Значения ({}):", значения.len()));
+    let ряд_временный: HashSet<String> =
+    словарь_куча.par_iter().filter_map(|(ключ, значения)| {
+        let mut строка: Arc<Mutex<String> >=
+            Arc::new(Mutex::new(format!("ключ: |{ключ}| Значения ({}):", значения.len())));
         значения.par_iter().for_each(|значение| {
             строка
                 .lock()
@@ -588,18 +577,11 @@ pub fn создать_быстрый_словарь(
                 .push_str(&format!("|{значение}-{значение}|"));
             // строка = format!("{}|{значение}-{}|", строка.lock().unwrap().clone(),значение).into();
         });
-        ряд_вывод.lock().unwrap().push(строка.into_inner().unwrap());
-    });
-    /*for (ключ, значения) in словарь_куча.iter() {
-        ряд_временный.insert(ключ.to_string());
-        let mut строка = String::new();
-        строка = format!("ключ: |{ключ}| Значения ({}):", значения.len());
-        for значение in значения.iter() {
-            строка = format!("{строка}|{значение}-{}|", слова_из_словаря[*значение]);
-        }
-        ряд_вывод.push(строка);
-    }*/
-    let ряд_временный = Arc::try_unwrap(ряд_временный).unwrap().into_inner().unwrap();
+        ряд_вывод.lock().unwrap().push(Arc::try_unwrap(строка).unwrap().into_inner().unwrap());
+        Some(ключ.to_string())
+    }).collect::<HashSet<String>>();
+
+    //let ряд_временный = Arc::try_unwrap(ряд_временный).unwrap().into_inner().unwrap();
     let ряд_временный = sz_упорядочить_кучу(ряд_временный);
     //
     let пути_общие: lib::Пути_Общие = Default::default();
@@ -616,29 +598,13 @@ pub fn создать_быстрый_словарь(
 pub fn выделить_кучу_из_ряда_для_словаря(
     ряд_слов: &Vec<String>,
 ) -> HashMap<String, HashSet<usize>> {
-    let mut куча_пропусков: HashMap<String, HashSet<usize>> =
-        HashMap::with_hasher(foldhash::fast::RandomState::default());
-    //перебор ряда слов
-    for i in 0..ряд_слов.len() {
-        let слово: String = выделить_окончание_из_слова(&ряд_слов[i]);
-        //создание пустой кучи
-        let mut куча_usize = HashSet::with_hasher(foldhash::fast::RandomState::default());
+    let куча_пропусков: HashMap<String, HashSet<usize>> =
+        ряд_слов.par_iter().enumerate().map(|(i,строка)|{
+            let слово: String = выделить_окончание_из_слова(&ряд_слов[i]);
 
-
-        куча_usize.insert(i); // добавляем индекс в HashSet
-        //проверка есть ли в куче
-        if !куча_пропусков.contains_key(&слово) {
-            куча_пропусков.insert(слово, куча_usize);
-        }
-        //если содержит куча ключ
-        else {
-            if let Some(значения) = куча_пропусков.get_mut(&слово) {
-                // куча_пропусков.insert(слово, куча_usize)
-                значения.insert(i);
-            };
-        }
-    }
-
+            // Возвращаем просто кортеж
+            (слово, HashSet::from_iter([i]))
+        }).collect();
 
     return куча_пропусков;
 

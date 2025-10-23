@@ -319,7 +319,14 @@ pub fn xlsx_сохранить_с_проверкой(
 pub fn прочитать_xlsx_с_диска(
     путь: &str,
 ) -> Result<HashMap<String, Vec<Vec<String>>>, Box<dyn std::error::Error>> {
-    let mut workbook: Xlsx<_> = open_workbook(путь).unwrap();
+    let mut workbook: Xlsx<_> = match open_workbook(путь) {
+        Ok(успех)=>успех,
+        Err(ошибка)=>{println!("Путь: {путь} не получислось открыть по причине: {}.\r\n Будет возвращён пустой .xlsx файл",
+                               ошибка);
+            return Ok(HashMap::with_hasher(foldhash::fast::RandomState::default()))
+        },
+
+    };
     let mut данные: HashMap<String, Vec<Vec<String>>> =
         HashMap::with_hasher(foldhash::fast::RandomState::default());
 
