@@ -13,7 +13,7 @@ pub fn xml_получить_указатели_на_пропуски(
 ) -> HashSet<usize> {
     lazy_static! {
 
-             static ref fb3_исключения_простые: Vec<String> = vec![
+             static ref fb3_исключения_простые: [String;5] = [
             r#"<fb3-body xmlns="#.to_string(),
             r#"<rootfile"#.to_string(),
             "<rootfiles>".to_string(),
@@ -21,7 +21,7 @@ pub fn xml_получить_указатели_на_пропуски(
             r#"<?xml version="1.0"?>"#.to_string(),
         ];
 
-        static ref fb3_исключения: Vec<String> = vec![
+        static ref fb3_исключения: [String;48] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
             //вложения
             "</section></body><binary".to_string(),
@@ -73,8 +73,8 @@ pub fn xml_получить_указатели_на_пропуски(
             "</container>".to_string(),
                     "</rootfiles>".to_string(),
         ];
-        static ref fb3_обязалово: Vec<String> = vec!["<".to_string(), ">".to_string(),];
-        static ref fb3_re_исключения: Vec<Regex> = vec![
+        static ref fb3_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
+        static ref fb3_re_исключения: [Regex;48] = [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
                 //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
@@ -132,8 +132,8 @@ pub fn xml_получить_указатели_на_пропуски(
     let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
 
     if !проверка_образцов_для_кучи(
-        &fb3_исключения,
-        &fb3_re_исключения,
+        &*fb3_исключения,
+        &*fb3_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
@@ -179,7 +179,6 @@ pub fn xml_получить_указатели_на_пропуски(
                 return true;
             }
         }
-
         if fb3_исключения_простые
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, &образец))
@@ -190,8 +189,8 @@ pub fn xml_получить_указатели_на_пропуски(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &fb3_исключения,
-            &fb3_re_исключения,
+            &*fb3_исключения,
+            &*fb3_re_исключения,
             &стог_сена,
         );
     }
@@ -201,7 +200,7 @@ pub fn fb2_получить_указатели_на_пропуки(
 ) -> HashSet<usize> {
     lazy_static! {
 
-        static ref fb2_исключения: Vec<String> = vec![
+        static ref fb2_исключения: [String;46] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
             //вложения
             "</section></body><binary".to_string(),
@@ -251,8 +250,8 @@ pub fn fb2_получить_указатели_на_пропуки(
                 "</title>".to_string(),
             "<section id=".to_string(),
         ];
-        static ref fb2_обязалово: Vec<String> = vec!["<".to_string(), ">".to_string(),];
-        static ref fb2_re_исключения: Vec<Regex> = vec![
+        static ref fb2_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
+        static ref fb2_re_исключения: [Regex;46] = [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
                 //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
@@ -307,8 +306,8 @@ pub fn fb2_получить_указатели_на_пропуки(
     }
     let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
     if !проверка_образцов_для_кучи(
-        &fb2_исключения,
-        &fb2_re_исключения,
+        &*fb2_исключения,
+        &*fb2_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
@@ -360,8 +359,8 @@ pub fn fb2_получить_указатели_на_пропуки(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &fb2_исключения,
-            &fb2_re_исключения,
+            &*fb2_исключения,
+            &*fb2_re_исключения,
             &стог_сена,
         );
     }
@@ -369,7 +368,7 @@ pub fn fb2_получить_указатели_на_пропуки(
 }
 
 fn html_получить_указатели_на_пропуски(
-    содержимое: &Vec<String>,
+    содержимое: &[String],
 ) -> HashSet<usize> {
     let пропуски: HashSet<usize> =
     содержимое
@@ -387,17 +386,16 @@ fn html_получить_указатели_на_пропуски(
         стог_сена: &String,
     ) -> bool {
         lazy_static! {
-            static ref html_исключения: Vec<String> = vec![r#"<!DOCTYPE html PUBLIC"#.to_string(),];
-            static ref html_исключения_с_проверкой: Vec<String> = vec![
+            static ref html_исключения: [String;1] = [r#"<!DOCTYPE html PUBLIC"#.to_string()];
+            static ref html_исключения_с_проверкой: [String;2] = [
                 "<blockquote><div>".to_string(),
                 "</div></body></html>".to_string(),
             ];
-            static ref re_html_исключения_с_проверкой: Vec<Regex> = vec![
+            static ref re_html_исключения_с_проверкой: [Regex;2] = [
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
             ];
         }
-
         //поиск
         if html_исключения
             .par_iter()
@@ -405,10 +403,9 @@ fn html_получить_указатели_на_пропуски(
         {
             return true;
         }
-
         return проверка_исключений_в_стоге_сена(
-            &html_исключения_с_проверкой,
-            &re_html_исключения_с_проверкой,
+            &*html_исключения_с_проверкой,
+            &*re_html_исключения_с_проверкой,
             &стог_сена,
         );
         //проверка концов и окончаний строк
@@ -450,7 +447,7 @@ pub fn md_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
     lazy_static! {
-        static ref md_исключения: Vec<String> = vec![
+        static ref md_исключения: [String;25] = [
             r#"---"#.to_string(),
               r#"***"#.to_string(),
                r#"___"#.to_string(),
@@ -479,7 +476,7 @@ pub fn md_получить_указатели_на_пропуки(
             r#"ms.date"#.to_string(),
 
         ];
-        static ref md_re_исключения: Vec<Regex> = vec![
+        static ref md_re_исключения: [Regex;25] = [
             Regex::new(r#"(?i)^\s*(-+)$"#).unwrap(),
               Regex::new(r#"(?i)^\s*(\*+)$"#).unwrap(),
                Regex::new(r#"(?i)^\s*(_+)$"#).unwrap(),
@@ -512,8 +509,8 @@ pub fn md_получить_указатели_на_пропуки(
     }
     let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0,1,2,3,11,12,17,18,19,24]);
     if !проверка_образцов_для_кучи(
-        &md_исключения,
-        &md_re_исключения,
+        &*md_исключения,
+        &*md_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
@@ -552,8 +549,8 @@ pub fn md_получить_указатели_на_пропуки(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &md_исключения,
-            &md_re_исключения,
+            &*md_исключения,
+            &*md_re_исключения,
             &стог_сена,
         );
     }
@@ -561,8 +558,8 @@ pub fn md_получить_указатели_на_пропуки(
 
 }
 pub fn проверка_исключений_в_стоге_сена(
-    исключения: &Vec<String>,
-    re_исключения: &Vec<Regex>,
+    исключения: &[String],
+    re_исключения: &[Regex],
     стог_сена: &String,
 ) -> bool {
     // Проверяем, что массивы одинаковой длины
@@ -574,8 +571,8 @@ pub fn проверка_исключений_в_стоге_сена(
     })
 }
 fn проверка_образцов_для_кучи(
-    исключения: &Vec<String>,
-    исключения_re: &Vec<Regex>,
+    исключения: &[String],
+    исключения_re: &[Regex],
     исключения_проверки: &HashSet<usize>,
 ) -> bool {
     if исключения.len() != исключения_re.len() {
@@ -615,15 +612,16 @@ fn проверка_образцов_для_кучи(
 }
 
 pub fn есть_ли_кириллица(стог_сена: &String) -> bool {
-    let малые_буквы: Vec<char> = vec![
+    lazy_static! {
+   static ref малые_буквы: [char;35] = [
         'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о',
         'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
     ];
-    let большие_буквы: Vec<char> = vec![
+     static ref большие_буквы: [char;35] = [
         'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О',
         'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
     ];
-
+    }
     //малые буквы
     if малые_буквы
         .par_iter()

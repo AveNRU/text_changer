@@ -7,7 +7,7 @@ use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, Progre
 use rand::{Rng, prelude::*};
 use rayon::prelude::*;
 use std::sync::{
-    Mutex,
+    Mutex,Arc,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use std::thread;
@@ -471,7 +471,7 @@ pub fn замена_слов_через_regex(
 pub fn замена_слов_через_кучу(
     словарь: &[Ячейка_словаря],
     содержимое: &mut [String],
-    счётчик_словаря: &mut [AtomicUsize],
+    счётчик_словаря: &mut Vec<Arc<AtomicUsize>>,
     сообщение: &str,
     расширение: &str,
     куча_пропусков: &HashSet<usize>,

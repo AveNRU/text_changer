@@ -27,7 +27,7 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     }
 }
 pub fn есть_ли_повторно_строка_в_ряде(
-    ряд: &Vec<String>,
+    ряд: &[String],
     сообщение: &str,
     условие_вложенности:bool,
 )  {
@@ -53,9 +53,10 @@ pub fn есть_ли_повторно_строка_в_ряде(
 }
 
 pub fn есть_ли_повторно_строка_в_ряде_regex(
-    ряд: &Vec<Regex>,
+    ряд: impl AsRef<[Regex]>,
     сообщение: &str,
 ) -> bool {
+    let ряд=ряд.as_ref();
     //поиск уже добавленных слов
     (0..ряд.len()).into_par_iter().any(|i| {
         ((i + 1)..ряд.len()).into_par_iter().any(|j| {
@@ -72,7 +73,7 @@ pub fn есть_ли_повторно_строка_в_ряде_regex(
     })
 }
 pub fn вложена_ли_строка_в_ряд(
-    ряд: &Vec<String>, строка: &String
+    ряд: &[String], строка: &String
 ) -> bool {
     if ряд.par_iter().any(|i| i.as_str() == строка.as_str()) {
         return true;
@@ -119,19 +120,19 @@ pub fn ряд_в_строку(ряд: &Vec<String>, ошибка: &str) -> Strin
 pub fn вложить_строки_ряд_в_ряд(
     ряд_1: &mut Vec<String>, ряд_2: &Vec<String>
 ) {
-    let ряд_1_mutex = Mutex::new(ряд_1);
-    //перебор вспомогательного вектора
-    ряд_2.par_iter().for_each(|строка_искомая| {
-        let mut guard = ряд_1_mutex.lock().unwrap();
-        if !guard.iter().any(|j| j == строка_искомая) {
-            guard.push(строка_искомая.clone());
-        }
-    });
+    let множество: HashSet<&String> = ряд_1.iter().collect();
+    let уникальные: Vec<String> = ряд_2
+        .iter()
+        .filter(|с| !множество.contains(с))
+        .cloned()
+        .collect();
+    ряд_1.extend(уникальные);
+    
 }
 
 pub fn сравнение_двух_рядов_построчно(
-    ряд_1: &Vec<String>,
-    ряд_2: &Vec<String>,
+    ряд_1: &[String],
+    ряд_2: &[String],
     путь: &String,
 ) -> bool {
     //если количество строк не равно
