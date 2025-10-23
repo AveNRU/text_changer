@@ -7,9 +7,7 @@ use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
 use std::sync::Mutex;
-use foldhash::fast::RandomState;
 use time::Month::January;
-//HashSet::with_hasher(foldhash::fast::RandomState::default());
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
@@ -131,9 +129,8 @@ pub fn xml_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
+    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
+
     if !проверка_образцов_для_кучи(
         &fb3_исключения,
         &fb3_re_исключения,
@@ -142,28 +139,21 @@ pub fn xml_получить_указатели_на_пропуски(
         panic!()
     }
     //получение значений
-    
-    let пропуски: Mutex<HashSet<usize>> =
-        Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+
     //прогон
+    let пропуски: HashSet<usize> =
     содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)|
+                if !есть_ли_кириллица(&строка) || fb3_проверка_содержимого_на_условия(&строка)  {
+                return Some(указатель)
             }
-            if fb3_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+            else {None}
+        ).collect::<HashSet<usize>>();
     return пропуски;
-
     //если истина-то переход к следующей строке
-
     //исключения для расширения
-
     //если возвращает истину - то переход на следующую строку
     fn fb3_обязательное_содержимое(стог_сена: &String) -> bool {
         //проверка что нет пустоты
@@ -315,9 +305,7 @@ pub fn fb2_получить_указатели_на_пропуки(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
+    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
     if !проверка_образцов_для_кучи(
         &fb2_исключения,
         &fb2_re_исключения,
@@ -327,21 +315,18 @@ pub fn fb2_получить_указатели_на_пропуки(
     }
     //получение значений
 
-    // let mut пропуски: HashSet<usize> = HashSet::default();
-    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+
+    let пропуски: HashSet<usize> =
     //прогон
     содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка)|| fb2_проверка_содержимого_на_условия(&строка) {
+                return Some(указатель)
             }
-            if fb2_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+            else {None}
+        }).collect::<HashSet<usize>>();
     return пропуски;
     //исключения для расширения
     //если возвращает истину - то переход на следующую строку
@@ -386,19 +371,16 @@ pub fn fb2_получить_указатели_на_пропуки(
 fn html_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
-    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+    let пропуски: HashSet<usize> =
     содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка)||html_проверка_содержимого_на_условия(&строка) {
+                return Some(указатель)
             }
-            if html_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+            else {None}
+        }).collect::<HashSet<usize>>();
     return пропуски;
 
     fn html_проверка_содержимого_на_условия(
@@ -528,19 +510,7 @@ pub fn md_получить_указатели_на_пропуки(
         ];
         static ref md_примечание:Regex= Regex::new(r#"(?i)^#"#).unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
-    исключения_для_проверки.insert(1);
-    исключения_для_проверки.insert(2);
-    исключения_для_проверки.insert(3);
-    исключения_для_проверки.insert(11);
-    исключения_для_проверки.insert(12);
-    исключения_для_проверки.insert(17);
-    исключения_для_проверки.insert(18);
-    исключения_для_проверки.insert(19);
-    исключения_для_проверки.insert(24);
-
+    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0,1,2,3,11,12,17,18,19,24]);
     if !проверка_образцов_для_кучи(
         &md_исключения,
         &md_re_исключения,
@@ -549,23 +519,16 @@ pub fn md_получить_указатели_на_пропуки(
         panic!()
     }
     //получение значений
-
-    let пропуски: Mutex<HashSet<usize>> = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
-
+    
+    let пропуски: HashSet<usize> =
     содержимое
         .into_par_iter()
         .enumerate()
-        .for_each(|(указатель, строка_внутри)| {
-            if !есть_ли_кириллица(&содержимое[указатель]) {
-                пропуски.lock().unwrap().insert(указатель);
-                return;
-            } else if md_проверка_содержимого_на_условия(
-                &содержимое[указатель],
-            ) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let пропуски = пропуски.into_inner().unwrap();
+        .filter_map(|(указатель, строка_внутри)| {
+            if !есть_ли_кириллица(&содержимое[указатель]) ||md_проверка_содержимого_на_условия(&содержимое[указатель]) {
+                return Some(указатель)
+            }  else {None}
+        }).collect::<HashSet<usize>>();
     //прогон
     //исключения для расширения
     return пропуски;

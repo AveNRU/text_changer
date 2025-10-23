@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="проверка" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="проверка" type="CargoCommandRunConfiguration" factoryName="Cargo Command" focusToolWindowBeforeRun="true">
     <option name="buildProfileId" value="dev" />
     <option name="command" value="check --package text_changer" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />

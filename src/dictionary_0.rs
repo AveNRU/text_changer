@@ -20,7 +20,7 @@ use crate::utils::functions_txt::*;
 use crate::utils::stringzilla::{sz_найти, sz_упорядочить_ряд_строк};
 use crate::xlsx::import_xlsx::поиск_уже_добавленных_слов;
 use console::{Emoji, style};
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
+use foldhash::{HashMap, HashSet, HashSetExt, fast::{FixedState,RandomState}};
 use indicatif::ProgressBar;
 use indicatif::*;
 use rayon::prelude::*;
@@ -28,6 +28,7 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use stringzilla::sz;
+use crate::utils::hash::есть_ли_кириллица;
 
 #[derive(Debug, Default, Clone)]
 pub struct Исключения_для_кучи {
@@ -561,13 +562,20 @@ pub fn создать_быстрый_словарь(
     вид_слов: &str,
 ) -> HashMap<String, HashSet<usize>> {
     use crate::utils::stringzilla::sz_упорядочить_кучу;
-    //let куча_пропусков:HashMap<String,Vec<usize>>=HashMap::with_hasher(foldhash::fast::RandomState::default());
-    //let mut куча_простая=куча_пропусков.clone();
     let mut ряд_вывод: Arc<Mutex<Vec<String>> >= Arc::new(Mutex::new(Vec::new()));
     let словарь_куча: HashMap<String, HashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
-    let ряд_временный: Mutex<HashSet<String>> =
-        Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+    /*let my_set: HashSet<usize> = HashSet::from(
+        [1, 2, 3, 4, 5].into_iter(),
+        RandomState::default() // или RandomState::with_seed(0)
+    );*/
+    let s = RandomState::default();
+    let mut set: HashSet<String> = HashSet::with_hasher(s);
+    //let my_set:HashSet<usize>=HashSet::with_hasher(FixedState::with_seed(0));
+    //let mut hm = HashSet::with_hasher(foldhash::fast::RandomState::with_seed(42));
+    let ряд_временный: Arc<Mutex<HashSet<String>>> =
+        Arc::new(Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default())));
+
     //
     словарь_куча.par_iter().for_each(|(ключ, значения)| {
         ряд_временный.lock().unwrap().insert(ключ.to_string());
@@ -591,7 +599,7 @@ pub fn создать_быстрый_словарь(
         }
         ряд_вывод.push(строка);
     }*/
-    let ряд_временный = ряд_временный.into_inner().unwrap();
+    let ряд_временный = Arc::try_unwrap(ряд_временный).unwrap().into_inner().unwrap();
     let ряд_временный = sz_упорядочить_кучу(ряд_временный);
     //
     let пути_общие: lib::Пути_Общие = Default::default();
@@ -615,6 +623,8 @@ pub fn выделить_кучу_из_ряда_для_словаря(
         let слово: String = выделить_окончание_из_слова(&ряд_слов[i]);
         //создание пустой кучи
         let mut куча_usize = HashSet::with_hasher(foldhash::fast::RandomState::default());
+
+
         куча_usize.insert(i); // добавляем индекс в HashSet
         //проверка есть ли в куче
         if !куча_пропусков.contains_key(&слово) {
@@ -628,19 +638,55 @@ pub fn выделить_кучу_из_ряда_для_словаря(
             };
         }
     }
+
+
     return куча_пропусков;
+
+
+}
+
+
+pub fn foldhash_пример(слова:&Vec<usize>,значение:usize) {
+
+
+    let my_set: HashSet<usize> =
+        (0..слова.len())
+            .map(|_| if значение == 0 { 1 } else { 2 })
+            .collect::<HashSet<usize>>();
+    let слова:Vec<String>=Vec::new();
+    let пропуски: HashSet<usize> =
+        слова
+            .par_iter()
+            .enumerate()
+            .filter_map(|(указатель, строка)|
+                if !есть_ли_кириллица(&строка) {
+                    return Some(указатель)
+                }
+                else {None}
+            ).collect::<HashSet<usize>>();
+
+    use std::hash::BuildHasher;
+    //let my_set: HashSet<usize> = 1.into();
+    let my_set = HashSet::from_iter([1, 2, 3, 4, 5]);
+    let random_state = RandomState::default();
+    let hash = random_state.hash_one("hello world");
+    let hash:HashSet<usize> = HashSet::from_iter([
+        1,
+        2,
+    ]).into_iter()
+        .collect::<HashSet<usize>>();
+    //et my_set:HashSet<usize> = HashSet::from( 1);
+
+    let my_set: HashSet<usize> = [1, 2, 3, 4, 5]
+        .into_iter()
+        .collect::<HashSet<usize>>();
 }
 
 pub fn выделить_окончание_из_слова(слово: &String) -> String {
-    let mut куча_исключений_знак: HashSet<char> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    куча_исключений_знак.insert('ы');
-    куча_исключений_знак.insert('и');
-    куча_исключений_знак.insert('а');
-    куча_исключений_знак.insert('я');
-    куча_исключений_знак.insert('у');
-    куча_исключений_знак.insert('е');
-    куча_исключений_знак.insert('ю');
+    let куча_исключений_знак:HashSet<char> = HashSet::from_iter([
+        'ы','и','а','я','у','е','ю',
+    ]).into_iter()
+        .collect::<HashSet<char>>();
     //куча_исключений_знак.insert('ь');
     //куча_исключений_знак.insert('ъ');
 
@@ -843,34 +889,6 @@ pub fn выделить_окончание_из_слова(слово: &String) 
          ];
 
      }
-    let mut куча_исключений_ал: HashSet<String> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    куча_исключений_ал.insert("материал".to_string());
-    куча_исключений_ал.insert("Материал".to_string());
-    куча_исключений_ал.insert("Ритуал".to_string());
-    куча_исключений_ал.insert("ритуал".to_string());
-    куча_исключений_ал.insert("Идеал".to_string());
-    куча_исключений_ал.insert("Идеал".to_string());
-    let mut куча_исключений_ала: HashSet<String> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    куча_исключений_ала.insert("ритуала".to_string());
-    куча_исключений_ала.insert("Ритуала".to_string());
-    куча_исключений_ала.insert("материала".to_string());
-    куча_исключений_ала.insert("Материала".to_string());
-
-    let mut исключения_двубуквенные: Vec<Исключения_для_кучи> = vec![
-        Исключения_для_кучи {
-            указатель: 0,
-            исключения: куча_исключений_ал,
-        },
-        Исключения_для_кучи {
-            указатель: 1,
-            исключения: куча_исключений_ала,
-        },
-    ];
-    /*
-       if куча_исключений.contains(слово) {return слово.to_string()}
-    */
 
     //
     проверка_ряда_regex(&re_двубуквенные);
