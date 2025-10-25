@@ -402,7 +402,6 @@ pub fn добавить_все_слова_в_словарь(
             a.неизменное.extend(b.неизменное);
             a
         });
-   // let полный_словарь: Полный_Словарь = Arc::try_unwrap(полный_словарь).unwrap().into_inner().unwrap();
     //проверка пересечений составных, составных важных и неизменных слов
     поиск_уже_добавленных_слов_в_полном_словаре(
         &полный_словарь); //номер страницы
@@ -416,34 +415,45 @@ pub fn создать_быстрый_словарь(
     вид_слов: &str,
 ) -> HashMap<String, HashSet<usize>> {
     use crate::utils::stringzilla::sz_упорядочить_кучу;
-    let mut ряд_вывод: Arc<Mutex<Vec<String>> >= Arc::new(Mutex::new(Vec::new()));
+    let ряд_вывод = Arc::new(Mutex::new(Vec::new()));
     let словарь_куча: HashMap<String, HashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
 
     let ряд_временный: HashSet<String> =
     словарь_куча.par_iter().filter_map(|(ключ, значения)| {
-        let строка: Arc<Mutex<String> >=
-            Arc::new(Mutex::new(format!("ключ: |{ключ}| Значения ({}):", значения.len())));
-        значения.par_iter().for_each(|значение| {
-            строка
-                .lock()
-                .unwrap()
-                .push_str(&format!("{значение},"));
-            // строка = format!("{}|{значение}-{}|", строка.lock().unwrap().clone(),значение).into();
-        });
-        ряд_вывод.lock().unwrap().push(Arc::try_unwrap(строка).unwrap().into_inner().unwrap());
+        let строка = format!("ключ: |{ключ}| Значения ({}):", значения.len());
+
+        let полная_строка = значения.par_iter()
+            .fold(
+                || String::new(),
+                |mut acc, значение| {
+                    if !acc.is_empty() {
+                        acc.push(',');
+                    }
+                    acc.push_str(&значение.to_string());
+                    acc
+                }
+            )
+            .reduce(|| String::new(), |mut a, b| {
+                if !a.is_empty() && !b.is_empty() {
+                    a.push(',');
+                }
+                a.push_str(&b);
+                a
+            });
+
+        let итог = format!("{}{}", строка, полная_строка);
+        ряд_вывод.lock().unwrap().push(итог);
         Some(ключ.to_string())
     }).collect::<HashSet<String>>();
-
-    //let ряд_временный = Arc::try_unwrap(ряд_временный).unwrap().into_inner().unwrap();
-    let ряд_временный = sz_упорядочить_кучу(ряд_временный);
+        let ряд_временный = sz_упорядочить_кучу(ряд_временный);
     //
     let пути_общие: lib::Пути_Общие = Default::default();
     let пути_вывода: lib::Пути_Вывода = Default::default();
     let mut пустой_ряд: Vec<String> = Vec::new();
     let путь_простой: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря, вид_слов,);
     let путь_ключи: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря_ключи, вид_слов,);
-    let ряд_вывод = Arc::try_unwrap(ряд_вывод).unwrap().into_inner().unwrap();
+    let ряд_вывод = Arc::try_unwrap(ряд_вывод).unwrap().into_inner().unwrap();     
     вывод_содержимого_в_txt(&ряд_вывод, &путь_простой, &mut пустой_ряд, false).unwrap();
     вывод_содержимого_в_txt(&ряд_временный, &путь_ключи, &mut пустой_ряд, false).unwrap();
     return словарь_куча;
