@@ -94,3 +94,12 @@ stringzilla подружить с CPU и GPU
 26.10
 убрать пробелы у простых .trim()
 проверка на пробелы у простых
+thread '<unnamed>' panicked at src\output\write.rs:497:24:
+Системе не удается найти указанный путь. (os error 3) , путь: ./вывод/книги/проверка_после_замены_слов/Мастер_и_Маргарита_А4-20100716.files\header.htm.txt
+
+thread '<unnamed>' panicked at src\output\write.rs:858:57:
+called `Result::unwrap()` on an `Err` value: PoisonError { .. }
+stack backtrace:
+
+
+

@@ -169,6 +169,18 @@ pub fn md_fs_yml(стог_сена: &String) -> bool {
         .any(|строка| строка.is_match(стог_сена));
     //return false;
 }
+
+pub fn htm(стог_сена: &String) -> bool {
+    lazy_static! {
+           static ref re_расширения_word:Vec<Regex> = vec![
+        Regex::new(r"(?i)\.htm$").unwrap(),
+     ];
+    }
+    return re_расширения_word
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена));
+    //return false;
+}
 //если это не архивный файл
 pub fn fb2_rtf_mhtml(стог_сена: &String) -> bool {
     lazy_static! {
