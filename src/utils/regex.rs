@@ -7,7 +7,7 @@ use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, Progre
 use rand::{Rng, prelude::*};
 use rayon::prelude::*;
 use std::sync::{
-    Mutex,Arc,
+    Arc, Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use std::thread;
@@ -43,7 +43,7 @@ use regex::Regex;
 
 pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_мусорные: Vec<Regex> = vec![
+        static ref re_расширения_мусорные: [Regex;5] = [
             Regex::new(r"(?i)\.css$").unwrap(),
               Regex::new(r"(?i)\.rels$").unwrap(),
               Regex::new(r"(?i)\.ttf$").unwrap(),
@@ -63,7 +63,7 @@ pub fn изображение_расширение_с_точкой(
     стог_сена: &String
 ) -> bool {
     lazy_static! {
-        static ref re_расширения_изображений: Vec<Regex> = vec![
+        static ref re_расширения_изображений: [Regex;10] = [
             Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
             Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
             Regex::new(r"(?i)\.png$").unwrap(),
@@ -85,7 +85,7 @@ pub fn изображение_расширение_без_точки(
     стог_сена: &String
 ) -> bool {
     lazy_static! {
-        static ref re_расширения_изображений: Vec<Regex> = vec![
+        static ref re_расширения_изображений: [Regex;10] = [
             Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
             Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
             Regex::new(r"(?i)\.png$").unwrap(),
@@ -105,7 +105,7 @@ pub fn изображение_расширение_без_точки(
 
 pub fn не_является_изображением(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_изображений: Vec<Regex> = vec![
+        static ref re_расширения_изображений: [Regex;14] = [
             Regex::new(r"(?i)jpe?g$").unwrap(),  // Объединил jpg и jpeg
             Regex::new(r"(?i)tiff?$").unwrap(),  // Объединил tif и tiff
             Regex::new(r"(?i)bmp$").unwrap(),
@@ -129,9 +129,10 @@ pub fn не_является_изображением(стог_сена: &String
 //если это архивный файл
 pub fn fb3_epub(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_архивные:Vec<Regex> = vec![
+        static ref re_расширения_архивные:[Regex;2] = [
         Regex::new(r"(?i)\.fb3$").unwrap(),
         Regex::new(r"(?i)\.epub$").unwrap(),
+
         //Regex::new(r"(?i)\.docx$").unwrap(),
         //Regex::new(r"(?i)\.doc$").unwrap(),
      ];
@@ -143,7 +144,7 @@ pub fn fb3_epub(стог_сена: &String) -> bool {
 //если это архивный файл
 pub fn doc_docx(стог_сена: &String) -> bool {
     lazy_static! {
-           static ref re_расширения_word:Vec<Regex> = vec![
+           static ref re_расширения_word:[Regex;2] = [
         //Regex::new(r"(?i)\.fb3$").unwrap(),
         //Regex::new(r"(?i)\.epub$").unwrap(),
         Regex::new(r"(?i)\.docx$").unwrap(),
@@ -156,7 +157,7 @@ pub fn doc_docx(стог_сена: &String) -> bool {
 }
 pub fn md_fs_yml(стог_сена: &String) -> bool {
     lazy_static! {
-           static ref re_расширения_word:Vec<Regex> = vec![
+           static ref re_расширения_word:[Regex;3] = [
         //Regex::new(r"(?i)\.fb3$").unwrap(),
         //Regex::new(r"(?i)\.epub$").unwrap(),
         Regex::new(r"(?i)\.md$").unwrap(),
@@ -170,11 +171,12 @@ pub fn md_fs_yml(стог_сена: &String) -> bool {
     //return false;
 }
 
-pub fn htm(стог_сена: &String) -> bool {
+pub fn htm_html(стог_сена: &String) -> bool {
     lazy_static! {
-           static ref re_расширения_word:Vec<Regex> = vec![
-        Regex::new(r"(?i)\.htm$").unwrap(),
-     ];
+        static ref re_расширения_word: [Regex; 2] = [
+            Regex::new(r"(?i)\.htm$").unwrap(),
+            Regex::new(r"(?i)\.html$").unwrap(),
+        ];
     }
     return re_расширения_word
         .par_iter()
@@ -182,12 +184,13 @@ pub fn htm(стог_сена: &String) -> bool {
     //return false;
 }
 //если это не архивный файл
-pub fn fb2_rtf_mhtml(стог_сена: &String) -> bool {
+pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_не_архивные: Vec<Regex> = vec![
+        static ref re_расширения_не_архивные: [Regex; 4] = [
             Regex::new(r"(?i)\.fb2$").unwrap(),
             Regex::new(r"(?i)\.rtf$").unwrap(),
-            Regex::new(r"(?i)\.mhtml$").unwrap(),
+                   Regex::new(r"(?i)\.mhtml$").unwrap(),
+               Regex::new(r"(?i)\.mht$").unwrap(),
         ];
     }
     return re_расширения_не_архивные
@@ -199,7 +202,7 @@ pub fn fb2_rtf_mhtml(стог_сена: &String) -> bool {
 pub fn есть_ли_маты(стог_сена: &String) -> bool {
     lazy_static! {
             //маты
-     static ref re_матершина_слова:Vec<Regex> = vec![
+     static ref re_матершина_слова:[Regex;1] = [
         Regex::new(r"(?i)\s*([\w]…)\s*").unwrap(),
      ];
     }
@@ -211,7 +214,7 @@ pub fn есть_ли_маты(стог_сена: &String) -> bool {
 //выдел строки
 pub fn re_получить_имя_файла_без_пути(стог_сена: &String) -> String {
     lazy_static! {
-        static ref без_пути:Vec<Regex> = vec![
+        static ref без_пути:[Regex;1] = [
             Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
         //     Regex::new(r"(?i)(.[^\\]+)$").unwrap(),
         ];
@@ -260,7 +263,7 @@ pub fn re_получить_строку_с_описанием(
 }
 //выдел строки
 /*
-pub fn получить_строку_из_ряда_re_с_описанием(стог_сена: &String, образец: &Vec<Regex>,ошибка:&str) -> String {
+pub fn получить_строку_из_ряда_re_с_описанием(стог_сена: &String, образец: &[Regex;5],ошибка:&str) -> String {
     let Some(строка) = образец.captures(&стог_сена) else {
         println!("{}",ошибка);
         panic!("ошибка при выдирания {}, сама строка : {}", &образец, &стог_сена);
@@ -272,7 +275,7 @@ pub fn получить_строку_из_ряда_re_с_описанием(ст
 
 pub fn определить_имя_книги(стог_сена: &String) -> String {
     lazy_static! {
-        static ref re_пути_до_книг: Vec<Regex> = vec![
+        static ref re_пути_до_книг: [Regex; 3] = [
             Regex::new(r"(?i)books/([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i)books\\([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i).+/(.+)\.").unwrap(),
@@ -310,7 +313,7 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
 }
 /*
 pub fn замена_слов_через_regex(
-    re_образцы: &Vec<Regex>,
+    re_образцы: &[Regex;5],
     содержимое: &mut Vec<String>,
     замены: &Vec<String>,
     счётчик_словаря: &mut Vec<usize>,
@@ -455,15 +458,13 @@ pub fn замена_слов_через_regex(
                 {
                     let замененная_строка =
                         re_образец.replace_all(&строка, &замены[указатель_образца]);
-                    let замененная_строка=замененная_строка.to_string();
-                    if bytesum(&замененная_строка)!=bytesum(&строка)  {
+                    let замененная_строка = замененная_строка.to_string();
+                    if bytesum(&замененная_строка) != bytesum(&строка) {
                         // Увеличиваем атомарный счетчик
                         атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
                     }
                     // Заменяем строку
                     *строка = замененная_строка;
-                   
-                
                 }
 
                 // Обновляем прогресс
@@ -495,7 +496,7 @@ pub fn замена_слов_через_кучу(
     let m = MultiProgress::new();
     let pb = m.add(ProgressBar::new(15));
     pb.set_style(spinner_style.clone());
-    
+
     //Создаем атомарные счетчики для каждого шаблона
     let атомарные_счетчики: Vec<AtomicUsize> =
         (0..словарь.len()).map(|_| AtomicUsize::new(0)).collect();

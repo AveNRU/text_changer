@@ -76,7 +76,7 @@ impl Zips {
 }
 pub fn zip_архив_в_память(
     путь: &String,
-    mut virt_fs:  Архив_в_озу,
+    mut virt_fs: Архив_в_озу,
 ) -> Result<Архив_в_озу, Box<dyn std::error::Error>> {
     //HashMap<String, Vec<u8>>{
     let mut zips = Zips::new(путь).unwrap();

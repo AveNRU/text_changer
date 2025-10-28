@@ -3,6 +3,7 @@ use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::sz_найти;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use lazy_static::lazy_static;
 use rayon::prelude::*;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Cursor, Read};
@@ -27,23 +28,200 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
     return итог;
 }
 
-pub fn read_utf8_без_переносов_строк(путь_до_файла: &String) -> Vec<String> {
+pub fn read_utf8_без_переносов_строк_htm(
+    путь_до_файла: &String
+) -> Vec<String> {
     let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
     let содержимое: Box<dyn BufRead> = считать_файл(путь_до_файла); //чтение файла
-    let mut строка_общая:String=String::new();
+    let mut строка_общая: String = String::new();
+    let mut условие_p:bool=false;
+    let mut условие_title:bool=false;
     for (указатель, содержимое_в_байтах) in содержимое.split(b'\n').enumerate()
     {
         //перебор всех строк и переход на новые строки
         let указатель_строки: usize = указатель + 1;
-        let строка_в_utf8: String =
+        let mut строка_в_utf8: String =
             получить_строку_в_utf8(содержимое_в_байтах, указатель_строки); //сохранение строки как UTF-8
-      //  итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
-        строка_общая=format!("{}{}",строка_общая,строка_в_utf8);
-    }
-    println!("{:?}",строка_общая);
-    return vec![строка_общая];
+        //если нет закрытий
+        //пустую строку сразу вкладываем
+      //  if строка_в_utf8.is_empty() {
+       //     итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
+       // };
 
+        if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8) {
+           // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            условие_p=true;
+            continue
+        }
+        if условие_p {
+           // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            if !sz_найти(&строка_в_utf8,"</p>") {
+            continue
+            } else {
+                условие_p = false;
+                итог.push(строка_общая.to_string()); //добавление строки в вектор
+                строка_общая = String::new();
+                continue
+            }
+        }
+
+        if отсутствие_закрытого_title_тэга_html_в_строке(&строка_в_utf8) {
+            //строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            условие_title=true;
+            continue
+        }
+        if условие_title {
+           // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            if !sz_найти(&строка_в_utf8,"</title>") {
+                continue
+            } else {
+                условие_title = false;
+                итог.push(строка_общая.to_string()); //добавление строки в вектор
+                строка_общая = String::new();
+                continue
+            }
+        }
+
+        if !условие_p && !условие_title{
+            итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
+        }
+    }
+    let итог=удалить_shy_из_вектора(&итог);
+    return итог;
 }
+
+
+pub fn htm_utf8_без_переносов_строк(
+    содержимое: &Vec<String>,
+) -> Vec<String> {
+    let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
+    let mut строка_общая: String = String::new();
+    let mut условие_p:bool=false;
+    let mut условие_title:bool=false;
+    for (указатель, строка_в_utf8) in содержимое.iter().enumerate()
+    {
+        //перебор всех строк и переход на новые строки
+        let указатель_строки: usize = указатель + 1;
+        //если нет закрытий
+        //пустую строку сразу вкладываем
+        if строка_в_utf8.is_empty() {
+            итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
+        };
+
+        if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8) {
+            // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            условие_p=true;
+            continue
+        }
+        if условие_p {
+            // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            if !sz_найти(&строка_в_utf8,"</p>") {
+                continue
+            } else {
+                условие_p = false;
+                итог.push(строка_общая.to_string()); //добавление строки в вектор
+                строка_общая = String::new();
+                continue
+            }
+        }
+
+        if отсутствие_закрытого_title_тэга_html_в_строке(&строка_в_utf8) {
+            //строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            условие_title=true;
+            continue
+        }
+        if условие_title {
+            // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
+            строка_общая=format!("{}{} ",строка_общая,строка_в_utf8);
+            if !sz_найти(&строка_в_utf8,"</title>") {
+                continue
+            } else {
+                условие_title = false;
+                итог.push(строка_общая.to_string()); //добавление строки в вектор
+                строка_общая = String::new();
+                continue
+            }
+        }
+
+        if !условие_p && !условие_title{
+            итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
+        }
+    }
+    let итог=удалить_shy_из_вектора(&итог);
+    return итог;
+}
+fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String> {
+    строки
+        .iter()
+        .map(|строка| {
+            строка
+                .replace("&shy;", "")
+                .replace("­", "")
+                .replace("&nbsp;", " ")
+                .replace("\u{00AD}", "")
+                .replace("&#8209;", "-")
+                .replace("\u{2011}", "-")
+                .replace("&#160;", "")   // числовая форма
+                .replace("\u{00A0}", " ") // Unicode символ
+                .replace("&#xA0;", " ")  // шестнадцатеричная форма
+                // <
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")   // больше
+                .replace("&amp;", "&")  // амперсанд
+                .replace("&quot;", "\"") // двойная кавычка
+                .replace("&#39;", "'")  // одинарная кавычка
+                .replace("&#x27;", "'") // одинарная кавычка (hex)
+            //>
+                .replace("&gt;", ">")
+                .replace("&lt;", "<")   // меньше
+                .replace("&amp;", "&")  // амперсанд
+                //двойная кавычка
+                .replace("&quot;", "\"")
+                .replace("&#34;", "\"")    // числовая форма
+                .replace("&#x22;", "\"")   // шестнадцатеричная форма
+        })
+        .collect()
+}
+fn отсутствие_закрытого_p_тэга_html_в_строке(
+    стог_сена: &String
+) -> bool {
+    lazy_static! {
+        static ref открытый_p :String= "<p".to_string();
+        static ref закрытый_p:String = "</p>".to_string();
+    }
+    let mut условие=false;
+            let условие_начала=sz_найти(&стог_сена, &открытый_p);
+            let условие_конца=sz_найти(&стог_сена, &закрытый_p);
+            if (условие_начала&&!условие_конца) {
+                условие= true
+            }
+    return условие
+}
+
+fn отсутствие_закрытого_title_тэга_html_в_строке(
+    стог_сена: &String
+) -> bool {
+    lazy_static! {
+        static ref открытый_p :String= "<title>".to_string();
+        static ref закрытый_p:String = "</title>".to_string();
+    }
+    let mut условие=false;
+    let условие_начала=sz_найти(&стог_сена, &открытый_p);
+    let условие_конца=sz_найти(&стог_сена, &закрытый_p);
+    if (условие_начала&&!условие_конца) {
+        условие= true
+    }
+    return условие
+}
+
+
 
 // Чтение данных из Vec<u8> как UTF-8 текста с разделением на строки
 pub fn read_utf8_из_ряда_u8(

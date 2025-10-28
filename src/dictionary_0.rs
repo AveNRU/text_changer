@@ -17,10 +17,14 @@ extern crate rayon;
 use crate::utils;
 use crate::utils::functions::*;
 use crate::utils::functions_txt::*;
+use crate::utils::hash::есть_ли_кириллица;
 use crate::utils::stringzilla::{sz_найти, sz_упорядочить_ряд_строк};
 use crate::xlsx::import_xlsx::поиск_уже_добавленных_слов;
 use console::{Emoji, style};
-use foldhash::{HashMap, HashSet, HashSetExt, fast::{FixedState,RandomState}};
+use foldhash::{
+    HashMap, HashSet, HashSetExt,
+    fast::{FixedState, RandomState},
+};
 use indicatif::ProgressBar;
 use indicatif::*;
 use rayon::prelude::*;
@@ -28,7 +32,6 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use stringzilla::sz;
-use crate::utils::hash::есть_ли_кириллица;
 
 #[derive(Debug, Default, Clone)]
 pub struct Исключения_для_кучи {
@@ -44,7 +47,8 @@ pub fn заменить_слова_в_книге(
     use crate::utils::regex::*;
     use crate::utils::stringzilla::sz_найти;
     //шкала
-    let mut временные_сообщения: Arc<Mutex<lib::Сообщения> >= Arc::new(Mutex::new(сообщения.clone()));
+    let mut временные_сообщения: Arc<Mutex<lib::Сообщения>> =
+        Arc::new(Mutex::new(сообщения.clone()));
     //
     let точка_отсчёта_по_времени: Instant = Instant::now();
     let пути_общие: lib::Пути_Общие = Default::default();
@@ -66,10 +70,11 @@ pub fn заменить_слова_в_книге(
 
     let LOOKING_GLASS = format!("🔍");
     // Обернем счетчики в Arc для безопасного разделения между потоками
-    let mut счётчик_составное_важное: Vec<Arc<AtomicUsize>> = (0..полный_словарь.счётчик_составное_важное.len())
-        .into_par_iter()
-        .map(|_| Arc::new(AtomicUsize::new(0)))
-        .collect();
+    let mut счётчик_составное_важное: Vec<Arc<AtomicUsize>> =
+        (0..полный_словарь.счётчик_составное_важное.len())
+            .into_par_iter()
+            .map(|_| Arc::new(AtomicUsize::new(0)))
+            .collect();
     let mut счётчик_составное: Vec<Arc<AtomicUsize>> = (0..полный_словарь.счётчик_составное.len())
         .into_par_iter()
         .map(|_| Arc::new(AtomicUsize::new(0)))
@@ -78,15 +83,16 @@ pub fn заменить_слова_в_книге(
         .into_par_iter()
         .map(|_| Arc::new(AtomicUsize::new(0)))
         .collect();
-    let mut счётчик_вездесущее: Vec<Arc<AtomicUsize>> = (0..полный_словарь.счётчик_вездесущее.len())
-        .into_par_iter()
-        .map(|_| Arc::new(AtomicUsize::new(0)))
-        .collect();
-    let mut счётчик_неизменное: Vec<Arc<AtomicUsize>> = (0..полный_словарь.счётчик_неизменное.len())
-        .into_par_iter()
-        .map(|_| Arc::new(AtomicUsize::new(0)))
-        .collect();
-
+    let mut счётчик_вездесущее: Vec<Arc<AtomicUsize>> =
+        (0..полный_словарь.счётчик_вездесущее.len())
+            .into_par_iter()
+            .map(|_| Arc::new(AtomicUsize::new(0)))
+            .collect();
+    let mut счётчик_неизменное: Vec<Arc<AtomicUsize>> =
+        (0..полный_словарь.счётчик_неизменное.len())
+            .into_par_iter()
+            .map(|_| Arc::new(AtomicUsize::new(0)))
+            .collect();
 
     //перебор
     let количество_книг = книги.len();
@@ -308,13 +314,16 @@ pub fn заменить_слова_в_книге(
         .for_each(|(указатель, число)| {
             полный_словарь.счётчик_неизменное[указатель] = число.load(Ordering::Relaxed)
         });
-    write::вывод_всех_словарей_в_xls(&полный_словарь,&куча_словарь).unwrap();
+    write::вывод_всех_словарей_в_xls(&полный_словарь, &куча_словарь).unwrap();
     println!(
         "Время занятое на замену слов: {:.2?}",
         точка_отсчёта_по_времени.elapsed()
     );
     println!();
-    *сообщения = Arc::try_unwrap(временные_сообщения).unwrap().into_inner().unwrap();
+    *сообщения = Arc::try_unwrap(временные_сообщения)
+        .unwrap()
+        .into_inner()
+        .unwrap();
     return книги;
 
     fn проверка_есть_ли_изменения(
@@ -325,15 +334,13 @@ pub fn заменить_слова_в_книге(
     ) -> Vec<String> {
         use rayon::prelude::*;
 
-        let сообщения:Vec<String>=
-        содержимое_изначальное
+        let сообщения: Vec<String> = содержимое_изначальное
             .par_iter()
             .enumerate()
             .filter(|(указатель, вложение)| {
                 не_изображение_или_мусор(
                     &содержимое_изначальное[*указатель].имя,
                 )
-                
             })
             .filter_map(|(указатель, вложение)| {
                 // шаг_внутренний.fetch_add(1, Ordering::Relaxed);
@@ -351,10 +358,10 @@ pub fn заменить_слова_в_книге(
                         содержимое_изначальное[указатель].имя
                     );
                     if условие {
-                        println!("{}",сообщение);
-                        return Some(сообщение)
+                        println!("{}", сообщение);
+                        return Some(сообщение);
                     } else {
-                        return Some(сообщение)
+                        return Some(сообщение);
                     }
                 } else {
                     let сообщение = format!(
@@ -365,13 +372,14 @@ pub fn заменить_слова_в_книге(
                         содержимое_изначальное[указатель].имя
                     );
                     if условие {
-                        println!("{}",сообщение);
-                        return Some(сообщение)
+                        println!("{}", сообщение);
+                        return Some(сообщение);
                     } else {
-                        return Some(сообщение)
+                        return Some(сообщение);
                     }
                 }
-            }).collect();
+            })
+            .collect();
         //let сообщения:Vec<String>=сообщения.retain(|строка| !строка.is_empty());
         return сообщения;
     }
@@ -386,28 +394,34 @@ pub fn добавить_все_слова_в_словарь(
     //перебор словаря
     let полный_словарь = ряд_словарей
         .into_par_iter()
-        .fold_with(lib::Полный_Словарь::default(), |mut накопитель, ячейка| {
-            накопитель.простое.extend(ячейка.простое);
-            накопитель.вездесущее.extend(ячейка.вездесущее);
-            накопитель.составное.extend(ячейка.составное);
-            накопитель.составное_важное.extend(ячейка.составное_важное);
-            накопитель.неизменное.extend(ячейка.неизменное);
-            накопитель
-        })
-        .reduce(|| lib::Полный_Словарь::default(), |mut a, b| {
-            a.простое.extend(b.простое);
-            a.вездесущее.extend(b.вездесущее);
-            a.составное.extend(b.составное);
-            a.составное_важное.extend(b.составное_важное);
-            a.неизменное.extend(b.неизменное);
-            a
-        });
+        .fold_with(
+            lib::Полный_Словарь::default(),
+            |mut накопитель, ячейка| {
+                накопитель.простое.extend(ячейка.простое);
+                накопитель.вездесущее.extend(ячейка.вездесущее);
+                накопитель.составное.extend(ячейка.составное);
+                накопитель.составное_важное.extend(ячейка.составное_важное);
+                накопитель.неизменное.extend(ячейка.неизменное);
+                накопитель
+            },
+        )
+        .reduce(
+            || lib::Полный_Словарь::default(),
+            |mut a, b| {
+                a.простое.extend(b.простое);
+                a.вездесущее.extend(b.вездесущее);
+                a.составное.extend(b.составное);
+                a.составное_важное.extend(b.составное_важное);
+                a.неизменное.extend(b.неизменное);
+                a
+            },
+        );
     //проверка пересечений составных, составных важных и неизменных слов
     поиск_уже_добавленных_слов_в_полном_словаре(
-        &полный_словарь); //номер страницы
+        &полный_словарь,
+    ); //номер страницы
     //поиск уже добавленных слов
-    return полный_словарь
-    
+    return полный_словарь;
 }
 
 pub fn создать_быстрый_словарь(
@@ -419,41 +433,47 @@ pub fn создать_быстрый_словарь(
     let словарь_куча: HashMap<String, HashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
 
-    let ряд_временный: HashSet<String> =
-    словарь_куча.par_iter().filter_map(|(ключ, значения)| {
-        let строка = format!("ключ: |{ключ}| Значения ({}):", значения.len());
+    let ряд_временный: HashSet<String> = словарь_куча
+        .par_iter()
+        .filter_map(|(ключ, значения)| {
+            let строка = format!("ключ: |{ключ}| Значения ({}):", значения.len());
 
-        let полная_строка = значения.par_iter()
-            .fold(
-                || String::new(),
-                |mut acc, значение| {
-                    if !acc.is_empty() {
-                        acc.push(',');
-                    }
-                    acc.push_str(&значение.to_string());
-                    acc
-                }
-            )
-            .reduce(|| String::new(), |mut a, b| {
-                if !a.is_empty() && !b.is_empty() {
-                    a.push(',');
-                }
-                a.push_str(&b);
-                a
-            });
+            let полная_строка = значения
+                .par_iter()
+                .fold(
+                    || String::new(),
+                    |mut acc, значение| {
+                        if !acc.is_empty() {
+                            acc.push(',');
+                        }
+                        acc.push_str(&значение.to_string());
+                        acc
+                    },
+                )
+                .reduce(
+                    || String::new(),
+                    |mut a, b| {
+                        if !a.is_empty() && !b.is_empty() {
+                            a.push(',');
+                        }
+                        a.push_str(&b);
+                        a
+                    },
+                );
 
-        let итог = format!("{}{}", строка, полная_строка);
-        ряд_вывод.lock().unwrap().push(итог);
-        Some(ключ.to_string())
-    }).collect::<HashSet<String>>();
-        let ряд_временный = sz_упорядочить_кучу(ряд_временный);
+            let итог = format!("{}{}", строка, полная_строка);
+            ряд_вывод.lock().unwrap().push(итог);
+            Some(ключ.to_string())
+        })
+        .collect::<HashSet<String>>();
+    let ряд_временный = sz_упорядочить_кучу(ряд_временный);
     //
     let пути_общие: lib::Пути_Общие = Default::default();
     let пути_вывода: lib::Пути_Вывода = Default::default();
     let mut пустой_ряд: Vec<String> = Vec::new();
     let путь_простой: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря, вид_слов,);
     let путь_ключи: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря_ключи, вид_слов,);
-    let ряд_вывод = Arc::try_unwrap(ряд_вывод).unwrap().into_inner().unwrap();     
+    let ряд_вывод = Arc::try_unwrap(ряд_вывод).unwrap().into_inner().unwrap();
     вывод_содержимого_в_txt(&ряд_вывод, &путь_простой, &mut пустой_ряд, false).unwrap();
     вывод_содержимого_в_txt(&ряд_временный, &путь_ключи, &mut пустой_ряд, false).unwrap();
     return словарь_куча;
@@ -563,7 +583,7 @@ pub fn выделить_кучу_из_ряда_для_словаря1(
 pub fn выделить_кучу_из_ряда_для_словаря(
     ряд_слов: &[String],
 ) -> HashMap<String, HashSet<usize>> {
-    let mut куча_пропусков:HashMap<String,HashSet<usize>> = HashMap::default();
+    let mut куча_пропусков: HashMap<String, HashSet<usize>> = HashMap::default();
 
     for (указатель, строка) in ряд_слов.iter().enumerate() {
         let слово = выделить_окончание_из_слова(строка);
@@ -577,48 +597,41 @@ pub fn выделить_кучу_из_ряда_для_словаря(
     куча_пропусков
 }
 
-
-pub fn foldhash_пример(слова:&Vec<usize>,значение:usize) {
-
-
-    let my_set: HashSet<usize> =
-        (0..слова.len())
-            .map(|_| if значение == 0 { 1 } else { 2 })
-            .collect::<HashSet<usize>>();
-    let слова:Vec<String>=Vec::new();
-    let пропуски: HashSet<usize> =
-        слова
-            .par_iter()
-            .enumerate()
-            .filter_map(|(указатель, строка)|
-                if !есть_ли_кириллица(&строка) {
-                    return Some(указатель)
-                }
-                else {None}
-            ).collect::<HashSet<usize>>();
+pub fn foldhash_пример(слова: &Vec<usize>, значение: usize) {
+    let my_set: HashSet<usize> = (0..слова.len())
+        .map(|_| if значение == 0 { 1 } else { 2 })
+        .collect::<HashSet<usize>>();
+    let слова: Vec<String> = Vec::new();
+    let пропуски: HashSet<usize> = слова
+        .par_iter()
+        .enumerate()
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка) {
+                return Some(указатель);
+            } else {
+                None
+            }
+        })
+        .collect::<HashSet<usize>>();
 
     use std::hash::BuildHasher;
     //let my_set: HashSet<usize> = 1.into();
     let my_set = HashSet::from_iter([1, 2, 3, 4, 5]);
     let random_state = RandomState::default();
     let hash = random_state.hash_one("hello world");
-    let hash:HashSet<usize> = HashSet::from_iter([
-        1,
-        2,
-    ]).into_iter()
+    let hash: HashSet<usize> = HashSet::from_iter([1, 2])
+        .into_iter()
         .collect::<HashSet<usize>>();
     //et my_set:HashSet<usize> = HashSet::from( 1);
 
-    let my_set: HashSet<usize> = [1, 2, 3, 4, 5]
-        .into_iter()
-        .collect::<HashSet<usize>>();
+    let my_set: HashSet<usize> = [1, 2, 3, 4, 5].into_iter().collect::<HashSet<usize>>();
 }
 
 pub fn выделить_окончание_из_слова(слово: &String) -> String {
-    let куча_исключений_знак:HashSet<char> = HashSet::from_iter([
-        'ы','и','а','я','у','е','ю',
-    ]).into_iter()
-        .collect::<HashSet<char>>();
+    let куча_исключений_знак: HashSet<char> =
+        HashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
+            .into_iter()
+            .collect::<HashSet<char>>();
     //куча_исключений_знак.insert('ь');
     //куча_исключений_знак.insert('ъ');
 
@@ -851,27 +864,32 @@ pub fn выделить_окончание_из_слова(слово: &String) 
 
 pub fn прогон_и_замена_в_слове_через_ряд_re(
     слово: &String,
-    re_ряд:  impl AsRef<[Regex]>,
+    re_ряд: impl AsRef<[Regex]>,
 ) -> Result<String, ()> {
     let re_ряд = re_ряд.as_ref();
     //for re_образец in re_ряд.iter() {
-    return re_ряд.par_iter().enumerate().find_map_any(|(указатель,re_образец)|
-        {
-        if re_образец.is_match(&слово) {
-            //regex
-            let замененная_строка: std::borrow::Cow<'_, str> = re_образец.replace(
-                &слово, //строка, в которой происходит замена
-                "",     //на что заменить
-            );
-            Some(замененная_строка.to_string())
-        } else {None}
-    }).ok_or(());
+    return re_ряд
+        .par_iter()
+        .enumerate()
+        .find_map_any(|(указатель, re_образец)| {
+            if re_образец.is_match(&слово) {
+                //regex
+                let замененная_строка: std::borrow::Cow<'_, str> = re_образец.replace(
+                    &слово, //строка, в которой происходит замена
+                    "",     //на что заменить
+                );
+                Some(замененная_строка.to_string())
+            } else {
+                None
+            }
+        })
+        .ok_or(());
 }
 
 pub fn прогон_и_замена_в_слове_через_ряд_re_c_исключениями(
     слово: &String,
-    re_ряд:  impl AsRef<[Regex]>,
-    исключения:  impl AsRef<[Regex]>,
+    re_ряд: impl AsRef<[Regex]>,
+    исключения: impl AsRef<[Regex]>,
 ) -> Result<String, ()> {
     let re_ряд = re_ряд.as_ref();
     let исключения = исключения.as_ref();
@@ -915,58 +933,53 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>) {
 fn получить_кучи_из_словарей(
     полный_словарь: &Полный_Словарь,
 ) -> lib::Куча_Словарь {
-               let простое: HashMap<String, HashSet<usize>> =
-                создать_быстрый_словарь(
-                    &полный_словарь
-                        .простое
-                        .par_iter()
-                        .map(|ячейка| ячейка.искомое_слово.to_string())
-                        .collect(),
-                    "простые",
-                );
-            let составное: HashMap<String, HashSet<usize>> =
-                создать_быстрый_словарь(
-                    &полный_словарь
-                        .составное
-                        .par_iter()
-                        .map(|ячейка| ячейка.искомое_слово.to_string())
-                        .collect(),
-                    "составные",
-                );
-            let составное_важное: HashMap<String, HashSet<usize>> =
-                создать_быстрый_словарь(
-                    &полный_словарь
-                        .составное_важное
-                        .par_iter()
-                        .map(|ячейка| ячейка.искомое_слово.to_string())
-                        .collect(),
-                    "составные_важные",
-                );
-            let вездесущее: HashMap<String, HashSet<usize>> =
-                создать_быстрый_словарь(
-                    &полный_словарь
-                        .вездесущее
-                        .par_iter()
-                        .map(|ячейка| ячейка.искомое_слово.to_string())
-                        .collect(),
-                    "вездесущие",
-                );
-            let неизменное: HashMap<String, HashSet<usize>> =
-                создать_быстрый_словарь(
-                    &полный_словарь
-                        .неизменное
-                        .par_iter()
-                        .map(|ячейка| ячейка.искомое_слово.to_string())
-                        .collect(),
-                    "неизменные",
-                );
-    
+    let простое: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+        &полный_словарь
+            .простое
+            .par_iter()
+            .map(|ячейка| ячейка.искомое_слово.to_string())
+            .collect(),
+        "простые",
+    );
+    let составное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+        &полный_словарь
+            .составное
+            .par_iter()
+            .map(|ячейка| ячейка.искомое_слово.to_string())
+            .collect(),
+        "составные",
+    );
+    let составное_важное: HashMap<String, HashSet<usize>> =
+        создать_быстрый_словарь(
+            &полный_словарь
+                .составное_важное
+                .par_iter()
+                .map(|ячейка| ячейка.искомое_слово.to_string())
+                .collect(),
+            "составные_важные",
+        );
+    let вездесущее: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+        &полный_словарь
+            .вездесущее
+            .par_iter()
+            .map(|ячейка| ячейка.искомое_слово.to_string())
+            .collect(),
+        "вездесущие",
+    );
+    let неизменное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+        &полный_словарь
+            .неизменное
+            .par_iter()
+            .map(|ячейка| ячейка.искомое_слово.to_string())
+            .collect(),
+        "неизменные",
+    );
+
     return lib::Куча_Словарь {
         простое: простое,
         составное: составное,
         составное_важное: составное_важное,
         вездесущее: вездесущее,
-        неизменное:неизменное,
+        неизменное: неизменное,
     };
-    
 }
