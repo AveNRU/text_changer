@@ -7,6 +7,7 @@ use regex::Regex;
 pub struct Пути_Общие {
     pub книги: String,
     pub словари: String,
+    pub переносы: String,
     pub вывод_книги: String,
     pub вывод_словари: String,
     pub вывод: String,
@@ -21,6 +22,7 @@ impl Default for Пути_Общие {
         Self {
             книги: "./книги/".to_string(),
             словари: "./словари/".to_string(),
+            переносы: "./перееносы/".to_string(),
             вывод: "./вывод/".to_string(),
             //вложенные
             вывод_словари: "./вывод/словари/".to_string(),
@@ -112,6 +114,13 @@ pub struct Словарь {
     pub вездесущее: Vec<Ячейка_словаря>,       //сложные и составные
     pub неизменное: Vec<Ячейка_словаря>,       //
 }
+
+//словарь переносов
+#[derive(Debug, Default, Clone)]
+pub struct Словарь_Переносов {
+    pub переносы: Vec<Ячейка_словаря>, //одиночные слова
+}
+
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_словаря {

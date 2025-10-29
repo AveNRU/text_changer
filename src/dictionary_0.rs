@@ -200,6 +200,7 @@ pub fn заменить_слова_в_книге(
                                                            style(&вложения.имя).yellow(),
                                                            LOOKING_GLASS
                     );
+                    //убрать все переносы
                     //сначала меняются 1)составные (в 1 очередь), 2)вездесущие; 3)сложные слова 4)простые
                     //составные важные
                     замена_слов_через_кучу(
@@ -636,209 +637,209 @@ pub fn выделить_окончание_из_слова(слово: &String) 
     //куча_исключений_знак.insert('ъ');
 
     lazy_static! {
-         static ref re_однобуквенные: [Regex;10] = [
-             Regex::new(r"(?i)о$").unwrap(),
-             Regex::new(r"(?i)а$").unwrap(),
-             Regex::new(r"(?i)я$").unwrap(),
-             Regex::new(r"(?i)е$").unwrap(),
-             Regex::new(r"(?i)ь$").unwrap(),
-             Regex::new(r"(?i)ы$").unwrap(),
-             Regex::new(r"(?i)и$").unwrap(),
-            Regex::new(r"(?i)ъ$").unwrap(),
-             //глаголы
-                Regex::new(r"(?i)у$").unwrap(),
-              Regex::new(r"(?i)ю$").unwrap(),
-                       //Русские флексийные морфы по алфавиту
-                    // Regex::new(r"(?i)а$").unwrap(),
-             // Regex::new(r"(?i)е$").unwrap(),
-               // Regex::new(r"(?i)и$").unwrap(),
-             //Regex::new(r"(?i)о$").unwrap(),
-             //     Regex::new(r"(?i)у$").unwrap(),
+        static ref re_однобуквенные: [Regex;10] = [
+            Regex::new(r"(?i)о$").unwrap(),
+            Regex::new(r"(?i)а$").unwrap(),
+            Regex::new(r"(?i)я$").unwrap(),
+            Regex::new(r"(?i)е$").unwrap(),
+            Regex::new(r"(?i)ь$").unwrap(),
+            Regex::new(r"(?i)ы$").unwrap(),
+            Regex::new(r"(?i)и$").unwrap(),
+           Regex::new(r"(?i)ъ$").unwrap(),
+            //глаголы
+               Regex::new(r"(?i)у$").unwrap(),
+             Regex::new(r"(?i)ю$").unwrap(),
+                      //Русские флексийные морфы по алфавиту
+                   // Regex::new(r"(?i)а$").unwrap(),
+            // Regex::new(r"(?i)е$").unwrap(),
+              // Regex::new(r"(?i)и$").unwrap(),
+            //Regex::new(r"(?i)о$").unwrap(),
+            //     Regex::new(r"(?i)у$").unwrap(),
 
-         ];
-         static ref re_многобуквенные_с_исключениями_замены: [Regex;12] = [
-                           Regex::new(r"(?i)ал$").unwrap(),//0
-                                    Regex::new(r"(?i)ала$").unwrap(),//1
-            Regex::new(r"(?i)ные$").unwrap(),//2
-               Regex::new(r"(?i)ного$").unwrap(),//3
-              Regex::new(r"(?i)ные$").unwrap(),//4
-              Regex::new(r"(?i)ный$").unwrap(),//5
-              Regex::new(r"(?i)ных$").unwrap(),//6
-                         Regex::new(r"(?i)ких$").unwrap(),//7
-             Regex::new(r"(?i)кой$").unwrap(),//8
-             Regex::new(r"(?i)ость$").unwrap(),//9
-                    Regex::new(r"(?i)ости$").unwrap(),//10
-               Regex::new(r"(?i)остью$").unwrap(),//11
-         ];
-        static ref re_многобуквенные_с_исключениями_образцы: [Regex;12] = [
-                         //исключения
-             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
-             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
-            Regex::new(r"(?i)нные$").unwrap(),//2
-              Regex::new(r"(?i)нного$").unwrap(),//3
-                    Regex::new(r"(?i)нные$").unwrap(),//4
-              Regex::new(r"(?i)нный$").unwrap(),//5
-                 Regex::new(r"(?i)нных$").unwrap(),//6
-                         Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ких$").unwrap(),//7
-             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})кой$").unwrap(),//8
-                Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ость$").unwrap(),//9
-                           Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
-                           Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
         ];
-                  static ref re_многобуквенные: [Regex;13] =[
-             Regex::new(r"(?i)иумы$").unwrap(),
-                Regex::new(r"(?i)ования$").unwrap(),
-                 Regex::new(r"(?i)овать$").unwrap(),
-             //
-                Regex::new(r"(?i)иями$").unwrap(),
-              Regex::new(r"(?i)ующие$").unwrap(),
-              Regex::new(r"(?i)ующая$").unwrap(),
-               Regex::new(r"(?i)ующий$").unwrap(),
-             Regex::new(r"(?i)ующих$").unwrap(),
-              Regex::new(r"(?i)уется$").unwrap(),
-              Regex::new(r"(?i)уются$").unwrap(),
-              Regex::new(r"(?i)\w+уют$").unwrap(),
-              Regex::new(r"(?i)ичную$").unwrap(),
-              Regex::new(r"(?i)ичных$").unwrap(),
-
-            ];
-         static ref re_трехбуквенные: [Regex;42] =[
-             Regex::new(r"(?i)еям$").unwrap(),
-     Regex::new(r"(?i)иев$").unwrap(),
-             Regex::new(r"(?i)иал$").unwrap(),
-               Regex::new(r"(?i)ием$").unwrap(),
-            Regex::new(r"(?i)иум$").unwrap(),
-
-             Regex::new(r"(?i)ыми$").unwrap(),
-             Regex::new(r"(?i)ика$").unwrap(),
-             Regex::new(r"(?i)ику$").unwrap(),
-             Regex::new(r"(?i)ики$").unwrap(),
-                 Regex::new(r"(?i)ать$").unwrap(),
-             Regex::new(r"(?i)ять$").unwrap(),
-             Regex::new(r"(?i)оть$").unwrap(),
-             Regex::new(r"(?i)еть$").unwrap(),
-              Regex::new(r"(?i)иям$").unwrap(),
-                  Regex::new(r"(?i)уум$").unwrap(),
-                 Regex::new(r"(?i)уете$").unwrap(),
-             Regex::new(r"(?i)уем$").unwrap(),
-              Regex::new(r"(?i)ешь$").unwrap(),
-                Regex::new(r"(?i)ишь$").unwrap(),
-                Regex::new(r"(?i)ете$").unwrap(),
-                Regex::new(r"(?i)ите$").unwrap(),
-              Regex::new(r"(?i)ует$").unwrap(),
-            Regex::new(r"(?i)яла$").unwrap(),
-                     Regex::new(r"(?i)али$").unwrap(),
-               Regex::new(r"(?i)яли$").unwrap(),
-                 Regex::new(r"(?i)ола$").unwrap(),
-              Regex::new(r"(?i)ела$").unwrap(),
-              Regex::new(r"(?i)оли$").unwrap(),
-              Regex::new(r"(?i)ели$").unwrap(),
-                          Regex::new(r"(?i)\w{2,}ула$").unwrap(),
-                  Regex::new(r"(?i)ули$").unwrap(),
-                           Regex::new(r"(?i)ами$").unwrap(),
-                 Regex::new(r"(?i)еми$").unwrap(),
-                     Regex::new(r"(?i)емя$").unwrap(),
-                  Regex::new(r"(?i)ёте$").unwrap(),
-               Regex::new(r"(?i)ёшь$").unwrap(),
-
-                             Regex::new(r"(?i)ого$").unwrap(),
-                         Regex::new(r"(?i)ому$").unwrap(),
-                 Regex::new(r"(?i)иях$").unwrap(),
-               Regex::new(r"(?i)ией$").unwrap(),
-               Regex::new(r"(?i)умя$").unwrap(),
-              Regex::new(r"(?i)ими$").unwrap(),
+        static ref re_многобуквенные_с_исключениями_замены: [Regex;12] = [
+                          Regex::new(r"(?i)ал$").unwrap(),//0
+                                   Regex::new(r"(?i)ала$").unwrap(),//1
+           Regex::new(r"(?i)ные$").unwrap(),//2
+              Regex::new(r"(?i)ного$").unwrap(),//3
+             Regex::new(r"(?i)ные$").unwrap(),//4
+             Regex::new(r"(?i)ный$").unwrap(),//5
+             Regex::new(r"(?i)ных$").unwrap(),//6
+                        Regex::new(r"(?i)ких$").unwrap(),//7
+            Regex::new(r"(?i)кой$").unwrap(),//8
+            Regex::new(r"(?i)ость$").unwrap(),//9
+                   Regex::new(r"(?i)ости$").unwrap(),//10
+              Regex::new(r"(?i)остью$").unwrap(),//11
         ];
-             static ref re_двубуквенные: [Regex;53] =[
-             //в первую очередь
-           // Regex::new(r"(?i)ные$").unwrap(),
+       static ref re_многобуквенные_с_исключениями_образцы: [Regex;12] = [
+                        //исключения
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
+           Regex::new(r"(?i)нные$").unwrap(),//2
+             Regex::new(r"(?i)нного$").unwrap(),//3
+                   Regex::new(r"(?i)нные$").unwrap(),//4
+             Regex::new(r"(?i)нный$").unwrap(),//5
+                Regex::new(r"(?i)нных$").unwrap(),//6
+                        Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ких$").unwrap(),//7
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})кой$").unwrap(),//8
+               Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ость$").unwrap(),//9
+                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
+                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
+       ];
+                 static ref re_многобуквенные: [Regex;13] =[
+            Regex::new(r"(?i)иумы$").unwrap(),
+               Regex::new(r"(?i)ования$").unwrap(),
+                Regex::new(r"(?i)овать$").unwrap(),
+            //
+               Regex::new(r"(?i)иями$").unwrap(),
+             Regex::new(r"(?i)ующие$").unwrap(),
+             Regex::new(r"(?i)ующая$").unwrap(),
+              Regex::new(r"(?i)ующий$").unwrap(),
+            Regex::new(r"(?i)ующих$").unwrap(),
+             Regex::new(r"(?i)уется$").unwrap(),
+             Regex::new(r"(?i)уются$").unwrap(),
+             Regex::new(r"(?i)\w+уют$").unwrap(),
+             Regex::new(r"(?i)ичную$").unwrap(),
+             Regex::new(r"(?i)ичных$").unwrap(),
+
+           ];
+        static ref re_трехбуквенные: [Regex;42] =[
+            Regex::new(r"(?i)еям$").unwrap(),
+    Regex::new(r"(?i)иев$").unwrap(),
+            Regex::new(r"(?i)иал$").unwrap(),
+              Regex::new(r"(?i)ием$").unwrap(),
+           Regex::new(r"(?i)иум$").unwrap(),
+
+            Regex::new(r"(?i)ыми$").unwrap(),
+            Regex::new(r"(?i)ика$").unwrap(),
+            Regex::new(r"(?i)ику$").unwrap(),
+            Regex::new(r"(?i)ики$").unwrap(),
+                Regex::new(r"(?i)ать$").unwrap(),
+            Regex::new(r"(?i)ять$").unwrap(),
+            Regex::new(r"(?i)оть$").unwrap(),
+            Regex::new(r"(?i)еть$").unwrap(),
+             Regex::new(r"(?i)иям$").unwrap(),
+                 Regex::new(r"(?i)уум$").unwrap(),
+                Regex::new(r"(?i)уете$").unwrap(),
+            Regex::new(r"(?i)уем$").unwrap(),
+             Regex::new(r"(?i)ешь$").unwrap(),
+               Regex::new(r"(?i)ишь$").unwrap(),
+               Regex::new(r"(?i)ете$").unwrap(),
+               Regex::new(r"(?i)ите$").unwrap(),
+             Regex::new(r"(?i)ует$").unwrap(),
+           Regex::new(r"(?i)яла$").unwrap(),
+                    Regex::new(r"(?i)али$").unwrap(),
+              Regex::new(r"(?i)яли$").unwrap(),
+                Regex::new(r"(?i)ола$").unwrap(),
+             Regex::new(r"(?i)ела$").unwrap(),
+             Regex::new(r"(?i)оли$").unwrap(),
+             Regex::new(r"(?i)ели$").unwrap(),
+                         Regex::new(r"(?i)\w{2,}ула$").unwrap(),
+                 Regex::new(r"(?i)ули$").unwrap(),
+                          Regex::new(r"(?i)ами$").unwrap(),
+                Regex::new(r"(?i)еми$").unwrap(),
+                    Regex::new(r"(?i)емя$").unwrap(),
+                 Regex::new(r"(?i)ёте$").unwrap(),
+              Regex::new(r"(?i)ёшь$").unwrap(),
+
+                            Regex::new(r"(?i)ого$").unwrap(),
+                        Regex::new(r"(?i)ому$").unwrap(),
+                Regex::new(r"(?i)иях$").unwrap(),
+              Regex::new(r"(?i)ией$").unwrap(),
+              Regex::new(r"(?i)умя$").unwrap(),
+             Regex::new(r"(?i)ими$").unwrap(),
+       ];
+            static ref re_двубуквенные: [Regex;53] =[
+            //в первую очередь
+          // Regex::new(r"(?i)ные$").unwrap(),
 
 
-             //двукбуквенные
-             // гласные ([иаяуюыоеэё]+)
+            //двукбуквенные
+            // гласные ([иаяуюыоеэё]+)
 
-             //остальные
-                        Regex::new(r"(?i)ея$").unwrap(),
-              Regex::new(r"(?i)еи$").unwrap(),
-                    Regex::new(r"(?i)ях$").unwrap(),
-             Regex::new(r"(?i)ев$").unwrap(),
-              Regex::new(r"(?i)ки$").unwrap(),
-                   Regex::new(r"(?i)ым$").unwrap(),
-                         Regex::new(r"(?i)ых$").unwrap(),
-             Regex::new(r"(?i)ям$").unwrap(),
-             Regex::new(r"(?i)ии$").unwrap(),
-             Regex::new(r"(?i)ия$").unwrap(),
-                 Regex::new(r"(?i)ся$").unwrap(),
-             Regex::new(r"(?i)ая$").unwrap(),
-              Regex::new(r"(?i)яя$").unwrap(),
-               Regex::new(r"(?i)ое$").unwrap(),
-               Regex::new(r"(?i)ее$").unwrap(),
-             Regex::new(r"(?i)ой$").unwrap(),
-             Regex::new(r"(?i)ые$").unwrap(),
-             Regex::new(r"(?i)ый$").unwrap(),
-             Regex::new(r"(?i)ий$").unwrap(),
-             //глаголы
+            //остальные
+                       Regex::new(r"(?i)ея$").unwrap(),
+             Regex::new(r"(?i)еи$").unwrap(),
+                   Regex::new(r"(?i)ях$").unwrap(),
+            Regex::new(r"(?i)ев$").unwrap(),
+             Regex::new(r"(?i)ки$").unwrap(),
+                  Regex::new(r"(?i)ым$").unwrap(),
+                        Regex::new(r"(?i)ых$").unwrap(),
+            Regex::new(r"(?i)ям$").unwrap(),
+            Regex::new(r"(?i)ии$").unwrap(),
+            Regex::new(r"(?i)ия$").unwrap(),
+                Regex::new(r"(?i)ся$").unwrap(),
+            Regex::new(r"(?i)ая$").unwrap(),
+             Regex::new(r"(?i)яя$").unwrap(),
+              Regex::new(r"(?i)ое$").unwrap(),
+              Regex::new(r"(?i)ее$").unwrap(),
+            Regex::new(r"(?i)ой$").unwrap(),
+            Regex::new(r"(?i)ые$").unwrap(),
+            Regex::new(r"(?i)ый$").unwrap(),
+            Regex::new(r"(?i)ий$").unwrap(),
+            //глаголы
 
-                Regex::new(r"(?i)ем$").unwrap(),
-                Regex::new(r"(?i)им$").unwrap(),
+               Regex::new(r"(?i)ем$").unwrap(),
+               Regex::new(r"(?i)им$").unwrap(),
 
-                Regex::new(r"(?i)ет$").unwrap(),
-                Regex::new(r"(?i)ит$").unwrap(),
-                Regex::new(r"(?i)ут$").unwrap(),
-                Regex::new(r"(?i)ют$").unwrap(),
-                Regex::new(r"(?i)ят$").unwrap(),
+               Regex::new(r"(?i)ет$").unwrap(),
+               Regex::new(r"(?i)ит$").unwrap(),
+               Regex::new(r"(?i)ут$").unwrap(),
+               Regex::new(r"(?i)ют$").unwrap(),
+               Regex::new(r"(?i)ят$").unwrap(),
 
-                  Regex::new(r"(?i)ял$").unwrap(),
+                 Regex::new(r"(?i)ял$").unwrap(),
 
-              Regex::new(r"(?i)ол$").unwrap(),
-              Regex::new(r"(?i)ел$").unwrap(),
+             Regex::new(r"(?i)ол$").unwrap(),
+             Regex::new(r"(?i)ел$").unwrap(),
 
-             Regex::new(r"(?i)w{2,}ул$").unwrap(),
+            Regex::new(r"(?i)w{2,}ул$").unwrap(),
 
-             //Русские флексийные морфы по алфавиту
-                     Regex::new(r"(?i)ам$").unwrap(),
+            //Русские флексийные морфы по алфавиту
+                    Regex::new(r"(?i)ам$").unwrap(),
 
-               Regex::new(r"(?i)ас$").unwrap(),
-               Regex::new(r"(?i)ах$").unwrap(),
-              // Regex::new(r"(?i)ая$").unwrap(),
-                  Regex::new(r"(?i)её$").unwrap(),
-                  Regex::new(r"(?i)ей$").unwrap(),
-                //   Regex::new(r"(?i)ем$").unwrap(),
+              Regex::new(r"(?i)ас$").unwrap(),
+              Regex::new(r"(?i)ах$").unwrap(),
+             // Regex::new(r"(?i)ая$").unwrap(),
+                 Regex::new(r"(?i)её$").unwrap(),
+                 Regex::new(r"(?i)ей$").unwrap(),
+               //   Regex::new(r"(?i)ем$").unwrap(),
 
-                     Regex::new(r"(?i)ех$").unwrap(),
-                     Regex::new(r"(?i)ею$").unwrap(),
-               Regex::new(r"(?i)ёт$").unwrap(),
+                    Regex::new(r"(?i)ех$").unwrap(),
+                    Regex::new(r"(?i)ею$").unwrap(),
+              Regex::new(r"(?i)ёт$").unwrap(),
 
-             Regex::new(r"(?i)ёх$").unwrap(),
+            Regex::new(r"(?i)ёх$").unwrap(),
 
-                  Regex::new(r"(?i)ие$").unwrap(),
-               //Regex::new(r"(?i)ий$").unwrap(),
-               // Regex::new(r"(?i)им$").unwrap(),
+                 Regex::new(r"(?i)ие$").unwrap(),
+              //Regex::new(r"(?i)ий$").unwrap(),
+              // Regex::new(r"(?i)им$").unwrap(),
 
-              //  Regex::new(r"(?i)ите$").unwrap(),
-                       //  Regex::new(r"(?i)ит$").unwrap(),
-                        Regex::new(r"(?i)их$").unwrap(),
-                      //   Regex::new(r"(?i)ишь$").unwrap(),
-                        Regex::new(r"(?i)ию$").unwrap(),
-            //  Regex::new(r"(?i)м$").unwrap(),
-                       Regex::new(r"(?i)ми$").unwrap(),
-                          Regex::new(r"(?i)мя$").unwrap(),
-                         Regex::new(r"(?i)ов$").unwrap(),
+             //  Regex::new(r"(?i)ите$").unwrap(),
+                      //  Regex::new(r"(?i)ит$").unwrap(),
+                       Regex::new(r"(?i)их$").unwrap(),
+                     //   Regex::new(r"(?i)ишь$").unwrap(),
+                       Regex::new(r"(?i)ию$").unwrap(),
+           //  Regex::new(r"(?i)м$").unwrap(),
+                      Regex::new(r"(?i)ми$").unwrap(),
+                         Regex::new(r"(?i)мя$").unwrap(),
+                        Regex::new(r"(?i)ов$").unwrap(),
 
-                 //  Regex::new(r"(?i)ое$").unwrap(),
-             Regex::new(r"(?i)оё$").unwrap(),
-           //  Regex::new(r"(?i)ой$").unwrap(),
-             Regex::new(r"(?i)ом$").unwrap(),
+                //  Regex::new(r"(?i)ое$").unwrap(),
+            Regex::new(r"(?i)оё$").unwrap(),
+          //  Regex::new(r"(?i)ой$").unwrap(),
+            Regex::new(r"(?i)ом$").unwrap(),
 
-             Regex::new(r"(?i)см$").unwrap(),
-             Regex::new(r"(?i)ум$").unwrap(),
-               Regex::new(r"(?i)уя$").unwrap(),
+            Regex::new(r"(?i)см$").unwrap(),
+            Regex::new(r"(?i)ум$").unwrap(),
+              Regex::new(r"(?i)уя$").unwrap(),
 
-              //  Regex::new(r"(?i)ут$").unwrap(),
-                          Regex::new(r"(?i)ух$").unwrap(),
-                          Regex::new(r"(?i)ую$").unwrap(),
-                          Regex::new(r"(?i)шь$").unwrap(),
-         ];
-     }
+             //  Regex::new(r"(?i)ут$").unwrap(),
+                         Regex::new(r"(?i)ух$").unwrap(),
+                         Regex::new(r"(?i)ую$").unwrap(),
+                         Regex::new(r"(?i)шь$").unwrap(),
+        ];
+    }
     //
     проверка_ряда_regex(&*re_трехбуквенные);
     проверка_ряда_regex(&*re_двубуквенные);
@@ -854,36 +855,33 @@ pub fn выделить_окончание_из_слова(слово: &String) 
     ) {
         Ok(итог) => return итог,
         //перебор в однобуквенном ряде
-        Err(()) =>  match прогон_и_замена_в_слове_через_ряд_re(
+        Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
             &слово,
             &*re_многобуквенные,
         ) {
             Ok(итог) => return итог,
             //перебор в однобуквенном ряде
-            Err(()) =>
-                match прогон_и_замена_в_слове_через_ряд_re(
+            Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                &слово,
+                &*re_трехбуквенные,
+            ) {
+                Ok(итог) => return итог,
+                Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
                     &слово,
-                    &*re_трехбуквенные,
+                    &*re_двубуквенные,
                 ) {
                     Ok(итог) => return итог,
-                    Err(()) =>
-
-
-                        match прогон_и_замена_в_слове_через_ряд_re(
-                            &слово,
-                            &*re_двубуквенные,
-                        ) {
-                            Ok(итог) => return итог,
-                            Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
-                                &слово,
-                                &*re_однобуквенные,
-                            ) {
-                                Ok(итог) => return итог,
-                                Err(()) => return слово.to_string(),
-                            },
-                        },
-                }
-        }}
+                    Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                        &слово,
+                        &*re_однобуквенные,
+                    ) {
+                        Ok(итог) => return итог,
+                        Err(()) => return слово.to_string(),
+                    },
+                },
+            },
+        },
+    }
 }
 
 pub fn прогон_и_замена_в_слове_через_ряд_re(
@@ -1006,4 +1004,327 @@ fn получить_кучи_из_словарей(
         вездесущее: вездесущее,
         неизменное: неизменное,
     };
+}
+
+pub fn удалить_окончание_из_слова(слово: &String) -> String {
+    #[derive(Debug, Clone)]
+    pub struct Замена {
+        pub однобуквенные: [Ячейка_замены; 10], //одиночные слова
+    }
+
+    //словарь
+    #[derive(Debug, Clone)]
+    pub struct Ячейка_замены {
+        pub искомое_слово: String,
+        pub re_образец: Regex,
+        pub замена: String,
+        // pub счёчтки:usize,
+    }
+    lazy_static! {
+        static ref словарь_замен: Замена = Замена {
+            однобуквенные: [Ячейка_замены {
+                искомое_слово: "-о".to_string(),
+                замена: "о".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-о$").unwrap()
+            },
+             Ячейка_замены {
+                искомое_слово: "-а".to_string(),
+                замена: "а".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-а$").unwrap()
+            },
+           Ячейка_замены {
+                искомое_слово: "-я".to_string(),
+                замена: "я".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-я$").unwrap()
+            },
+              Ячейка_замены {
+                искомое_слово: "-е".to_string(),
+                замена: "е".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-е$").unwrap()
+            },
+              Ячейка_замены {
+                искомое_слово: "-ь".to_string(),
+                замена: "ь".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-ь$").unwrap()
+            },
+              Ячейка_замены {
+                искомое_слово: "-ы".to_string(),
+                замена: "ы".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-ы$").unwrap()
+            },
+                 Ячейка_замены {
+                искомое_слово: "-и".to_string(),
+                замена: "и".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-и$").unwrap()
+            },
+                 Ячейка_замены {
+                искомое_слово: "-ъ".to_string(),
+                замена: "ъ".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-ъ$").unwrap()
+            },
+                    Ячейка_замены {
+                искомое_слово: "-у".to_string(),
+                замена: "у".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-у$").unwrap()
+            },
+                    Ячейка_замены {
+                искомое_слово: "-ю".to_string(),
+                замена: "ю".to_string(),
+                re_образец:Regex::new(r"(?i)(?:\w)-ю$").unwrap()
+            },],
+        };
+    }
+    let куча_исключений_знак: HashSet<char> =
+        HashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
+            .into_iter()
+            .collect::<HashSet<char>>();
+    //куча_исключений_знак.insert('ь');
+    //куча_исключений_знак.insert('ъ');
+
+    lazy_static! {
+        static ref re_однобуквенные: [Regex;10] = [
+            Regex::new(r"(?i)о$").unwrap(),
+            Regex::new(r"(?i)а$").unwrap(),
+            Regex::new(r"(?i)я$").unwrap(),
+            Regex::new(r"(?i)е$").unwrap(),
+            Regex::new(r"(?i)ь$").unwrap(),
+            Regex::new(r"(?i)ы$").unwrap(),
+            Regex::new(r"(?i)и$").unwrap(),
+           Regex::new(r"(?i)ъ$").unwrap(),
+            //глаголы
+               Regex::new(r"(?i)у$").unwrap(),
+             Regex::new(r"(?i)ю$").unwrap(),
+                      //Русские флексийные морфы по алфавиту
+                   // Regex::new(r"(?i)а$").unwrap(),
+            // Regex::new(r"(?i)е$").unwrap(),
+              // Regex::new(r"(?i)и$").unwrap(),
+            //Regex::new(r"(?i)о$").unwrap(),
+            //     Regex::new(r"(?i)у$").unwrap(),
+
+        ];
+        static ref re_многобуквенные_с_исключениями_замены: [Regex;12] = [
+                          Regex::new(r"(?i)ал$").unwrap(),//0
+                                   Regex::new(r"(?i)ала$").unwrap(),//1
+           Regex::new(r"(?i)ные$").unwrap(),//2
+              Regex::new(r"(?i)ного$").unwrap(),//3
+             Regex::new(r"(?i)ные$").unwrap(),//4
+             Regex::new(r"(?i)ный$").unwrap(),//5
+             Regex::new(r"(?i)ных$").unwrap(),//6
+                        Regex::new(r"(?i)ких$").unwrap(),//7
+            Regex::new(r"(?i)кой$").unwrap(),//8
+            Regex::new(r"(?i)ость$").unwrap(),//9
+                   Regex::new(r"(?i)ости$").unwrap(),//10
+              Regex::new(r"(?i)остью$").unwrap(),//11
+        ];
+       static ref re_многобуквенные_с_исключениями_образцы: [Regex;12] = [
+                        //исключения
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
+           Regex::new(r"(?i)нные$").unwrap(),//2
+             Regex::new(r"(?i)нного$").unwrap(),//3
+                   Regex::new(r"(?i)нные$").unwrap(),//4
+             Regex::new(r"(?i)нный$").unwrap(),//5
+                Regex::new(r"(?i)нных$").unwrap(),//6
+                        Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ких$").unwrap(),//7
+            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})кой$").unwrap(),//8
+               Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ость$").unwrap(),//9
+                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
+                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
+       ];
+                 static ref re_многобуквенные: [Regex;13] =[
+            Regex::new(r"(?i)иумы$").unwrap(),
+               Regex::new(r"(?i)ования$").unwrap(),
+                Regex::new(r"(?i)овать$").unwrap(),
+            //
+               Regex::new(r"(?i)иями$").unwrap(),
+             Regex::new(r"(?i)ующие$").unwrap(),
+             Regex::new(r"(?i)ующая$").unwrap(),
+              Regex::new(r"(?i)ующий$").unwrap(),
+            Regex::new(r"(?i)ующих$").unwrap(),
+             Regex::new(r"(?i)уется$").unwrap(),
+             Regex::new(r"(?i)уются$").unwrap(),
+             Regex::new(r"(?i)\w+уют$").unwrap(),
+             Regex::new(r"(?i)ичную$").unwrap(),
+             Regex::new(r"(?i)ичных$").unwrap(),
+
+           ];
+        static ref re_трехбуквенные: [Regex;42] =[
+            Regex::new(r"(?i)еям$").unwrap(),
+    Regex::new(r"(?i)иев$").unwrap(),
+            Regex::new(r"(?i)иал$").unwrap(),
+              Regex::new(r"(?i)ием$").unwrap(),
+           Regex::new(r"(?i)иум$").unwrap(),
+
+            Regex::new(r"(?i)ыми$").unwrap(),
+            Regex::new(r"(?i)ика$").unwrap(),
+            Regex::new(r"(?i)ику$").unwrap(),
+            Regex::new(r"(?i)ики$").unwrap(),
+                Regex::new(r"(?i)ать$").unwrap(),
+            Regex::new(r"(?i)ять$").unwrap(),
+            Regex::new(r"(?i)оть$").unwrap(),
+            Regex::new(r"(?i)еть$").unwrap(),
+             Regex::new(r"(?i)иям$").unwrap(),
+                 Regex::new(r"(?i)уум$").unwrap(),
+                Regex::new(r"(?i)уете$").unwrap(),
+            Regex::new(r"(?i)уем$").unwrap(),
+             Regex::new(r"(?i)ешь$").unwrap(),
+               Regex::new(r"(?i)ишь$").unwrap(),
+               Regex::new(r"(?i)ете$").unwrap(),
+               Regex::new(r"(?i)ите$").unwrap(),
+             Regex::new(r"(?i)ует$").unwrap(),
+           Regex::new(r"(?i)яла$").unwrap(),
+                    Regex::new(r"(?i)али$").unwrap(),
+              Regex::new(r"(?i)яли$").unwrap(),
+                Regex::new(r"(?i)ола$").unwrap(),
+             Regex::new(r"(?i)ела$").unwrap(),
+             Regex::new(r"(?i)оли$").unwrap(),
+             Regex::new(r"(?i)ели$").unwrap(),
+                         Regex::new(r"(?i)\w{2,}ула$").unwrap(),
+                 Regex::new(r"(?i)ули$").unwrap(),
+                          Regex::new(r"(?i)ами$").unwrap(),
+                Regex::new(r"(?i)еми$").unwrap(),
+                    Regex::new(r"(?i)емя$").unwrap(),
+                 Regex::new(r"(?i)ёте$").unwrap(),
+              Regex::new(r"(?i)ёшь$").unwrap(),
+
+                            Regex::new(r"(?i)ого$").unwrap(),
+                        Regex::new(r"(?i)ому$").unwrap(),
+                Regex::new(r"(?i)иях$").unwrap(),
+              Regex::new(r"(?i)ией$").unwrap(),
+              Regex::new(r"(?i)умя$").unwrap(),
+             Regex::new(r"(?i)ими$").unwrap(),
+       ];
+            static ref re_двубуквенные: [Regex;53] =[
+            //в первую очередь
+          // Regex::new(r"(?i)ные$").unwrap(),
+
+
+            //двукбуквенные
+            // гласные ([иаяуюыоеэё]+)
+
+            //остальные
+                       Regex::new(r"(?i)ея$").unwrap(),
+             Regex::new(r"(?i)еи$").unwrap(),
+                   Regex::new(r"(?i)ях$").unwrap(),
+            Regex::new(r"(?i)ев$").unwrap(),
+             Regex::new(r"(?i)ки$").unwrap(),
+                  Regex::new(r"(?i)ым$").unwrap(),
+                        Regex::new(r"(?i)ых$").unwrap(),
+            Regex::new(r"(?i)ям$").unwrap(),
+            Regex::new(r"(?i)ии$").unwrap(),
+            Regex::new(r"(?i)ия$").unwrap(),
+                Regex::new(r"(?i)ся$").unwrap(),
+            Regex::new(r"(?i)ая$").unwrap(),
+             Regex::new(r"(?i)яя$").unwrap(),
+              Regex::new(r"(?i)ое$").unwrap(),
+              Regex::new(r"(?i)ее$").unwrap(),
+            Regex::new(r"(?i)ой$").unwrap(),
+            Regex::new(r"(?i)ые$").unwrap(),
+            Regex::new(r"(?i)ый$").unwrap(),
+            Regex::new(r"(?i)ий$").unwrap(),
+            //глаголы
+
+               Regex::new(r"(?i)ем$").unwrap(),
+               Regex::new(r"(?i)им$").unwrap(),
+
+               Regex::new(r"(?i)ет$").unwrap(),
+               Regex::new(r"(?i)ит$").unwrap(),
+               Regex::new(r"(?i)ут$").unwrap(),
+               Regex::new(r"(?i)ют$").unwrap(),
+               Regex::new(r"(?i)ят$").unwrap(),
+
+                 Regex::new(r"(?i)ял$").unwrap(),
+
+             Regex::new(r"(?i)ол$").unwrap(),
+             Regex::new(r"(?i)ел$").unwrap(),
+
+            Regex::new(r"(?i)w{2,}ул$").unwrap(),
+
+            //Русские флексийные морфы по алфавиту
+                    Regex::new(r"(?i)ам$").unwrap(),
+
+              Regex::new(r"(?i)ас$").unwrap(),
+              Regex::new(r"(?i)ах$").unwrap(),
+             // Regex::new(r"(?i)ая$").unwrap(),
+                 Regex::new(r"(?i)её$").unwrap(),
+                 Regex::new(r"(?i)ей$").unwrap(),
+               //   Regex::new(r"(?i)ем$").unwrap(),
+
+                    Regex::new(r"(?i)ех$").unwrap(),
+                    Regex::new(r"(?i)ею$").unwrap(),
+              Regex::new(r"(?i)ёт$").unwrap(),
+
+            Regex::new(r"(?i)ёх$").unwrap(),
+
+                 Regex::new(r"(?i)ие$").unwrap(),
+              //Regex::new(r"(?i)ий$").unwrap(),
+              // Regex::new(r"(?i)им$").unwrap(),
+
+             //  Regex::new(r"(?i)ите$").unwrap(),
+                      //  Regex::new(r"(?i)ит$").unwrap(),
+                       Regex::new(r"(?i)их$").unwrap(),
+                     //   Regex::new(r"(?i)ишь$").unwrap(),
+                       Regex::new(r"(?i)ию$").unwrap(),
+           //  Regex::new(r"(?i)м$").unwrap(),
+                      Regex::new(r"(?i)ми$").unwrap(),
+                         Regex::new(r"(?i)мя$").unwrap(),
+                        Regex::new(r"(?i)ов$").unwrap(),
+
+                //  Regex::new(r"(?i)ое$").unwrap(),
+            Regex::new(r"(?i)оё$").unwrap(),
+          //  Regex::new(r"(?i)ой$").unwrap(),
+            Regex::new(r"(?i)ом$").unwrap(),
+
+            Regex::new(r"(?i)см$").unwrap(),
+            Regex::new(r"(?i)ум$").unwrap(),
+              Regex::new(r"(?i)уя$").unwrap(),
+
+             //  Regex::new(r"(?i)ут$").unwrap(),
+                         Regex::new(r"(?i)ух$").unwrap(),
+                         Regex::new(r"(?i)ую$").unwrap(),
+                         Regex::new(r"(?i)шь$").unwrap(),
+        ];
+    }
+    //
+    проверка_ряда_regex(&*re_трехбуквенные);
+    проверка_ряда_regex(&*re_двубуквенные);
+    проверка_ряда_regex(&*re_многобуквенные);
+    проверка_ряда_regex(&*re_однобуквенные);
+
+    //проверка
+    //прогон двубуквенного ряда
+    match прогон_и_замена_в_слове_через_ряд_re_c_исключениями(
+        &слово,
+        &*re_многобуквенные_с_исключениями_образцы,
+        &*re_многобуквенные_с_исключениями_замены,
+    ) {
+        Ok(итог) => return итог,
+        //перебор в однобуквенном ряде
+        Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+            &слово,
+            &*re_многобуквенные,
+        ) {
+            Ok(итог) => return итог,
+            //перебор в однобуквенном ряде
+            Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                &слово,
+                &*re_трехбуквенные,
+            ) {
+                Ok(итог) => return итог,
+                Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                    &слово,
+                    &*re_двубуквенные,
+                ) {
+                    Ok(итог) => return итог,
+                    Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                        &слово,
+                        &*re_однобуквенные,
+                    ) {
+                        Ok(итог) => return итог,
+                        Err(()) => return слово.to_string(),
+                    },
+                },
+            },
+        },
+    }
 }

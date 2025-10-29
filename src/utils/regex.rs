@@ -189,8 +189,8 @@ pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
         static ref re_расширения_не_архивные: [Regex; 4] = [
             Regex::new(r"(?i)\.fb2$").unwrap(),
             Regex::new(r"(?i)\.rtf$").unwrap(),
-                   Regex::new(r"(?i)\.mhtml$").unwrap(),
-               Regex::new(r"(?i)\.mht$").unwrap(),
+            Regex::new(r"(?i)\.mhtml$").unwrap(),
+            Regex::new(r"(?i)\.mht$").unwrap(),
         ];
     }
     return re_расширения_не_архивные
@@ -589,3 +589,78 @@ pub fn замена_слов_через_кучу(
             счётчик_словаря[указатель].fetch_add(число.load(Ordering::Relaxed), Ordering::Relaxed); //
         });
 }
+
+//многопоточность
+/*
+pub fn убрать_переносы(
+    словарь: &[Ячейка_словаря],
+    содержимое: &mut [String],
+    //re_образцы: &[Regex],
+    //содержимое: &mut [String],
+    //замены: &[String],
+    //счётчик_словаря: &mut [usize],
+    //искомое_слово: &[String],
+    сообщение: &str,
+    расширение: &str,
+    //указатель_захода: &mut usize,
+    //куча_пропусков: &HashSet<usize>,
+) {
+    // Создаем атомарные счетчики для каждого шаблона
+    let атомарные_счетчики: Vec<AtomicUsize> =
+        (0..словарь.len()).map(|_| AtomicUsize::new(0)).collect();
+
+    let количество_шагов = словарь.len() * содержимое.len();
+    let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
+    let шаг_внутренний = AtomicU64::new(0);
+
+    счетчик_внутренний.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
+        )
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+        })
+        .progress_chars("#>-"),
+    );
+
+    // Обрабатываем каждую строку параллельно
+    содержимое
+        .par_iter_mut()
+        .enumerate()
+        .for_each(|(указатель, строка)| {
+            if куча_пропусков.contains(&указатель) {
+                // Пропускаем строку, но все равно считаем прогресс
+                let шаги_для_этой_строки = re_образцы.len() as u64;
+                шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
+                счетчик_внутренний.inc(шаги_для_этой_строки);
+                return;
+            }
+
+            // Сохраняем оригинальную строку для проверки
+            //  let оригинальная_строка = строка.clone();
+
+            for указатель_образца in 0..re_образцы.len() {
+                let re_образец = &re_образцы[указатель_образца];
+
+                if sz_найти(&строка, &искомое_слово[указатель_образца])
+                {
+                    let замененная_строка =
+                        re_образец.replace_all(&строка, &замены[указатель_образца]);
+                    let замененная_строка = замененная_строка.to_string();
+                    if bytesum(&замененная_строка) != bytesum(&строка) {
+                        // Увеличиваем атомарный счетчик
+                        атомарные_счетчики[указатель_образца].fetch_add(1, Ordering::Relaxed);
+                    }
+                    // Заменяем строку
+                    *строка = замененная_строка;
+                }
+
+                // Обновляем прогресс
+                let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
+                счетчик_внутренний.set_position(текущий_шаг);
+            }
+        });
+}
+
+ */
