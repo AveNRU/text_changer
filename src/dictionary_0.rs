@@ -446,7 +446,7 @@ pub fn создать_быстрый_словарь(
                         if !acc.is_empty() {
                             acc.push(',');
                         }
-                        acc.push_str(&значение.to_string());
+                        acc.push_str(&слова_из_словаря[*значение].to_string());
                         acc
                     },
                 )
@@ -656,7 +656,7 @@ pub fn выделить_окончание_из_слова(слово: &String) 
              //     Regex::new(r"(?i)у$").unwrap(),
 
          ];
-         static ref re_двубуквенные_с_исключениями_замены: [Regex;12] = [
+         static ref re_многобуквенные_с_исключениями_замены: [Regex;12] = [
                            Regex::new(r"(?i)ал$").unwrap(),//0
                                     Regex::new(r"(?i)ала$").unwrap(),//1
             Regex::new(r"(?i)ные$").unwrap(),//2
@@ -670,7 +670,7 @@ pub fn выделить_окончание_из_слова(слово: &String) 
                     Regex::new(r"(?i)ости$").unwrap(),//10
                Regex::new(r"(?i)остью$").unwrap(),//11
          ];
-        static ref re_двубуквенные_с_исключениями_образцы: [Regex;12] = [
+        static ref re_многобуквенные_с_исключениями_образцы: [Regex;12] = [
                          //исключения
              Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
              Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
@@ -685,18 +685,30 @@ pub fn выделить_окончание_из_слова(слово: &String) 
                            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
                            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
         ];
-
-             static ref re_двубуквенные: [Regex;108] =[
-             //в первую очередь
-           // Regex::new(r"(?i)ные$").unwrap(),
-     Regex::new(r"(?i)ования$").unwrap(),
+                  static ref re_многобуквенные: [Regex;13] =[
+             Regex::new(r"(?i)иумы$").unwrap(),
+                Regex::new(r"(?i)ования$").unwrap(),
                  Regex::new(r"(?i)овать$").unwrap(),
-    Regex::new(r"(?i)еям$").unwrap(),
+             //
+                Regex::new(r"(?i)иями$").unwrap(),
+              Regex::new(r"(?i)ующие$").unwrap(),
+              Regex::new(r"(?i)ующая$").unwrap(),
+               Regex::new(r"(?i)ующий$").unwrap(),
+             Regex::new(r"(?i)ующих$").unwrap(),
+              Regex::new(r"(?i)уется$").unwrap(),
+              Regex::new(r"(?i)уются$").unwrap(),
+              Regex::new(r"(?i)\w+уют$").unwrap(),
+              Regex::new(r"(?i)ичную$").unwrap(),
+              Regex::new(r"(?i)ичных$").unwrap(),
+
+            ];
+         static ref re_трехбуквенные: [Regex;42] =[
+             Regex::new(r"(?i)еям$").unwrap(),
      Regex::new(r"(?i)иев$").unwrap(),
              Regex::new(r"(?i)иал$").unwrap(),
                Regex::new(r"(?i)ием$").unwrap(),
-              Regex::new(r"(?i)иум$").unwrap(),
-               Regex::new(r"(?i)иумы$").unwrap(),
+            Regex::new(r"(?i)иум$").unwrap(),
+
              Regex::new(r"(?i)ыми$").unwrap(),
              Regex::new(r"(?i)ика$").unwrap(),
              Regex::new(r"(?i)ику$").unwrap(),
@@ -709,24 +721,12 @@ pub fn выделить_окончание_из_слова(слово: &String) 
                   Regex::new(r"(?i)уум$").unwrap(),
                  Regex::new(r"(?i)уете$").unwrap(),
              Regex::new(r"(?i)уем$").unwrap(),
-             //
-
-                Regex::new(r"(?i)иями$").unwrap(),
-
               Regex::new(r"(?i)ешь$").unwrap(),
                 Regex::new(r"(?i)ишь$").unwrap(),
                 Regex::new(r"(?i)ете$").unwrap(),
                 Regex::new(r"(?i)ите$").unwrap(),
               Regex::new(r"(?i)ует$").unwrap(),
-              Regex::new(r"(?i)ующие$").unwrap(),
-              Regex::new(r"(?i)ующая$").unwrap(),
-               Regex::new(r"(?i)ующий$").unwrap(),
-             Regex::new(r"(?i)ующих$").unwrap(),
-              Regex::new(r"(?i)уется$").unwrap(),
-              Regex::new(r"(?i)уются$").unwrap(),
-              Regex::new(r"(?i)\w+уют$").unwrap(),
-
-               Regex::new(r"(?i)яла$").unwrap(),
+            Regex::new(r"(?i)яла$").unwrap(),
                      Regex::new(r"(?i)али$").unwrap(),
                Regex::new(r"(?i)яли$").unwrap(),
                  Regex::new(r"(?i)ола$").unwrap(),
@@ -740,13 +740,19 @@ pub fn выделить_окончание_из_слова(слово: &String) 
                      Regex::new(r"(?i)емя$").unwrap(),
                   Regex::new(r"(?i)ёте$").unwrap(),
                Regex::new(r"(?i)ёшь$").unwrap(),
+
                              Regex::new(r"(?i)ого$").unwrap(),
                          Regex::new(r"(?i)ому$").unwrap(),
                  Regex::new(r"(?i)иях$").unwrap(),
                Regex::new(r"(?i)ией$").unwrap(),
-              Regex::new(r"(?i)ичную$").unwrap(),
-              Regex::new(r"(?i)ичных$").unwrap(),
                Regex::new(r"(?i)умя$").unwrap(),
+              Regex::new(r"(?i)ими$").unwrap(),
+        ];
+             static ref re_двубуквенные: [Regex;53] =[
+             //в первую очередь
+           // Regex::new(r"(?i)ные$").unwrap(),
+
+
              //двукбуквенные
              // гласные ([иаяуюыоеэё]+)
 
@@ -807,7 +813,7 @@ pub fn выделить_окончание_из_слова(слово: &String) 
                   Regex::new(r"(?i)ие$").unwrap(),
                //Regex::new(r"(?i)ий$").unwrap(),
                // Regex::new(r"(?i)им$").unwrap(),
-               Regex::new(r"(?i)ими$").unwrap(),
+
               //  Regex::new(r"(?i)ите$").unwrap(),
                        //  Regex::new(r"(?i)ит$").unwrap(),
                         Regex::new(r"(?i)их$").unwrap(),
@@ -834,32 +840,50 @@ pub fn выделить_окончание_из_слова(слово: &String) 
          ];
      }
     //
+    проверка_ряда_regex(&*re_трехбуквенные);
     проверка_ряда_regex(&*re_двубуквенные);
+    проверка_ряда_regex(&*re_многобуквенные);
     проверка_ряда_regex(&*re_однобуквенные);
 
     //проверка
     //прогон двубуквенного ряда
     match прогон_и_замена_в_слове_через_ряд_re_c_исключениями(
         &слово,
-        &*re_двубуквенные_с_исключениями_образцы,
-        &*re_двубуквенные_с_исключениями_замены,
+        &*re_многобуквенные_с_исключениями_образцы,
+        &*re_многобуквенные_с_исключениями_замены,
     ) {
         Ok(итог) => return итог,
         //перебор в однобуквенном ряде
-        Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+        Err(()) =>  match прогон_и_замена_в_слове_через_ряд_re(
             &слово,
-            &*re_двубуквенные,
+            &*re_многобуквенные,
         ) {
             Ok(итог) => return итог,
-            Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
-                &слово,
-                &*re_однобуквенные,
-            ) {
-                Ok(итог) => return итог,
-                Err(()) => return слово.to_string(),
-            },
-        },
-    }
+            //перебор в однобуквенном ряде
+            Err(()) =>
+                match прогон_и_замена_в_слове_через_ряд_re(
+                    &слово,
+                    &*re_трехбуквенные,
+                ) {
+                    Ok(итог) => return итог,
+                    Err(()) =>
+
+
+                        match прогон_и_замена_в_слове_через_ряд_re(
+                            &слово,
+                            &*re_двубуквенные,
+                        ) {
+                            Ok(итог) => return итог,
+                            Err(()) => match прогон_и_замена_в_слове_через_ряд_re(
+                                &слово,
+                                &*re_однобуквенные,
+                            ) {
+                                Ok(итог) => return итог,
+                                Err(()) => return слово.to_string(),
+                            },
+                        },
+                }
+        }}
 }
 
 pub fn прогон_и_замена_в_слове_через_ряд_re(
