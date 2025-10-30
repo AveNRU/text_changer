@@ -1,3 +1,5 @@
+30.10
+-Добавилена проверка что перевод простых слов не может быть равен искомым словам для всех слов
 
 29.10
 -Исправлена работа с кучей слов из словарей - образцы добавляются согласованно по порядку (сначала многобуквенные- потом трех буквенные - потом двухбуквенные)
@@ -103,5 +105,31 @@ stack backtrace:
 30.10
 добавить исключение из html -\r\n
 добавить проверку на переносы внутри слова и удалить переносы строк через -
-добавить проверку что перевод простых слов не может быть равен искомым словам для всех слов
 
+
+!!!
+добавить проверку образцов для окончаний - чтобы не было повторов -ные
+проверка_ряда_regex - разобраться, по ходу дела дохрена раз проходит
+!!!
+
+Окончания:
+но
+ной
+ные
+нию
+го
+них
+ный
+
+переносы:
+-</p><p class="s7" style="padding-left: 51pt;text-indent: 0pt;line-height: 14pt;text-align: center;">14</p><p style="padding-top: 3pt;padding-left: 10pt;text-indent: 0pt;line-height: 114%;text-align: justify;"><span>
+-</p><h1 style="padding-top: 1pt;padding-left: 10pt;text-indent: 0pt;line-height: 108%;text-align: justify;"><span class="p">
+-</h1></li></ol><h1 style="padding-left: 10pt;text-indent: 0pt;line-height: 112%;text-align: justify;">
+-</h1><p class="s7" style="padding-top: 7pt;padding-left: 51pt;text-indent: 0pt;text-align: center;">22</p><h1 style="padding-top: 3pt;padding-left: 10pt;text-indent: 0pt;line-height: 112%;text-align: justify;">
+-</span></h1><p style="padding-top: 1pt;padding-left: 10pt;text-indent: 0pt;text-align: left;">
+-</span></p><p class="s7" style="padding-top: 4pt;padding-left: 51pt;text-indent: 0pt;text-align: center;">29</p><p style="padding-top: 3pt;padding-left: 10pt;text-indent: 0pt;line-height: 107%;text-align: justify;">
+
+
+
+выравнивание:
+text-align:right сменить на  text-align:left
