@@ -105,7 +105,7 @@ stack backtrace:
 30.10
 добавить исключение из html -\r\n
 добавить проверку на переносы внутри слова и удалить переносы строк через -
-
+вывод_содержимого_строки_в_txt перед этим уже есть проверка создан ли файл
 
 !!!
 добавить проверку образцов для окончаний - чтобы не было повторов -ные
@@ -120,6 +120,8 @@ stack backtrace:
 го
 них
 ный
+
+(?i)-но$ добавить \w
 
 переносы:
 -</p><p class="s7" style="padding-left: 51pt;text-indent: 0pt;line-height: 14pt;text-align: center;">14</p><p style="padding-top: 3pt;padding-left: 10pt;text-indent: 0pt;line-height: 114%;text-align: justify;"><span>

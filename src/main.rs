@@ -19,6 +19,9 @@ pub mod xlsx;
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
 fn main() {
+    unsafe { env::set_var("RUST_BACKTRACE", "full") };
+    unsafe { env::set_var("RUSTFLAGS", "-Awarnings") };
+    unsafe { env::set_var("RUSTFLAGS", "-A dead_code") };
     // Текущие дата и время
     let текущая_время_дата: DateTime<Local> = Local::now();
     let исполнение = env!("CARGO_PKG_VERSION");
@@ -34,9 +37,7 @@ fn main() {
     //подсчёт начала запуска времени
     //начало нового
     let время_отсчёта: Instant = Instant::now();
-    unsafe { env::set_var("RUST_BACKTRACE", "full") };
-    unsafe { env::set_var("RUSTFLAGS", "-Awarnings") };
-    unsafe { env::set_var("RUSTFLAGS", "-A dead_code") };
+
     //проверка файлов и папок
     check_1::проверка_содержимого_папок();
     //книги
@@ -47,7 +48,6 @@ fn main() {
     let mut полный_словарь: lib::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей(&пути_до_словарей);
     //замена слов в книге
-    let mut перносы: lib::Словарь_Переносов = Default::default();
     //сама замена слов
     let выходные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
         &mut полный_словарь,

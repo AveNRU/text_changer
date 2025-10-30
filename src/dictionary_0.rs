@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 use std::thread;
 
 use crate::output::write;
-use crate::output::write::вывод_содержимого_в_txt;
+use crate::output::write::вывод_содержимого_строки_в_txt;
 use regex::Regex;
 //use crate::import::{VirtualFs};
 use std::time::{
@@ -46,6 +46,7 @@ pub fn заменить_слова_в_книге(
 ) -> Vec<lib::Книги> {
     use crate::utils::regex::*;
     use crate::utils::stringzilla::sz_найти;
+    use lib::{Ячейка_замены,Словарь_Переносов,Счётчик_замен};
     //шкала
     let mut временные_сообщения: Arc<Mutex<lib::Сообщения>> =
         Arc::new(Mutex::new(сообщения.clone()));
@@ -67,8 +68,13 @@ pub fn заменить_слова_в_книге(
             .unwrap()
             .progress_chars("#>-"),
     );
+    let создать_составной_ряд_замен: (Arc<Счётчик_замен>, Словарь_Переносов) =создать_словарь_замен();
+    // Создаем атомарные счетчики для каждого шаблона
+    // Создаем атомарные счетчики для каждого шаблона
+    let mut счётчики_замен: Arc<Счётчик_замен> = создать_составной_ряд_замен.0;
+    let словарь_переносов: Словарь_Переносов = создать_составной_ряд_замен.1;
 
-    let LOOKING_GLASS = format!("🔍");
+    let лупа = format!("🔍");
     // Обернем счетчики в Arc для безопасного разделения между потоками
     let mut счётчик_составное_важное: Vec<Arc<AtomicUsize>> =
         (0..полный_словарь.счётчик_составное_важное.len())
@@ -103,12 +109,7 @@ pub fn заменить_слова_в_книге(
          )
          .for_each(|(главный_указатель, книга_взятая)| {
 
-             // Создаем Arc-копии счетчиков для этого потока
-             let mut счётчик_неизменное_лок = счётчик_неизменное.clone();
-             let mut счётчик_составное_важное_лок = счётчик_составное_важное.clone();
-             let mut счётчик_вездесущее_лок = счётчик_вездесущее.clone();
-             let mut счётчик_составное_лок = счётчик_составное.clone();
-             let mut счётчик_простое_лок = счётчик_простое.clone();
+             //счётчик
          //проверка допустимых расширений
         //остальные расширения
             //временная переменная для хранения всех строк для их сравнения в конце
@@ -122,7 +123,7 @@ pub fn заменить_слова_в_книге(
                      книга_взятая.название_книги,
                      книга_взятая.расширение,
                  )).cyan(),
-                 LOOKING_GLASS
+                 лупа
              );
              //счётчик файлов всех
              let счётчик_количества_вложенных_файлов:usize=книга_взятая.вложения.par_iter()
@@ -143,7 +144,8 @@ pub fn заменить_слова_в_книге(
                     let mut счётчик_вездесущее_лок = счётчик_вездесущее.clone();
                     let mut счётчик_составное_лок = счётчик_составное.clone();
                     let mut счётчик_простое_лок = счётчик_простое.clone();
-                    
+                    //счётчики замен переносов
+                    let mut счётчики_замен_вложенные: Arc<Счётчик_замен> =счётчики_замен.clone();
                     let текущий_шаг_всех_книг:String = format!("[{}/{}]", главный_указатель + 1, количество_книг);
                     let шаг_вложенных_книг = format!("[{}/{}]", шаг_внутренний.load(Ordering::Relaxed) + 1, счётчик_количества_вложенных_файлов);
                     шаг_внутренний.fetch_add(1, Ordering::Relaxed);
@@ -185,7 +187,7 @@ pub fn заменить_слова_в_книге(
                     );
                 }
                 //вывод пропущенных строк
-                вывод_содержимого_в_txt(
+                вывод_содержимого_строки_в_txt(
                     &пропущенные_строки,
                     &путь_вывода_пропусков,
                     &mut временные_сообщения.lock().unwrap().общие,
@@ -198,9 +200,24 @@ pub fn заменить_слова_в_книге(
                                                            style(&книга_взятая.расширение).green(),
                                                            style(шаг_вложенных_книг).strikethrough(),
                                                            style(&вложения.имя).yellow(),
-                                                           LOOKING_GLASS
+                                                           лупа
                     );
                     //убрать все переносы
+                    let mut временный_указатель=главный_указатель+указатель;
+                    убрать_переносы(
+                        &словарь_переносов,
+                      //  &полный_словарь.неизменное,
+                        &mut вложения.содержимое,
+                       // &mut счётчик_неизменное_лок,
+                        //"[0/4] Составные важные слова",
+                        &format!("{} | Убрать переносы",сообщение_текущее_вложение),
+                        &книга_взятая.расширение,
+                        //&куча_пропусков,
+                        //&куча_словарь.неизменное,
+                      &mut временный_указатель,
+                      &mut счётчики_замен_вложенные,
+                    );
+
                     //сначала меняются 1)составные (в 1 очередь), 2)вездесущие; 3)сложные слова 4)простые
                     //составные важные
                     замена_слов_через_кучу(
@@ -316,6 +333,7 @@ pub fn заменить_слова_в_книге(
             полный_словарь.счётчик_неизменное[указатель] = число.load(Ordering::Relaxed)
         });
     write::вывод_всех_словарей_в_xls(&полный_словарь, &куча_словарь).unwrap();
+    write::вывод_всех_счётчиков_замен_в_xls(&счётчики_замен,&словарь_переносов).unwrap();
     println!(
         "Время занятое на замену слов: {:.2?}",
         точка_отсчёта_по_времени.elapsed()
@@ -428,11 +446,15 @@ pub fn добавить_все_слова_в_словарь(
 pub fn создать_быстрый_словарь(
     слова_из_словаря: &Vec<String>,
     вид_слов: &str,
+    mut счётчик_входа: &mut AtomicUsize,
 ) -> HashMap<String, HashSet<usize>> {
     use crate::utils::stringzilla::sz_упорядочить_кучу;
     let ряд_вывод = Arc::new(Mutex::new(Vec::new()));
     let словарь_куча: HashMap<String, HashSet<usize>> =
-        выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
+        выделить_кучу_из_ряда_для_словаря(
+            &слова_из_словаря,
+            &mut счётчик_входа,
+        );
 
     let ряд_временный: HashSet<String> = словарь_куча
         .par_iter()
@@ -475,8 +497,20 @@ pub fn создать_быстрый_словарь(
     let путь_простой: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря, вид_слов,);
     let путь_ключи: String = format!("{}{}.txt", &пути_вывода.вывод_кучи_словаря_ключи, вид_слов,);
     let ряд_вывод = Arc::try_unwrap(ряд_вывод).unwrap().into_inner().unwrap();
-    вывод_содержимого_в_txt(&ряд_вывод, &путь_простой, &mut пустой_ряд, false).unwrap();
-    вывод_содержимого_в_txt(&ряд_временный, &путь_ключи, &mut пустой_ряд, false).unwrap();
+    вывод_содержимого_строки_в_txt(
+        &ряд_вывод,
+        &путь_простой,
+        &mut пустой_ряд,
+        false,
+    )
+    .unwrap();
+    вывод_содержимого_строки_в_txt(
+        &ряд_временный,
+        &путь_ключи,
+        &mut пустой_ряд,
+        false,
+    )
+    .unwrap();
     return словарь_куча;
 }
 /*
@@ -583,11 +617,12 @@ pub fn выделить_кучу_из_ряда_для_словаря1(
 */
 pub fn выделить_кучу_из_ряда_для_словаря(
     ряд_слов: &[String],
+    mut счётчик_входа: &mut AtomicUsize,
 ) -> HashMap<String, HashSet<usize>> {
     let mut куча_пропусков: HashMap<String, HashSet<usize>> = HashMap::default();
 
     for (указатель, строка) in ряд_слов.iter().enumerate() {
-        let слово = выделить_окончание_из_слова(строка);
+        let слово = выделить_окончание_из_слова(строка, &mut счётчик_входа);
 
         куча_пропусков
             .entry(слово)
@@ -628,224 +663,249 @@ pub fn foldhash_пример(слова: &Vec<usize>, значение: usize) {
     let my_set: HashSet<usize> = [1, 2, 3, 4, 5].into_iter().collect::<HashSet<usize>>();
 }
 
-pub fn выделить_окончание_из_слова(слово: &String) -> String {
-    let куча_исключений_знак: HashSet<char> =
-        HashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
-            .into_iter()
-            .collect::<HashSet<char>>();
+pub fn выделить_окончание_из_слова(
+    слово: &String,
+    mut счётчик_входа: &mut AtomicUsize,
+) -> String {
+    /*let куча_исключений_знак: HashSet<char> =
+       HashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
+           .into_iter()
+           .collect::<HashSet<char>>();
+    */
     //куча_исключений_знак.insert('ь');
     //куча_исключений_знак.insert('ъ');
 
     lazy_static! {
-        static ref re_однобуквенные: [Regex;10] = [
-            Regex::new(r"(?i)о$").unwrap(),
-            Regex::new(r"(?i)а$").unwrap(),
-            Regex::new(r"(?i)я$").unwrap(),
-            Regex::new(r"(?i)е$").unwrap(),
-            Regex::new(r"(?i)ь$").unwrap(),
-            Regex::new(r"(?i)ы$").unwrap(),
-            Regex::new(r"(?i)и$").unwrap(),
-           Regex::new(r"(?i)ъ$").unwrap(),
-            //глаголы
-               Regex::new(r"(?i)у$").unwrap(),
-             Regex::new(r"(?i)ю$").unwrap(),
-                      //Русские флексийные морфы по алфавиту
-                   // Regex::new(r"(?i)а$").unwrap(),
-            // Regex::new(r"(?i)е$").unwrap(),
-              // Regex::new(r"(?i)и$").unwrap(),
-            //Regex::new(r"(?i)о$").unwrap(),
-            //     Regex::new(r"(?i)у$").unwrap(),
+         static ref re_однобуквенные: [Regex;10] = [
+             Regex::new(r"(?i)о$").unwrap(),
+             Regex::new(r"(?i)а$").unwrap(),
+             Regex::new(r"(?i)я$").unwrap(),
+             Regex::new(r"(?i)е$").unwrap(),
+             Regex::new(r"(?i)ь$").unwrap(),
+             Regex::new(r"(?i)ы$").unwrap(),
+             Regex::new(r"(?i)и$").unwrap(),
+            Regex::new(r"(?i)ъ$").unwrap(),
+             //глаголы
+                Regex::new(r"(?i)у$").unwrap(),
+              Regex::new(r"(?i)ю$").unwrap(),
+                       //Русские флексийные морфы по алфавиту
+                    // Regex::new(r"(?i)а$").unwrap(),
+             // Regex::new(r"(?i)е$").unwrap(),
+               // Regex::new(r"(?i)и$").unwrap(),
+             //Regex::new(r"(?i)о$").unwrap(),
+             //     Regex::new(r"(?i)у$").unwrap(),
 
+         ];
+         static ref re_многобуквенные_с_исключениями_замены: [Regex;11] = [
+                           Regex::new(r"(?i)ал$").unwrap(),//0
+                                    Regex::new(r"(?i)ала$").unwrap(),//1
+            Regex::new(r"(?i)ные$").unwrap(),//2 убрать
+               Regex::new(r"(?i)ного$").unwrap(),//3
+
+              Regex::new(r"(?i)ный$").unwrap(),//5
+              Regex::new(r"(?i)ных$").unwrap(),//6
+                         Regex::new(r"(?i)ких$").unwrap(),//7
+             Regex::new(r"(?i)кой$").unwrap(),//8
+             Regex::new(r"(?i)ость$").unwrap(),//9
+                    Regex::new(r"(?i)ости$").unwrap(),//10
+               Regex::new(r"(?i)остью$").unwrap(),//11
+         ];
+        static ref re_многобуквенные_с_исключениями_образцы: [Regex;11] = [
+                         //исключения
+             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
+             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
+            Regex::new(r"(?i)нные$").unwrap(),//2 убрать
+              Regex::new(r"(?i)нного$").unwrap(),//3
+
+              Regex::new(r"(?i)нный$").unwrap(),//5
+                 Regex::new(r"(?i)нных$").unwrap(),//6
+                         Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ких$").unwrap(),//7
+             Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})кой$").unwrap(),//8
+                Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ость$").unwrap(),//9
+                           Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
+                           Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
         ];
-        static ref re_многобуквенные_с_исключениями_замены: [Regex;11] = [
-                          Regex::new(r"(?i)ал$").unwrap(),//0
-                                   Regex::new(r"(?i)ала$").unwrap(),//1
-           Regex::new(r"(?i)ные$").unwrap(),//2 убрать
-              Regex::new(r"(?i)ного$").unwrap(),//3
+                  static ref re_многобуквенные: [Regex;13] =[
+             Regex::new(r"(?i)иумы$").unwrap(),
+                Regex::new(r"(?i)ования$").unwrap(),
+                 Regex::new(r"(?i)овать$").unwrap(),
+             //
+                Regex::new(r"(?i)иями$").unwrap(),
+              Regex::new(r"(?i)ующие$").unwrap(),
+              Regex::new(r"(?i)ующая$").unwrap(),
+               Regex::new(r"(?i)ующий$").unwrap(),
+             Regex::new(r"(?i)ующих$").unwrap(),
+              Regex::new(r"(?i)уется$").unwrap(),
+              Regex::new(r"(?i)уются$").unwrap(),
+    Regex::new(r"(?i)уете$").unwrap(),
+              Regex::new(r"(?i)ичную$").unwrap(),
+              Regex::new(r"(?i)ичных$").unwrap(),
 
-             Regex::new(r"(?i)ный$").unwrap(),//5
-             Regex::new(r"(?i)ных$").unwrap(),//6
-                        Regex::new(r"(?i)ких$").unwrap(),//7
-            Regex::new(r"(?i)кой$").unwrap(),//8
-            Regex::new(r"(?i)ость$").unwrap(),//9
-                   Regex::new(r"(?i)ости$").unwrap(),//10
-              Regex::new(r"(?i)остью$").unwrap(),//11
+            ];
+         static ref re_трехбуквенные: [Regex;42] =[
+              Regex::new(r"(?i)\w+уют$").unwrap(),
+             Regex::new(r"(?i)еям$").unwrap(),
+     Regex::new(r"(?i)иев$").unwrap(),
+             Regex::new(r"(?i)иал$").unwrap(),
+               Regex::new(r"(?i)ием$").unwrap(),
+            Regex::new(r"(?i)иум$").unwrap(),
+
+             Regex::new(r"(?i)ыми$").unwrap(),
+             Regex::new(r"(?i)ика$").unwrap(),
+             Regex::new(r"(?i)ику$").unwrap(),
+             Regex::new(r"(?i)ики$").unwrap(),
+                 Regex::new(r"(?i)ать$").unwrap(),
+             Regex::new(r"(?i)ять$").unwrap(),
+             Regex::new(r"(?i)оть$").unwrap(),
+             Regex::new(r"(?i)еть$").unwrap(),
+              Regex::new(r"(?i)иям$").unwrap(),
+                  Regex::new(r"(?i)уум$").unwrap(),
+
+             Regex::new(r"(?i)уем$").unwrap(),
+              Regex::new(r"(?i)ешь$").unwrap(),
+                Regex::new(r"(?i)ишь$").unwrap(),
+                Regex::new(r"(?i)ете$").unwrap(),
+                Regex::new(r"(?i)ите$").unwrap(),
+              Regex::new(r"(?i)ует$").unwrap(),
+            Regex::new(r"(?i)яла$").unwrap(),
+                     Regex::new(r"(?i)али$").unwrap(),
+               Regex::new(r"(?i)яли$").unwrap(),
+                 Regex::new(r"(?i)ола$").unwrap(),
+              Regex::new(r"(?i)ела$").unwrap(),
+              Regex::new(r"(?i)оли$").unwrap(),
+              Regex::new(r"(?i)ели$").unwrap(),
+                          Regex::new(r"(?i)\w{2,}ула$").unwrap(),
+                  Regex::new(r"(?i)ули$").unwrap(),
+                           Regex::new(r"(?i)ами$").unwrap(),
+                 Regex::new(r"(?i)еми$").unwrap(),
+                     Regex::new(r"(?i)емя$").unwrap(),
+                  Regex::new(r"(?i)ёте$").unwrap(),
+               Regex::new(r"(?i)ёшь$").unwrap(),
+
+                             Regex::new(r"(?i)ого$").unwrap(),
+                         Regex::new(r"(?i)ому$").unwrap(),
+                 Regex::new(r"(?i)иях$").unwrap(),
+               Regex::new(r"(?i)ией$").unwrap(),
+               Regex::new(r"(?i)умя$").unwrap(),
+              Regex::new(r"(?i)ими$").unwrap(),
         ];
-       static ref re_многобуквенные_с_исключениями_образцы: [Regex;11] = [
-                        //исключения
-            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ал)$").unwrap(),//0
-            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})(ала)$").unwrap(),//1
-           Regex::new(r"(?i)нные$").unwrap(),//2 убрать
-             Regex::new(r"(?i)нного$").unwrap(),//3
+             static ref re_двубуквенные: [Regex;53] =[
+             //в первую очередь
+           // Regex::new(r"(?i)ные$").unwrap(),
+             //двукбуквенные
+             // гласные ([иаяуюыоеэё]+)
+             //остальные
+                        Regex::new(r"(?i)ея$").unwrap(),
+              Regex::new(r"(?i)еи$").unwrap(),
+                    Regex::new(r"(?i)ях$").unwrap(),
+             Regex::new(r"(?i)ев$").unwrap(),
+              Regex::new(r"(?i)ки$").unwrap(),
+                   Regex::new(r"(?i)ым$").unwrap(),
+                         Regex::new(r"(?i)ых$").unwrap(),
+             Regex::new(r"(?i)ям$").unwrap(),
+             Regex::new(r"(?i)ии$").unwrap(),
+             Regex::new(r"(?i)ия$").unwrap(),
+                 Regex::new(r"(?i)ся$").unwrap(),
+             Regex::new(r"(?i)ая$").unwrap(),
+              Regex::new(r"(?i)яя$").unwrap(),
+               Regex::new(r"(?i)ое$").unwrap(),
+               Regex::new(r"(?i)ее$").unwrap(),
+             Regex::new(r"(?i)ой$").unwrap(),
+             Regex::new(r"(?i)ые$").unwrap(),
+             Regex::new(r"(?i)ый$").unwrap(),
+             Regex::new(r"(?i)ий$").unwrap(),
+             //глаголы
 
-             Regex::new(r"(?i)нный$").unwrap(),//5
-                Regex::new(r"(?i)нных$").unwrap(),//6
-                        Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ких$").unwrap(),//7
-            Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})кой$").unwrap(),//8
-               Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ость$").unwrap(),//9
-                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
-                          Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
-       ];
-                 static ref re_многобуквенные: [Regex;13] =[
-            Regex::new(r"(?i)иумы$").unwrap(),
-               Regex::new(r"(?i)ования$").unwrap(),
-                Regex::new(r"(?i)овать$").unwrap(),
-            //
-               Regex::new(r"(?i)иями$").unwrap(),
-             Regex::new(r"(?i)ующие$").unwrap(),
-             Regex::new(r"(?i)ующая$").unwrap(),
-              Regex::new(r"(?i)ующий$").unwrap(),
-            Regex::new(r"(?i)ующих$").unwrap(),
-             Regex::new(r"(?i)уется$").unwrap(),
-             Regex::new(r"(?i)уются$").unwrap(),
-   Regex::new(r"(?i)уете$").unwrap(),
-             Regex::new(r"(?i)ичную$").unwrap(),
-             Regex::new(r"(?i)ичных$").unwrap(),
+                Regex::new(r"(?i)ем$").unwrap(),
+                Regex::new(r"(?i)им$").unwrap(),
 
-           ];
-        static ref re_трехбуквенные: [Regex;42] =[
-             Regex::new(r"(?i)\w+уют$").unwrap(),
-            Regex::new(r"(?i)еям$").unwrap(),
-    Regex::new(r"(?i)иев$").unwrap(),
-            Regex::new(r"(?i)иал$").unwrap(),
-              Regex::new(r"(?i)ием$").unwrap(),
-           Regex::new(r"(?i)иум$").unwrap(),
+                Regex::new(r"(?i)ет$").unwrap(),
+                Regex::new(r"(?i)ит$").unwrap(),
+                Regex::new(r"(?i)ут$").unwrap(),
+                Regex::new(r"(?i)ют$").unwrap(),
+                Regex::new(r"(?i)ят$").unwrap(),
 
-            Regex::new(r"(?i)ыми$").unwrap(),
-            Regex::new(r"(?i)ика$").unwrap(),
-            Regex::new(r"(?i)ику$").unwrap(),
-            Regex::new(r"(?i)ики$").unwrap(),
-                Regex::new(r"(?i)ать$").unwrap(),
-            Regex::new(r"(?i)ять$").unwrap(),
-            Regex::new(r"(?i)оть$").unwrap(),
-            Regex::new(r"(?i)еть$").unwrap(),
-             Regex::new(r"(?i)иям$").unwrap(),
-                 Regex::new(r"(?i)уум$").unwrap(),
+                  Regex::new(r"(?i)ял$").unwrap(),
 
-            Regex::new(r"(?i)уем$").unwrap(),
-             Regex::new(r"(?i)ешь$").unwrap(),
-               Regex::new(r"(?i)ишь$").unwrap(),
-               Regex::new(r"(?i)ете$").unwrap(),
-               Regex::new(r"(?i)ите$").unwrap(),
-             Regex::new(r"(?i)ует$").unwrap(),
-           Regex::new(r"(?i)яла$").unwrap(),
-                    Regex::new(r"(?i)али$").unwrap(),
-              Regex::new(r"(?i)яли$").unwrap(),
-                Regex::new(r"(?i)ола$").unwrap(),
-             Regex::new(r"(?i)ела$").unwrap(),
-             Regex::new(r"(?i)оли$").unwrap(),
-             Regex::new(r"(?i)ели$").unwrap(),
-                         Regex::new(r"(?i)\w{2,}ула$").unwrap(),
-                 Regex::new(r"(?i)ули$").unwrap(),
-                          Regex::new(r"(?i)ами$").unwrap(),
-                Regex::new(r"(?i)еми$").unwrap(),
-                    Regex::new(r"(?i)емя$").unwrap(),
-                 Regex::new(r"(?i)ёте$").unwrap(),
-              Regex::new(r"(?i)ёшь$").unwrap(),
+              Regex::new(r"(?i)ол$").unwrap(),
+              Regex::new(r"(?i)ел$").unwrap(),
 
-                            Regex::new(r"(?i)ого$").unwrap(),
-                        Regex::new(r"(?i)ому$").unwrap(),
-                Regex::new(r"(?i)иях$").unwrap(),
-              Regex::new(r"(?i)ией$").unwrap(),
-              Regex::new(r"(?i)умя$").unwrap(),
-             Regex::new(r"(?i)ими$").unwrap(),
-       ];
-            static ref re_двубуквенные: [Regex;53] =[
-            //в первую очередь
-          // Regex::new(r"(?i)ные$").unwrap(),
-            //двукбуквенные
-            // гласные ([иаяуюыоеэё]+)
-            //остальные
-                       Regex::new(r"(?i)ея$").unwrap(),
-             Regex::new(r"(?i)еи$").unwrap(),
-                   Regex::new(r"(?i)ях$").unwrap(),
-            Regex::new(r"(?i)ев$").unwrap(),
-             Regex::new(r"(?i)ки$").unwrap(),
-                  Regex::new(r"(?i)ым$").unwrap(),
-                        Regex::new(r"(?i)ых$").unwrap(),
-            Regex::new(r"(?i)ям$").unwrap(),
-            Regex::new(r"(?i)ии$").unwrap(),
-            Regex::new(r"(?i)ия$").unwrap(),
-                Regex::new(r"(?i)ся$").unwrap(),
-            Regex::new(r"(?i)ая$").unwrap(),
-             Regex::new(r"(?i)яя$").unwrap(),
-              Regex::new(r"(?i)ое$").unwrap(),
-              Regex::new(r"(?i)ее$").unwrap(),
-            Regex::new(r"(?i)ой$").unwrap(),
-            Regex::new(r"(?i)ые$").unwrap(),
-            Regex::new(r"(?i)ый$").unwrap(),
-            Regex::new(r"(?i)ий$").unwrap(),
-            //глаголы
+             Regex::new(r"(?i)w{2,}ул$").unwrap(),
 
-               Regex::new(r"(?i)ем$").unwrap(),
-               Regex::new(r"(?i)им$").unwrap(),
+             //Русские флексийные морфы по алфавиту
+                     Regex::new(r"(?i)ам$").unwrap(),
 
-               Regex::new(r"(?i)ет$").unwrap(),
-               Regex::new(r"(?i)ит$").unwrap(),
-               Regex::new(r"(?i)ут$").unwrap(),
-               Regex::new(r"(?i)ют$").unwrap(),
-               Regex::new(r"(?i)ят$").unwrap(),
+               Regex::new(r"(?i)ас$").unwrap(),
+               Regex::new(r"(?i)ах$").unwrap(),
+              // Regex::new(r"(?i)ая$").unwrap(),
+                  Regex::new(r"(?i)её$").unwrap(),
+                  Regex::new(r"(?i)ей$").unwrap(),
+                //   Regex::new(r"(?i)ем$").unwrap(),
 
-                 Regex::new(r"(?i)ял$").unwrap(),
+                     Regex::new(r"(?i)ех$").unwrap(),
+                     Regex::new(r"(?i)ею$").unwrap(),
+               Regex::new(r"(?i)ёт$").unwrap(),
 
-             Regex::new(r"(?i)ол$").unwrap(),
-             Regex::new(r"(?i)ел$").unwrap(),
+             Regex::new(r"(?i)ёх$").unwrap(),
 
-            Regex::new(r"(?i)w{2,}ул$").unwrap(),
+                  Regex::new(r"(?i)ие$").unwrap(),
+               //Regex::new(r"(?i)ий$").unwrap(),
+               // Regex::new(r"(?i)им$").unwrap(),
 
-            //Русские флексийные морфы по алфавиту
-                    Regex::new(r"(?i)ам$").unwrap(),
+              //  Regex::new(r"(?i)ите$").unwrap(),
+                       //  Regex::new(r"(?i)ит$").unwrap(),
+                        Regex::new(r"(?i)их$").unwrap(),
+                      //   Regex::new(r"(?i)ишь$").unwrap(),
+                        Regex::new(r"(?i)ию$").unwrap(),
+            //  Regex::new(r"(?i)м$").unwrap(),
+                       Regex::new(r"(?i)ми$").unwrap(),
+                          Regex::new(r"(?i)мя$").unwrap(),
+                         Regex::new(r"(?i)ов$").unwrap(),
 
-              Regex::new(r"(?i)ас$").unwrap(),
-              Regex::new(r"(?i)ах$").unwrap(),
-             // Regex::new(r"(?i)ая$").unwrap(),
-                 Regex::new(r"(?i)её$").unwrap(),
-                 Regex::new(r"(?i)ей$").unwrap(),
-               //   Regex::new(r"(?i)ем$").unwrap(),
+                 //  Regex::new(r"(?i)ое$").unwrap(),
+             Regex::new(r"(?i)оё$").unwrap(),
+           //  Regex::new(r"(?i)ой$").unwrap(),
+             Regex::new(r"(?i)ом$").unwrap(),
 
-                    Regex::new(r"(?i)ех$").unwrap(),
-                    Regex::new(r"(?i)ею$").unwrap(),
-              Regex::new(r"(?i)ёт$").unwrap(),
+             Regex::new(r"(?i)см$").unwrap(),
+             Regex::new(r"(?i)ум$").unwrap(),
+               Regex::new(r"(?i)уя$").unwrap(),
 
-            Regex::new(r"(?i)ёх$").unwrap(),
-
-                 Regex::new(r"(?i)ие$").unwrap(),
-              //Regex::new(r"(?i)ий$").unwrap(),
-              // Regex::new(r"(?i)им$").unwrap(),
-
-             //  Regex::new(r"(?i)ите$").unwrap(),
-                      //  Regex::new(r"(?i)ит$").unwrap(),
-                       Regex::new(r"(?i)их$").unwrap(),
-                     //   Regex::new(r"(?i)ишь$").unwrap(),
-                       Regex::new(r"(?i)ию$").unwrap(),
-           //  Regex::new(r"(?i)м$").unwrap(),
-                      Regex::new(r"(?i)ми$").unwrap(),
-                         Regex::new(r"(?i)мя$").unwrap(),
-                        Regex::new(r"(?i)ов$").unwrap(),
-
-                //  Regex::new(r"(?i)ое$").unwrap(),
-            Regex::new(r"(?i)оё$").unwrap(),
-          //  Regex::new(r"(?i)ой$").unwrap(),
-            Regex::new(r"(?i)ом$").unwrap(),
-
-            Regex::new(r"(?i)см$").unwrap(),
-            Regex::new(r"(?i)ум$").unwrap(),
-              Regex::new(r"(?i)уя$").unwrap(),
-
-             //  Regex::new(r"(?i)ут$").unwrap(),
-                         Regex::new(r"(?i)ух$").unwrap(),
-                         Regex::new(r"(?i)ую$").unwrap(),
-                         Regex::new(r"(?i)шь$").unwrap(),
-        ];
+              //  Regex::new(r"(?i)ут$").unwrap(),
+                          Regex::new(r"(?i)ух$").unwrap(),
+                          Regex::new(r"(?i)ую$").unwrap(),
+                          Regex::new(r"(?i)шь$").unwrap(),
+         ];
+     }
+    if счётчик_входа.load(Ordering::Relaxed) == 0 {
+        //println!("Заход проверки lazy static");
+        //проверка на повторы
+        проверка_ряда_regex(
+            &*re_трехбуквенные,
+            "Выделения окончаний из слова:трёхбуквенные",
+        );
+        проверка_ряда_regex(
+            &*re_двубуквенные,
+            "Выделения окончаний из слова:двубуквенные",
+        );
+        проверка_ряда_regex(
+            &*re_многобуквенные,
+            "Выделения окончаний из слова:многобуквенные",
+        );
+        проверка_ряда_regex(
+            &*re_однобуквенные,
+            "Выделения окончаний из слова:однобуквенные",
+        );
+        проверка_ряда_regex(
+            &*re_многобуквенные_с_исключениями_образцы,
+            "Выделения окончаний из слова: многобуквенные_с_исключениями_образцы",
+        );
+        проверка_ряда_regex(
+            &*re_многобуквенные_с_исключениями_замены,
+            "Выделения окончаний из слова: многобуквенные_с_исключениями_замены",
+        );
+        счётчик_входа.fetch_add(1, Ordering::Relaxed);
     }
-    //проверка на повторы
-    проверка_ряда_regex(&*re_трехбуквенные,"Выделения окончаний из слова:трёхбуквенные");
-    проверка_ряда_regex(&*re_двубуквенные,"Выделения окончаний из слова:двубуквенные");
-    проверка_ряда_regex(&*re_многобуквенные,"Выделения окончаний из слова:многобуквенные");
-    проверка_ряда_regex(&*re_однобуквенные,"Выделения окончаний из слова:однобуквенные");
-    проверка_ряда_regex(&*re_многобуквенные_с_исключениями_образцы,"Выделения окончаний из слова: многобуквенные_с_исключениями_образцы");
-    проверка_ряда_regex(&*re_многобуквенные_с_исключениями_замены,"Выделения окончаний из слова: многобуквенные_с_исключениями_замены");
-
     //проверка
     //прогон двубуквенного ряда
     match прогон_и_замена_в_слове_через_ряд_re_c_исключениями(
@@ -933,13 +993,12 @@ pub fn прогон_и_замена_в_слове_через_ряд_re_c_иск�
         .map(Ok)
         .unwrap_or(Err(()))
 }
-pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>,сообщение:&str) {
+pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сообщение: &str) {
     let ряд = re_ряд.as_ref();
     let куча: HashSet<String> = (0..ряд.len())
         .into_par_iter()
         .flat_map(|i| {
-            ((i + 1)..ряд.len()).into_par_iter()
-                .filter_map(move |j| {
+            ((i + 1)..ряд.len()).into_par_iter().filter_map(move |j| {
                 if ряд[i].as_str() == ряд[j].as_str() {
                     Some(format!("есть совпадение Regex: {}", ряд[i]))
                 } else {
@@ -949,15 +1008,15 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>,сообщ
         })
         .collect();
     for слово in куча.iter() {
-        println!("длина кучи: {}",куча.len());
-        println!("{} : {}",сообщение, слово)
+        println!("длина кучи: {}", куча.len());
+        println!("{} : {}", сообщение, слово)
     }
-
 }
 
 fn получить_кучи_из_словарей(
     полный_словарь: &Полный_Словарь,
 ) -> lib::Куча_Словарь {
+    let mut счётчик_входа: AtomicUsize = AtomicUsize::new(0);
     let простое: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .простое
@@ -965,6 +1024,7 @@ fn получить_кучи_из_словарей(
             .map(|ячейка| ячейка.искомое_слово.to_string())
             .collect(),
         "простые",
+        &mut счётчик_входа,
     );
     let составное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
@@ -973,6 +1033,7 @@ fn получить_кучи_из_словарей(
             .map(|ячейка| ячейка.искомое_слово.to_string())
             .collect(),
         "составные",
+        &mut счётчик_входа,
     );
     let составное_важное: HashMap<String, HashSet<usize>> =
         создать_быстрый_словарь(
@@ -982,6 +1043,7 @@ fn получить_кучи_из_словарей(
                 .map(|ячейка| ячейка.искомое_слово.to_string())
                 .collect(),
             "составные_важные",
+            &mut счётчик_входа,
         );
     let вездесущее: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
@@ -990,6 +1052,7 @@ fn получить_кучи_из_словарей(
             .map(|ячейка| ячейка.искомое_слово.to_string())
             .collect(),
         "вездесущие",
+        &mut счётчик_входа,
     );
     let неизменное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
@@ -998,6 +1061,7 @@ fn получить_кучи_из_словарей(
             .map(|ячейка| ячейка.искомое_слово.to_string())
             .collect(),
         "неизменные",
+        &mut счётчик_входа,
     );
 
     return lib::Куча_Словарь {
@@ -1008,27 +1072,11 @@ fn получить_кучи_из_словарей(
         неизменное: неизменное,
     };
 }
-
+/*
 pub fn удалить_окончание_из_слова(слово: &String) -> String {
-    #[derive(Debug, Clone)]
-    pub struct Замена {
-        pub однобуквенные: [Ячейка_замены; 10], //одиночные слова
-        pub двубуквенные: [Ячейка_замены; 54], //одиночные слова
-        pub трехбуквенные: [Ячейка_замены; 48], //одиночные слова
-        pub многобуквенные: [Ячейка_замены; 24], //одиночные слова
-        pub целиковые: [Ячейка_замены; 100], //одиночные слова
-    }
-
-    //словарь
-    #[derive(Debug, Clone)]
-    pub struct Ячейка_замены {
-        pub искомое_слово: String,
-        pub re_образец: Regex,
-        pub замена: String,
-        // pub счёчтки:usize,
-    }
+    use lib::{Ячейка_замены,Словарь_Переносов};
     lazy_static! {
-        static ref словарь_замен: Замена = Замена {
+        static ref словарь_замен: Словарь_Переносов = Словарь_Переносов {
             однобуквенные: [Ячейка_замены {
                 искомое_слово: "-о".to_string(),
                 замена: "о".to_string(),
@@ -1717,7 +1765,7 @@ pub fn удалить_окончание_из_слова(слово: &String) ->
                 re_образец:Regex::new(r"(?i)(?:\w)-шь$").unwrap()
             },
 
-            ]
+            ],
              целиковые: [
                 Ячейка_замены {
                 искомое_слово: "-тронной".to_string(),
@@ -2970,7 +3018,7 @@ pub fn удалить_окончание_из_слова(слово: &String) ->
                 замена: "тронной".to_string(),
                 re_образец:Regex::new(r"(?i)(?:\w)-тронной$").unwrap()
             },
-                ]
+                ],
         };
     }
 
@@ -3028,3 +3076,5 @@ pub fn удалить_окончание_из_слова(слово: &String) ->
 
      */
 }
+
+ */
