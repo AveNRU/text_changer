@@ -998,18 +998,36 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сооб�
     let куча: HashSet<String> = (0..ряд.len())
         .into_par_iter()
         .flat_map(|i| {
-            ((i + 1)..ряд.len()).into_par_iter().filter_map(move |j| {
-                if ряд[i].as_str() == ряд[j].as_str() {
-                    Some(format!("есть совпадение Regex: {}", ряд[i]))
-                } else {
-                    None
-                }
-            })
+            let mut куча_2: std::collections::HashSet<String, RandomState> = HashSet::default();
+
+            // Проверка на отсутствие $
+            // if !ряд[i].as_str().contains('$') {
+            if !sz_найти(&ряд[i].to_string(),"$") {
+                куча_2.insert(format!("Regex нет знака окончания слова $: {}", ряд[i]));
+            }
+
+            // Проверка на дубликаты
+            let повторы: HashSet<String> = ((i + 1)..ряд.len())
+                .into_par_iter()
+                .filter_map(|j| {
+                    if ряд[i].as_str() == ряд[j].as_str() {
+                        Some(format!("есть совпадение Regex: {}", ряд[i]))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            куча_2.extend(повторы);
+            куча_2.into_iter().collect::<HashSet<String>>()
         })
         .collect();
-    for слово in куча.iter() {
+
+    if !куча.is_empty() {
         println!("длина кучи: {}", куча.len());
-        println!("{} : {}", сообщение, слово)
+        for слово in &куча {
+            println!("{} : {}", сообщение, слово);
+        }
     }
 }
 
