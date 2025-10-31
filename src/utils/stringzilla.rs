@@ -1,4 +1,4 @@
-use crate::lib::{Полный_Словарь, Ячейка_словаря};
+use crate::lib::{self, Полный_Словарь, Ячейка_словаря};
 use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use rayon::prelude::*;
 use regex::Regex;
@@ -42,6 +42,24 @@ pub fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<S
     let mut новый_ряд: Vec<String> = Vec::new();
     for число in порядок.into_iter() {
         новый_ряд.push(ряд[число].clone());
+    }
+    return новый_ряд;
+}
+
+pub fn sz_упорядочить_кучу_словарь_замены(
+    ряд_исходный: Vec<lib::Куча_Слова_Замены>,
+) -> Vec<lib::Куча_Слова_Замены> {
+    //определить длину словаря-кучи
+    let mut порядок: Vec<usize> = vec![0; ряд_исходный.len()];
+    //вложение всех исходных слов
+    let ряд: Vec<String> = ряд_исходный
+        .par_iter()
+        .map(|строка| строка.слово.to_string())
+        .collect();
+    sz::argsort_permutation(&ряд, &mut порядок).unwrap();
+    let mut новый_ряд: Vec<lib::Куча_Слова_Замены> = Vec::new();
+    for число in порядок.into_iter() {
+        новый_ряд.push(ряд_исходный[число].clone());
     }
     return новый_ряд;
 }

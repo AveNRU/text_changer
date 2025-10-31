@@ -15,14 +15,17 @@ use encoding_rs::{
     WINDOWS_1251,
     //    DecoderResult
 };
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
 use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use rust_xlsxwriter::*;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Cursor, Error, Write};
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 //use xml::Encoding::Default;
+use crate::lib::{
+    Словарь_Переносов, Счётчик_замен, Ячейка_замены
+};
 use crate::output::write;
 use crate::utils::functions_txt::сравнение_двух_рядов_построчно;
 use crate::utils::read::read_utf8;
@@ -30,7 +33,6 @@ use crate::utils::stringzilla::sz_найти;
 use calamine::*;
 use rayon::prelude::*;
 use text_changer::Пути_Общие;
-use crate::lib::{Счётчик_замен,Ячейка_замены,Словарь_Переносов};
 pub fn сохранить_книги(
     стопки_книг: &Vec<lib::Книги>,
     mut сообщения: &mut lib::Сообщения,
@@ -319,10 +321,9 @@ pub fn вывод_всех_словарей_в_xls(
 }
 
 pub fn вывод_всех_счётчиков_замен_в_xls(
-    счётчики_замен:&Arc<Счётчик_замен>,
+    счётчики_замен: &Arc<Счётчик_замен>,
     словарь_переносов: &Словарь_Переносов,
-
-   // словарь: &lib::Полный_Словарь,
+    // словарь: &lib::Полный_Словарь,
     //куча_словарь: &Куча_Словарь,
     //mode: String,           //Стопка из файла .xlsx взята или самостоятельно высчитана
     //path_name_spd: &String, //имя .spd файла
@@ -340,35 +341,35 @@ pub fn вывод_всех_счётчиков_замен_в_xls(
         &словарь_переносов.однобуквенные,
         &счётчики_замен.однобуквенные,
     )
-        .unwrap();
+    .unwrap();
     вывод_страницы_словаря_переносов(
         &mut словари,
         "Двубуквенные",
         &словарь_переносов.двубуквенные,
         &счётчики_замен.двубуквенные,
     )
-        .unwrap();
+    .unwrap();
     вывод_страницы_словаря_переносов(
         &mut словари,
         "Трехбуквенные",
         &словарь_переносов.трехбуквенные,
         &счётчики_замен.трехбуквенные,
     )
-        .unwrap();
+    .unwrap();
     вывод_страницы_словаря_переносов(
         &mut словари,
         "Многобуквенные",
         &словарь_переносов.многобуквенные,
         &счётчики_замен.многобуквенные,
     )
-        .unwrap();
+    .unwrap();
     вывод_страницы_словаря_переносов(
         &mut словари,
         "Целиковые",
         &словарь_переносов.целиковые,
         &счётчики_замен.целиковые,
     )
-        .unwrap();
+    .unwrap();
     let путь_сохранения: String = format!("{}Словари_переносов.xlsx", пути_общие.вывод_словари);
     xlsx_сохранить_с_проверкой(&mut словари, &путь_сохранения);
 
@@ -1307,7 +1308,11 @@ fn вывод_страницы_словаря_переносов(
             .write((j + 1) as u32, 2, содержимое[j].замена.to_string())
             .unwrap();
         страница
-            .write((j + 1) as u32, 3, счётчик[j].load(Ordering::Relaxed).to_string())
+            .write(
+                (j + 1) as u32,
+                3,
+                счётчик[j].load(Ordering::Relaxed).to_string(),
+            )
             .unwrap();
         _row_point += 1;
         //println!("{}",&_dictionary.простое[j]);
@@ -1330,4 +1335,3 @@ fn вывод_страницы_словаря_переносов(
     страница.autofit();
     Ok(())
 }
-

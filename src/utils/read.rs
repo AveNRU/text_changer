@@ -5,6 +5,7 @@ use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
+use regex::Regex;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Cursor, Read};
 use std::sync::{
@@ -94,6 +95,7 @@ pub fn read_utf8_без_переносов_строк_htm(
         }
     }
     let итог = удалить_shy_из_вектора(&итог);
+    let итог = удалить_переносы_из_вектора(итог);
     return итог;
 }
 
@@ -158,7 +160,8 @@ pub fn htm_utf8_без_переносов_строк(
             итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
         }
     }
-    let итог = удалить_shy_из_вектора(&итог);
+    // let итог = удалить_shy_из_вектора(&итог);
+    //let итог=удалить_переносы_из_вектора(итог);
     return итог;
 }
 fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String> {
@@ -192,6 +195,30 @@ fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String
                 .replace("&#x22;", "\"") // шестнадцатеричная форма
         })
         .collect()
+}
+fn удалить_переносы_из_вектора(
+    mut строки: Vec<String>
+) -> Vec<String> {
+    lazy_static! {
+        static ref ряд: [Regex; 3] = [
+            Regex::new(r"(?i)-</span>(.[^%]+)(.[^>]+)>").unwrap(),
+            Regex::new(r"(?i)-</h1>(.[^%]+)(.[^>]+)>").unwrap(),
+            Regex::new(r"(?i)-</p><h1(.[^%]+)(.[^>]+)>").unwrap(),
+        ];
+    }
+    println!("Зашло в удаление переносов");
+    for i in 0..ряд.len() {
+        строки.par_iter_mut().for_each(|mut строка| {
+            let замененная_строка = ряд[i].replace_all(&строка, "");
+            let замененная_строка = замененная_строка.to_string();
+            if замененная_строка.as_str() != строка.as_str() {
+                // Увеличиваем атомарный счетчик
+                //  println!("Произведена замена строки");
+                *строка = замененная_строка
+            }
+        });
+    }
+    строки
 }
 fn отсутствие_закрытого_p_тэга_html_в_строке(
     стог_сена: &String,
