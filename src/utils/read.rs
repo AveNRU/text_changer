@@ -107,6 +107,7 @@ pub fn htm_utf8_без_переносов_строк(
     let mut строка_общая: String = String::new();
     let mut условие_p: bool = false;
     let mut условие_title: bool = false;
+    let mut калибри:bool=false;
     for (указатель, строка_в_utf8) in содержимое.iter().enumerate() {
         //перебор всех строк и переход на новые строки
         let указатель_строки: usize = указатель + 1;
@@ -115,6 +116,11 @@ pub fn htm_utf8_без_переносов_строк(
         if строка_в_utf8.is_empty() {
             итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
         };
+        if !калибри {
+        if sz_найти(&строка_в_utf8, r#"class="calibre7"#) {
+            калибри=true;
+        }
+        }
 
         if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8)
         {
@@ -162,8 +168,37 @@ pub fn htm_utf8_без_переносов_строк(
         }
     }
     // let итог = удалить_shy_из_вектора(&итог);
+    //удалить лишние пробелы
+    let итог=удалить_лишние_пробелы(&итог);
+    if калибри {
+        return удалить_переносы_калибри(&итог);
+    }
     //let итог=удалить_переносы_из_вектора(итог);
     return итог;
+}
+
+pub fn удалить_переносы_калибри(строки: &[String]) -> Vec<String>  {
+    строки
+        .iter()
+        .map(|строка| {
+            строка
+                .replace(r#"</span><span class="calibre10">"#, "")
+                .replace(r#"</span><span class="calibre13">"#, "")
+                .replace(r#"<span class="calibre13">"#, "")
+        })
+        .collect()
+
+}
+
+pub fn удалить_лишние_пробелы(строки: &[String]) -> Vec<String>  {
+    строки
+        .iter()
+        .map(|строка| {
+            строка
+                .replace(r#"  "#, " ")
+        })
+        .collect()
+
 }
 fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String> {
     строки
