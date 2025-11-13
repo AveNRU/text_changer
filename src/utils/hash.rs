@@ -391,7 +391,10 @@ fn html_получить_указатели_на_пропуски(
         стог_сена: &String,
     ) -> bool {
         lazy_static! {
-            static ref html_исключения: [String; 1] = [r#"<!DOCTYPE html PUBLIC"#.to_string()];
+            static ref html_исключения: [String; 2] = [
+                r#"<!DOCTYPE html PUBLIC"#.to_string(),
+                r#"<script async="" src="#.to_string(),
+            ];
             static ref html_исключения_с_проверкой: [String; 2] = [
                 "<blockquote><div>".to_string(),
                 "</div></body></html>".to_string(),
