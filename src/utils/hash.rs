@@ -392,9 +392,9 @@ fn html_получить_указатели_на_пропуски(
         стог_сена: &String,
     ) -> bool {
         lazy_static! {
-            static ref html_исключения: [String; 2] = [
+            static ref html_исключения: [String; 1] = [
                 r#"<!DOCTYPE html PUBLIC"#.to_string(),
-                r#"<script async="" src="#.to_string(),
+
             ];
             static ref html_исключения_с_проверкой: [String; 2] = [
                 "<blockquote><div>".to_string(),
@@ -404,7 +404,7 @@ fn html_получить_указатели_на_пропуски(
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
             ];
-            static ref строки_исключния:[String;8]= [
+            static ref строки_исключния:[String;11]= [
                format!(r####"<link rel="icon" href="###"####),
                format!(r##"<link rel="preload" href=""##),
                  format!(r####"<link rel="stylesheet" href=""####),
@@ -413,6 +413,9 @@ fn html_получить_указатели_на_пропуски(
                 format!(r##"<img class="mm-header-search-close" src=""##),
                  format!(r##"<script src=""##),
                  format!(r##"src="."##),
+                      r#"<script async="" src="#.to_string(),
+                format!(r#"<link href="./"#),
+                format!(r#"href="./"#),
                                 
             ];
         }
