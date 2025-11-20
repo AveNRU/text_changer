@@ -216,9 +216,10 @@ pub fn есть_ли_маты(стог_сена: &String) -> bool {
 //выдел строки
 pub fn re_получить_имя_файла_без_пути(стог_сена: &String) -> String {
     lazy_static! {
-        static ref без_пути:[Regex;1] = [
+        static ref без_пути:[Regex;3] = [
             Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
-        //     Regex::new(r"(?i)(.[^\\]+)$").unwrap(),
+            Regex::new(r"(?i)\\([\d\w\s_-]+)$").unwrap(),
+             Regex::new(r"(?i)/([\d\w\s_-]+)$").unwrap(),
         ];
         static ref первая_палка:Regex= Regex::new(r"(?i)\\").unwrap();
         static ref вторая_палка:Regex= Regex::new(r"(?i)/").unwrap();
@@ -279,10 +280,15 @@ pub fn получить_строку_из_ряда_re_с_описанием(ст
 
 pub fn определить_имя_книги(стог_сена: &String) -> String {
     lazy_static! {
-        static ref re_пути_до_книг: [Regex; 3] = [
-            Regex::new(r"(?i)books/([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
-            Regex::new(r"(?i)books\\([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
+        static ref re_пути_до_книг: [Regex; 6] = [
+            Regex::new(r"(?i)книги/([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
+            Regex::new(r"(?i)книги\\([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
+            Regex::new(r"(?i)книги/([\d\w_\-\s\.,]+)/.(?:([\d\w]+))$").unwrap(),
+            Regex::new(r"(?i)книги\\([\d\w_\-\s\.,]+)/.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i).+/(.+)\.").unwrap(),
+             Regex::new(r"(?i)([\d\w\-_\s[^\\]]+)$").unwrap(),
+            //Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
+           //  Regex::new(r"(?i)/(.[^\\/]+)$").unwrap(),
         ];
     }
 
@@ -910,6 +916,18 @@ pub fn создать_словарь_замен() -> Словарь_Перено
                 re_образец: Regex::new(r"(?i)-ный\b{end}").unwrap(),
                 re_исключение:Regex::new(r"(?i)%-ный\b{end}").unwrap(),
             },
+            Ячейка_замены_с_исключением {
+                искомое_слово: "-ый".to_string(),
+                замена: "ый".to_string(),
+                re_образец: Regex::new(r"(?i)-ый\b{end}").unwrap(),
+                re_исключение:Regex::new(r"(?i)\d-ый\b{end}").unwrap(),
+            },
+            Ячейка_замены_с_исключением {
+                искомое_слово: "-ым".to_string(),
+                замена: "ым".to_string(),
+                re_образец: Regex::new(r"(?i)-ым\b{end}").unwrap(),
+                re_исключение:Regex::new(r"(?i)\d-ым\b{end}").unwrap(),
+            },
         ],
         однобуквенные: vec![
             Ячейка_замены {
@@ -951,6 +969,16 @@ pub fn создать_словарь_замен() -> Словарь_Перено
         ],
 
         многобуквенные: vec![
+            Ячейка_замены {
+                искомое_слово: "-стое".to_string(),
+                замена: "стое".to_string(),
+                re_образец: Regex::new(r"(?i)-стое\b{end}").unwrap(),
+            },
+            Ячейка_замены {
+                искомое_слово: "-ному".to_string(),
+                замена: "ному".to_string(),
+                re_образец: Regex::new(r"(?i)-ному\b{end}").unwrap(),
+            },
             Ячейка_замены {
                 искомое_слово: "-мыми".to_string(),
                 замена: "мыми".to_string(),
@@ -1927,11 +1955,7 @@ pub fn создать_словарь_замен() -> Словарь_Перено
                 замена: "ки".to_string(),
                 re_образец: Regex::new(r"(?i)-ки\b{end}").unwrap(),
             },
-            Ячейка_замены {
-                искомое_слово: "-ым".to_string(),
-                замена: "ым".to_string(),
-                re_образец: Regex::new(r"(?i)-ым\b{end}").unwrap(),
-            },
+
             Ячейка_замены {
                 искомое_слово: "-да".to_string(),
                 замена: "да".to_string(),
@@ -1992,11 +2016,7 @@ pub fn создать_словарь_замен() -> Словарь_Перено
                 замена: "ые".to_string(),
                 re_образец: Regex::new(r"(?i)-ые\b{end}").unwrap(),
             },
-            Ячейка_замены {
-                искомое_слово: "-ый".to_string(),
-                замена: "ый".to_string(),
-                re_образец: Regex::new(r"(?i)-ый\b{end}").unwrap(),
-            },
+
             Ячейка_замены {
                 искомое_слово: "-ий".to_string(),
                 замена: "ий".to_string(),
@@ -2714,11 +2734,7 @@ pub fn создать_словарь_замен() -> Словарь_Перено
                 замена: "единитель".to_string(),
                 re_образец: Regex::new(r"(?i)-единитель\b{end}").unwrap(),
             },
-            Ячейка_замены {
-                искомое_слово: "-ному".to_string(),
-                замена: "ному".to_string(),
-                re_образец: Regex::new(r"(?i)-ному\b{end}").unwrap(),
-            },
+
             Ячейка_замены {
                 искомое_слово: "-зуемся".to_string(),
                 замена: "зуемся".to_string(),
