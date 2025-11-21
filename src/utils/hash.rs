@@ -371,7 +371,7 @@ pub fn fb2_получить_указатели_на_пропуки(
 
 fn html_получить_указатели_на_пропуски(
     содержимое: &[String],
-    условие_архива:bool,
+    условие_архива: bool,
 ) -> HashSet<usize> {
     let пропуски: HashSet<usize> = содержимое
         .par_iter()
@@ -392,10 +392,7 @@ fn html_получить_указатели_на_пропуски(
         стог_сена: &String,
     ) -> bool {
         lazy_static! {
-            static ref html_исключения: [String; 1] = [
-                r#"<!DOCTYPE html PUBLIC"#.to_string(),
-
-            ];
+            static ref html_исключения: [String; 1] = [r#"<!DOCTYPE html PUBLIC"#.to_string(),];
             static ref html_исключения_с_проверкой: [String; 2] = [
                 "<blockquote><div>".to_string(),
                 "</div></body></html>".to_string(),
@@ -404,19 +401,18 @@ fn html_получить_указатели_на_пропуски(
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
             ];
-            static ref строки_исключния:[String;11]= [
-               format!(r####"<link rel="icon" href="###"####),
-               format!(r##"<link rel="preload" href=""##),
-                 format!(r####"<link rel="stylesheet" href=""####),
-                   format!(r##"<img src=""##),
-                  format!(r##"<img class="logo" src=""##),
+            static ref строки_исключния: [String; 11] = [
+                format!(r####"<link rel="icon" href="###"####),
+                format!(r##"<link rel="preload" href=""##),
+                format!(r####"<link rel="stylesheet" href=""####),
+                format!(r##"<img src=""##),
+                format!(r##"<img class="logo" src=""##),
                 format!(r##"<img class="mm-header-search-close" src=""##),
-                 format!(r##"<script src=""##),
-                 format!(r##"src="."##),
-                      r#"<script async="" src="#.to_string(),
+                format!(r##"<script src=""##),
+                format!(r##"src="."##),
+                r#"<script async="" src="#.to_string(),
                 format!(r#"<link href="./"#),
                 format!(r#"href="./"#),
-                                
             ];
         }
         //поиск
@@ -429,11 +425,11 @@ fn html_получить_указатели_на_пропуски(
         if строки_исключния
             .par_iter()
             .enumerate()
-            .any(|(указатель,образец)| sz_найти(&стог_сена, образец))
+            .any(|(указатель, образец)| sz_найти(&стог_сена, образец))
         {
             //println!("Найдено исключение: {}",стог_сена);
-            return true
-        } 
+            return true;
+        }
         return проверка_исключений_в_стоге_сена(
             &*html_исключения_с_проверкой,
             &*re_html_исключения_с_проверкой,
@@ -448,7 +444,7 @@ pub fn получить_пропуски_для_содержимого(
     имя_файла: &String,
     расширение_книги: &String,
 ) -> HashSet<usize> {
-   // println!("имя файла: {имя_файла}, расширение_книги: {расширение_книги}");
+    // println!("имя файла: {имя_файла}, расширение_книги: {расширение_книги}");
     //fb2
     if расширение_книги.as_str() == "fb2".to_string() {
         return fb2_получить_указатели_на_пропуки(&содержимое);
@@ -469,15 +465,17 @@ pub fn получить_пропуски_для_содержимого(
             }
             if sz_найти(имя_файла, ".html") {
                 //архив если
-                return html_получить_указатели_на_пропуски(&содержимое,true);
+                return html_получить_указатели_на_пропуски(
+                    &содержимое,
+                    true,
+                );
             }
         }
     }
-        //если это отдельный файл .htm или .html
+    //если это отдельный файл .htm или .html
     else if sz_найти(расширение_книги, "htm") {
-        
         //что не архив
-        return html_получить_указатели_на_пропуски(&содержимое,false);
+        return html_получить_указатели_на_пропуски(&содержимое, false);
     }
     return HashSet::with_hasher(foldhash::fast::RandomState::default());
 }

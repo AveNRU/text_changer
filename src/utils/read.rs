@@ -49,7 +49,8 @@ pub fn read_utf8_без_переносов_строк_htm(
         //  if строка_в_utf8.is_empty() {
         //     итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
         // };
-
+        //если это статья в altium, habr - удалить рекламу
+        if есть_ли_реклама_пропуск_строки(&строка_в_utf8) {continue}
         if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8)
         {
             // строка_общая=format!("{}{}",строка_общая,строка_в_utf8.trim_end().to_string());
@@ -97,7 +98,9 @@ pub fn read_utf8_без_переносов_строк_htm(
     }
     let итог = удалить_shy_из_вектора(&итог);
     let итог = удалить_переносы_из_вектора(итог);
-    return удалить_переносы_строк_html(итог,0);
+    //return удалить_переносы_строк_html(итог, 0);
+    let итог= добавить_переносы_строк_html(итог, 1);
+    return удалить_рекламу_после_разбиения_строк(итог)
     //return итог;
 }
 
@@ -108,7 +111,7 @@ pub fn htm_utf8_без_переносов_строк(
     let mut строка_общая: String = String::new();
     let mut условие_p: bool = false;
     let mut условие_title: bool = false;
-    let mut калибри:bool=false;
+    let mut калибри: bool = false;
     for (указатель, строка_в_utf8) in содержимое.iter().enumerate() {
         //перебор всех строк и переход на новые строки
         let указатель_строки: usize = указатель + 1;
@@ -117,10 +120,13 @@ pub fn htm_utf8_без_переносов_строк(
         if строка_в_utf8.is_empty() {
             итог.push(строка_в_utf8.to_string()) //добавление строки в вектор
         };
+        //если это статья в altium, habr - удалить рекламу
+        if есть_ли_реклама_пропуск_строки(&строка_в_utf8) {continue}
+        //
         if !калибри {
-        if sz_найти(&строка_в_utf8, r#"class="calibre7"#) {
-            калибри=true;
-        }
+            if sz_найти(&строка_в_utf8, r#"class="calibre7"#) {
+                калибри = true;
+            }
         }
 
         if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8)
@@ -170,70 +176,128 @@ pub fn htm_utf8_без_переносов_строк(
     }
     // let итог = удалить_shy_из_вектора(&итог);
     //удалить лишние пробелы
-    let итог=удалить_лишние_пробелы(&итог);
+    let итог = удалить_лишние_пробелы(&итог);
     if калибри {
         return удалить_переносы_калибри(&итог);
     }
     //let итог=удалить_переносы_из_вектора(итог);
-    return удалить_переносы_строк_html(итог,1);
-   // return итог;
+    let итог= добавить_переносы_строк_html(итог, 1);
+    return удалить_рекламу_после_разбиения_строк(итог)
+    // return итог;
+}
+fn удалить_рекламу_после_разбиения_строк(ряд:Vec<String>) ->Vec<String> {
+    let mut итог:Vec<String>=Vec::new();
+    ряд.iter().for_each(|строка| {
+        if !есть_ли_реклама_после_разбиения_строк(&строка) {
+            итог.push(строка.to_string())
+        }
+    });
+   // println!("возврат рекламы");
+    return итог
+}
+fn есть_ли_реклама_после_разбиения_строк(строка:&String) ->bool {
+    lazy_static! {
+        static ref ряд: [String; 1] = [
+            r#"> Реклама <"#.to_string(),
+           // r#">Learn More<"#.to_string(),
+           // r#"sticky_top _blue-theme _renasas"#.to_string(),
+        ];
+
+    }
+    for i in 0..ряд.len() {
+        if sz_найти(&строка, &ряд[i]) {
+           // println!("нашло объяву");
+            return true
+        }
+    }
+    return false
+
+}
+fn есть_ли_реклама_пропуск_строки(строка:&String)->bool {
+    lazy_static! {
+        static ref ряд: [String; 3] = [
+            r#"One Vision, Three Solutions - Introducing Altium Discover, Altium Develop and Altium Agile"#.to_string(),
+            r#">Learn More<"#.to_string(),
+            r#"sticky_top _blue-theme _renasas"#.to_string(),
+        ];
+
+    }
+    ряд.par_iter().any(|образец| sz_найти(&строка, образец))
 }
 
-pub fn удалить_переносы_строк_html(входные_строки:Vec<String>,указатель:usize)->Vec<String> {
-let mut новый_ряд_строк:Vec<String>=Vec::new();
+//  r#">РЕКЛАМА<"#.to_string(),];
+pub fn добавить_переносы_строк_html(
+    входные_строки: Vec<String>,
+    указатель: usize,
+) -> Vec<String> {
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..входные_строки.len() {
-        if sz_найти(&входные_строки[i],r#"</div>"#) {
-         //   println!("нашло div");
+        if sz_найти(&входные_строки[i], r#"</div>"#) {
+            //   println!("нашло div");
             let строки: Vec<String> = входные_строки[i]
                 .split_inclusive("</div>")
                 .map(|s| s.to_string())
                 .collect();
             новый_ряд_строк.extend(строки);
-            continue
+            continue;
         } else {
             новый_ряд_строк.push(входные_строки[i].clone())
         }
     }
-   // if новый_ряд_строк.len()==входные_строки.len() {
-  //      println!("Новый ряд строк: {} входной ряд: {}, Ряды {указатель} строк равны, что недопустимо",новый_ряд_строк.len(),входные_строки.len());
-   // }
-    let входные_строки2: Vec<String> =новый_ряд_строк;
-    let mut новый_ряд_строк:Vec<String>=Vec::new();
+    // if новый_ряд_строк.len()==входные_строки.len() {
+    //      println!("Новый ряд строк: {} входной ряд: {}, Ряды {указатель} строк равны, что недопустимо",новый_ряд_строк.len(),входные_строки.len());
+    // }
+    let входные_строки2: Vec<String> = новый_ряд_строк;
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i],r#"</figcaption>"#) {
+        if sz_найти(&входные_строки2[i], r#"</figcaption>"#) {
             //   println!("нашло div");
             let строки: Vec<String> = входные_строки2[i]
                 .split_inclusive("</figcaption>")
                 .map(|s| s.to_string())
                 .collect();
             новый_ряд_строк.extend(строки);
-            continue
+            continue;
         } else {
             новый_ряд_строк.push(входные_строки2[i].clone())
         }
     }
-    let входные_строки2: Vec<String> =новый_ряд_строк;
-    let mut новый_ряд_строк:Vec<String>=Vec::new();
+    let входные_строки2: Vec<String> = новый_ряд_строк;
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i],r#"</script>"#) {
+        if sz_найти(&входные_строки2[i], r#"</script>"#) {
             //   println!("нашло div");
             let строки: Vec<String> = входные_строки2[i]
                 .split_inclusive("</script>")
                 .map(|s| s.to_string())
                 .collect();
             новый_ряд_строк.extend(строки);
-            continue
+            continue;
         } else {
             новый_ряд_строк.push(входные_строки2[i].clone())
         }
     }
-    return новый_ряд_строк
+    let входные_строки2: Vec<String> = новый_ряд_строк;
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
+    for i in 0..входные_строки2.len() {
+        if sz_найти(&входные_строки2[i], r#"</picture>"#) {
+            //   println!("нашло div");
+            let строки: Vec<String> = входные_строки2[i]
+                .split_inclusive("</picture>")
+                .map(|s| s.to_string())
+                .collect();
+            новый_ряд_строк.extend(строки);
+            continue;
+        } else {
+            новый_ряд_строк.push(входные_строки2[i].clone())
+        }
+    }
+    return новый_ряд_строк;
 
-
-        //входные_строки
+    //входные_строки
 }
 
-pub fn удалить_переносы_калибри(строки: &[String]) -> Vec<String>  {
+pub fn удалить_переносы_калибри(строки: &[String]) -> Vec<String> {
     строки
         .iter()
         .map(|строка| {
@@ -243,20 +307,32 @@ pub fn удалить_переносы_калибри(строки: &[String]) -
                 .replace(r#"<span class="calibre13">"#, "")
         })
         .collect()
-
 }
 
-pub fn удалить_лишние_пробелы(строки: &[String]) -> Vec<String>  {
+pub fn удалить_лишние_пробелы(строки: &[String]) -> Vec<String> {
     строки
         .iter()
-        .map(|строка| {
-            строка
-                .replace(r#"  "#, " ")
-        })
+        .map(|строка| строка.replace(r#"  "#, " "))
         .collect()
-
+}
+fn нет_ссылки_на_папку(строка: &String) -> bool {
+    lazy_static! {
+        static ref ряд: [String; 2] = [r#"src="./"#.to_string(), r#"href="./"#.to_string(),];
+    }
+    ряд.par_iter().any(|образец| sz_найти(&строка, образец))
 }
 fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String> {
+    let строки: Vec<String> = строки
+        .iter()
+        .map(|строка| {
+            if sz_найти(&строка, "\u{00A0}") && !нет_ссылки_на_папку(&строка)
+            {
+                строка.replace("\u{00A0}", " ") // Unicode символ
+            } else {
+                строка.to_string()
+            }
+        })
+        .collect();
     строки
         .iter()
         .map(|строка| {
@@ -268,7 +344,7 @@ fn удалить_shy_из_вектора(строки: &[String]) -> Vec<String
                 .replace("&#8209;", "-")
                 .replace("\u{2011}", "-")
                 .replace("&#160;", "") // числовая форма
-                .replace("\u{00A0}", " ") // Unicode символ
+                //.replace("\u{00A0}", " ") // Unicode символ
                 .replace("&#xA0;", " ") // шестнадцатеричная форма
                 // <
                 .replace("&lt;", "<")
@@ -294,7 +370,7 @@ fn удалить_переносы_из_вектора(
             Regex::new(r"(?i)-</p><h1(.[^%]+)(.[^>]+)>").unwrap(),
         ];
     }
-   // println!("Зашло в удаление переносов");
+    // println!("Зашло в удаление переносов");
     for i in 0..ряд.len() {
         строки.par_iter_mut().for_each(|mut строка| {
             let замененная_строка = ряд[i].replace_all(&строка, "");
@@ -469,7 +545,7 @@ fn считать_содержимое_папки(
                 Ok(содержимое) => {
                     // let путь_исходный=путь.display().to_string();
                     let путь2 = заменить_все_палки(путь.display().to_string());
-                    if sz_найти(&путь2,r#"\"#) |sz_найти(&путь2,r#"\\"#){
+                    if sz_найти(&путь2, r#"\"#) | sz_найти(&путь2, r#"\\"#) {
                         println!("путь с палкой в начале: {путь2}");
                     };
                     содержимое_папки.push((путь2, содержимое))
@@ -480,7 +556,7 @@ fn считать_содержимое_папки(
                         .contains("stream did not contain valid UTF-8")
                     {
                         let путь2 = заменить_все_палки(путь.display().to_string());
-                        if sz_найти(&путь2,r#"\"#) |sz_найти(&путь2,r#"\\"#){
+                        if sz_найти(&путь2, r#"\"#) | sz_найти(&путь2, r#"\\"#) {
                             println!("путь с палкой в начале (ошибка): {путь2}");
                         };
                         содержимое_папки.push((

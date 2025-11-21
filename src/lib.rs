@@ -88,13 +88,13 @@ pub struct Содержимое_папок {
 //Стопка с путём до книги и содержимым виде вектора строк
 #[derive(Debug, Default, Clone)]
 pub struct Книги {
-    pub путь: String,            //путь до книги
-    pub название_книги: String,  //имя книги
-    pub вложения: Vec<Вложения>, //содержимое
-    pub расширение: String,      //формат
+    pub путь: String,                    //путь до книги
+    pub название_книги: String,          //имя книги
+    pub вложения: Vec<Вложения>,         //содержимое
+    pub расширение: String,              //формат
     pub архив: HashMap<String, Vec<u8>>, //для zip
-    pub книга_ли:bool,
-                                 //pub содержимое:Vec<String>,//сами строки
+    pub книга_ли: bool,
+    //pub содержимое:Vec<String>,//сами строки
 }
 //содержимое - имя файла и его содержимое
 #[derive(Debug, Default, Clone)]
@@ -138,14 +138,14 @@ impl Default for Ячейка_словаря {
     }
 }
 
-#[derive(Debug, Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Словарь_Переносов {
     pub однобуквенные: Vec<Ячейка_замены>,  //одиночные слова
     pub двубуквенные: Vec<Ячейка_замены>,   //одиночные слова
     pub трехбуквенные: Vec<Ячейка_замены>,  //одиночные слова
     pub многобуквенные: Vec<Ячейка_замены>, //одиночные слова
     pub целиковые: Vec<Ячейка_замены>,      //одиночные слова
-    pub исключения:Vec<Ячейка_замены_с_исключением>
+    pub исключения: Vec<Ячейка_замены_с_исключением>,
 }
 
 //словарь
@@ -169,7 +169,7 @@ impl Default for Ячейка_замены {
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_с_исключением {
     pub искомое_слово: String,
-    pub re_исключение:Regex,
+    pub re_исключение: Regex,
     pub re_образец: Regex,
     pub замена: String,
     // pub счёчтки:usize,
@@ -182,7 +182,7 @@ pub struct Счётчик_замен {
     pub трехбуквенные: Vec<AtomicUsize>,  //одиночные слова
     pub многобуквенные: Vec<AtomicUsize>, //одиночные слова
     pub целиковые: Vec<AtomicUsize>,      //одиночные слова
-    pub исключения: Vec<AtomicUsize>,      //одиночные слова
+    pub исключения: Vec<AtomicUsize>,     //одиночные слова
 }
 //случаи замены
 
@@ -212,11 +212,11 @@ pub struct Полный_Словарь {
 
 #[derive(Debug)]
 pub struct Счётчики_Словаря {
-    pub простое: Vec<AtomicUsize>,  //одиночные слова
-    pub составное: Vec<AtomicUsize>,   //одиночные слова
-    pub составное_важное: Vec<AtomicUsize>,  //одиночные слова
-    pub вездесущее: Vec<AtomicUsize>, //одиночные слова
-    pub неизменное: Vec<AtomicUsize>,      //одиночные слова
+    pub простое: Vec<AtomicUsize>,          //одиночные слова
+    pub составное: Vec<AtomicUsize>,        //одиночные слова
+    pub составное_важное: Vec<AtomicUsize>, //одиночные слова
+    pub вездесущее: Vec<AtomicUsize>,       //одиночные слова
+    pub неизменное: Vec<AtomicUsize>,       //одиночные слова
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
