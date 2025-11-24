@@ -49,11 +49,11 @@ use regex::Regex;
 
 pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_мусорные: [Regex;5] = [
+        static ref re_расширения_мусорные: [Regex;4] = [
             Regex::new(r"(?i)\.css$").unwrap(),
               Regex::new(r"(?i)\.rels$").unwrap(),
               Regex::new(r"(?i)\.ttf$").unwrap(),
-            Regex::new(r"(?i)\.xhtml$").unwrap(),
+            //Regex::new(r"(?i)\.xhtml$").unwrap(),
             //целиком имя
              Regex::new(r"(?i)mimetype$").unwrap(),
             //
@@ -69,17 +69,23 @@ pub fn изображение_расширение_с_точкой(
     стог_сена: &String
 ) -> bool {
     lazy_static! {
-        static ref re_расширения_изображений: [Regex;10] = [
-            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+        static ref re_расширения_изображений: [Regex;15] = [
+            //
+               Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
             Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
-            Regex::new(r"(?i)\.png$").unwrap(),
             Regex::new(r"(?i)\.bmp$").unwrap(),
-            Regex::new(r"(?i)\.wmf$").unwrap(),
-            Regex::new(r"(?i)\.wpg$").unwrap(),
             Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
             Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
             Regex::new(r"(?i)\.svg$").unwrap(),
+            Regex::new(r"(?i)\.avif$").unwrap(),
+            Regex::new(r"(?i)\.jpeg$").unwrap(),
+            Regex::new(r"(?i)\.jpg$").unwrap(),
+            Regex::new(r"(?i)\.tiff$").unwrap(),
+            Regex::new(r"(?i)\.png$").unwrap(),
+            Regex::new(r"(?i)\.wmf$").unwrap(),
+            Regex::new(r"(?i)\.wpg$").unwrap(),
             Regex::new(r"(?i)\.eps$").unwrap(),
+             Regex::new(r"(?i)\.ttf").unwrap(),
         ];
     }
     return re_расширения_изображений
@@ -91,8 +97,8 @@ pub fn изображение_расширение_без_точки(
     стог_сена: &String
 ) -> bool {
     lazy_static! {
-        static ref re_расширения_изображений: [Regex;10] = [
-            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+        static ref re_расширения_изображений: [Regex;14] = [
+            /*Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
             Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
             Regex::new(r"(?i)\.png$").unwrap(),
             Regex::new(r"(?i)\.bmp$").unwrap(),
@@ -101,7 +107,22 @@ pub fn изображение_расширение_без_точки(
             Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
             Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
             Regex::new(r"(?i)\.svg$").unwrap(),
+            Regex::new(r"(?i)\.avif$").unwrap(),*/
+            //
+            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
+            Regex::new(r"(?i)\.bmp$").unwrap(),
+            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
+            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)\.svg$").unwrap(),
             Regex::new(r"(?i)\.avif$").unwrap(),
+            Regex::new(r"(?i)\.jpeg$").unwrap(),
+            Regex::new(r"(?i)\.jpg$").unwrap(),
+            Regex::new(r"(?i)\.tiff$").unwrap(),
+            Regex::new(r"(?i)\.png$").unwrap(),
+            Regex::new(r"(?i)\.wmf$").unwrap(),
+            Regex::new(r"(?i)\.wpg$").unwrap(),
+            Regex::new(r"(?i)\.eps$").unwrap(),
         ];
     }
     return re_расширения_изображений
@@ -177,11 +198,12 @@ pub fn md_fs_yml(стог_сена: &String) -> bool {
     //return false;
 }
 
-pub fn htm_html(стог_сена: &String) -> bool {
+pub fn htm_html_xhtml(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_word: [Regex; 2] = [
+        static ref re_расширения_word: [Regex; 3] = [
             Regex::new(r"(?i)\.htm$").unwrap(),
             Regex::new(r"(?i)\.html$").unwrap(),
+            Regex::new(r"(?i)\.xhtml$").unwrap(),
         ];
     }
     return re_расширения_word
@@ -192,11 +214,13 @@ pub fn htm_html(стог_сена: &String) -> bool {
 //если это не архивный файл
 pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_не_архивные: [Regex; 4] = [
+        static ref re_расширения_не_архивные: [Regex; 6] = [
             Regex::new(r"(?i)\.fb2$").unwrap(),
             Regex::new(r"(?i)\.rtf$").unwrap(),
             Regex::new(r"(?i)\.mhtml$").unwrap(),
             Regex::new(r"(?i)\.mht$").unwrap(),
+            Regex::new(r"(?i)\.htm$").unwrap(),
+            Regex::new(r"(?i)\.html$").unwrap(),
         ];
     }
     return re_расширения_не_архивные
@@ -981,6 +1005,11 @@ pub fn создать_словарь_замен() -> Словарь_Перено
         ],
 
         многобуквенные: vec![
+            Ячейка_замены {
+                искомое_слово: "-вязывающего ".to_string(),
+                замена: "вязывающего".to_string(),
+                re_образец: Regex::new(r"(?i)-вязывающего\b{end}").unwrap(),
+            },
              Ячейка_замены {
                 искомое_слово: "-ближенный ".to_string(),
                 замена: "ближенный".to_string(),
