@@ -2,8 +2,8 @@ use std::fs::read_to_string;
 
 //output паузы для windows - нажмите любую клавишу
 pub fn system_pause() {
-    // use std::process::Command;
-    // let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
+     use std::process::Command;
+     let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
 }
 pub fn прочитать_содержимое_построчно(
     путь: &String

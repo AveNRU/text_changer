@@ -292,6 +292,36 @@ pub fn добавить_переносы_строк_html(
             новый_ряд_строк.push(входные_строки2[i].clone())
         }
     }
+    let входные_строки2: Vec<String> = новый_ряд_строк;
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
+    for i in 0..входные_строки2.len() {
+        if sz_найти(&входные_строки2[i], r#"</br>"#) {
+            //   println!("нашло div");
+            let строки: Vec<String> = входные_строки2[i]
+                .split_inclusive("</br>")
+                .map(|s| s.to_string())
+                .collect();
+            новый_ряд_строк.extend(строки);
+            continue;
+        } else {
+            новый_ряд_строк.push(входные_строки2[i].clone())
+        }
+    }
+    let входные_строки2: Vec<String> = новый_ряд_строк;
+    let mut новый_ряд_строк: Vec<String> = Vec::new();
+    for i in 0..входные_строки2.len() {
+        if sz_найти(&входные_строки2[i], r#"</img>"#) {
+            //   println!("нашло div");
+            let строки: Vec<String> = входные_строки2[i]
+                .split_inclusive("</img>")
+                .map(|s| s.to_string())
+                .collect();
+            новый_ряд_строк.extend(строки);
+            continue;
+        } else {
+            новый_ряд_строк.push(входные_строки2[i].clone())
+        }
+    }
     return новый_ряд_строк;
 
     //входные_строки
