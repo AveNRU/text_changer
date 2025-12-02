@@ -33,6 +33,7 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
 pub fn read_utf8_без_переносов_строк_htm(
     путь_до_файла: &String
 ) -> Vec<String> {
+    //println!("вхождение: read_utf8_без_переносов_строк_htm");
     let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
     let содержимое: Box<dyn BufRead> = считать_файл(путь_до_файла); //чтение файла
     let mut строка_общая: String = String::new();
@@ -100,6 +101,7 @@ pub fn read_utf8_без_переносов_строк_htm(
     let итог = удалить_переносы_из_вектора(итог);
     //return удалить_переносы_строк_html(итог, 0);
     let итог= добавить_переносы_строк_html(итог, 1);
+
     return удалить_рекламу_после_разбиения_строк(итог)
     //return итог;
 }
@@ -186,19 +188,27 @@ pub fn htm_utf8_без_переносов_строк(
     // return итог;
 }
 fn удалить_рекламу_после_разбиения_строк(ряд:Vec<String>) ->Vec<String> {
+    //println!("количество строк: {}",ряд.len());
     let mut итог:Vec<String>=Vec::new();
-    ряд.iter().for_each(|строка| {
+    for (i,строка) in ряд.into_iter().enumerate() {
         if !есть_ли_реклама_после_разбиения_строк(&строка) {
+           /* println!("не нашло объяву {}",i+1);
+            println!("сама строка: {}",строка.to_string());
+            println!();*/
             итог.push(строка.to_string())
         }
-    });
+    };
    // println!("возврат рекламы");
     return итог
 }
 fn есть_ли_реклама_после_разбиения_строк(строка:&String) ->bool {
     lazy_static! {
-        static ref ряд: [String; 1] = [
+        static ref ряд: [String; 4] = [
             r#"> Реклама <"#.to_string(),
+            //Skyeng
+            r#"class="promotion-banner -link"#.to_string(),
+            r#"another-page-banner"#.to_string(),
+            r#"ssm-articles-content-author"#.to_string(),
            // r#">Learn More<"#.to_string(),
            // r#"sticky_top _blue-theme _renasas"#.to_string(),
         ];
@@ -210,6 +220,7 @@ fn есть_ли_реклама_после_разбиения_строк(стр�
             return true
         }
     }
+
     return false
 
 }
@@ -218,7 +229,11 @@ fn есть_ли_реклама_пропуск_строки(строка:&String
         static ref ряд: [String; 3] = [
             r#"One Vision, Three Solutions - Introducing Altium Discover, Altium Develop and Altium Agile"#.to_string(),
             r#">Learn More<"#.to_string(),
+                            //skyeng
             r#"sticky_top _blue-theme _renasas"#.to_string(),
+           /*  r#"class="promotion-banner -link"#.to_string(),
+            r#"another-page-banner"#.to_string(),
+            r#"ssm-articles-content-author"#.to_string(),*/
         ];
 
     }

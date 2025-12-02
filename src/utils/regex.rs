@@ -214,13 +214,11 @@ pub fn htm_html_xhtml(стог_сена: &String) -> bool {
 //если это не архивный файл
 pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
     lazy_static! {
-        static ref re_расширения_не_архивные: [Regex; 6] = [
+        static ref re_расширения_не_архивные: [Regex; 4] = [
             Regex::new(r"(?i)\.fb2$").unwrap(),
             Regex::new(r"(?i)\.rtf$").unwrap(),
             Regex::new(r"(?i)\.mhtml$").unwrap(),
             Regex::new(r"(?i)\.mht$").unwrap(),
-            Regex::new(r"(?i)\.htm$").unwrap(),
-            Regex::new(r"(?i)\.html$").unwrap(),
         ];
     }
     return re_расширения_не_архивные
