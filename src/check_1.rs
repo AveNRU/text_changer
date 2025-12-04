@@ -14,9 +14,9 @@ pub fn проверка_содержимого_папок() {
     };
     use std::path::Path;
     let пути_общие: lib::Пути_Общие = Default::default();
-    let пути_вывода: lib::Пути_Вывода = Default::default();
+    //let пути_вывода: lib::Пути_Вывода = Default::default();
     //двумерный вектор. 1-й для хранения прямых путей, 2 - после пути добавляется косая черта / (linux)
-    let пути: Vec<String> = vec![
+    let пути: [String; 8] = [
         //test
         пути_общие.вывод.to_string(),
         пути_общие.книги.to_string(),

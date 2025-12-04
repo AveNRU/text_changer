@@ -71,7 +71,7 @@ pub fn считать_книги(
     сообщения_приход: &mut lib::Сообщения
 ) -> Vec<lib::Книги> {
     use crate::utils::functions::*;
-    use crate::utils::functions_add::прочитать_содержимое_построчно;
+    //use crate::utils::functions_add::прочитать_содержимое_построчно;
     use crate::utils::read::*;
     use crate::utils::regex::*;
     use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
@@ -135,7 +135,7 @@ pub fn считать_книги(
             let название_книги: String = определить_имя_книги(путь);
             //если .rtf либо .fb2 (1 файл содержит)
             if fb2_rtf_mht_mhtml(&путь) {
-               // println!("вхождение: fb2_rtf_mht_mhtml");
+                // println!("вхождение: fb2_rtf_mht_mhtml");
                 let mut содержимое: Vec<String> = {
                     if sz_найти(&расширение, "mhtlml") {
                         read_utf8(&путь) //чтение файла в UTF-8
@@ -274,7 +274,7 @@ pub fn считать_книги(
                     книга_ли: true,
                 })
             } else if md_fs_yml(&путь) {
-             //   println!("вхождение: md_fs_yml");
+                //   println!("вхождение: md_fs_yml");
                 let содержимое: Vec<String> = read_utf8(&путь); //чтение файла в UTF-8
                 let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
                     содержимое: содержимое,
@@ -300,7 +300,7 @@ pub fn считать_книги(
                 })
                 //стопки_книг.push(книга);
             } else if htm_html_xhtml(&путь) {
-          //      println!("вхождение: htm_html_xhtml");
+                //      println!("вхождение: htm_html_xhtml");
                 let содержимое: Vec<String> =
                     read_utf8_без_переносов_строк_htm(&путь); //чтение файла в UTF-8
 
@@ -330,7 +330,7 @@ pub fn считать_книги(
             }
             // если вложения - не книга
             else {
-           //     println!("вхождение: если вложения - не книга");
+                //     println!("вхождение: если вложения - не книга");
                 let имя_файла_без_пути =
                     re_получить_имя_файла_без_пути(&название_книги);
                 use std::io::{self, Read};
@@ -358,7 +358,7 @@ pub fn считать_книги(
                         //..Default::default()
                     })
                 } else {
-           //         println!("вхождение: если не изображение");
+                    //         println!("вхождение: если не изображение");
                     //если не изображение
                     let содержимое: Vec<String> = read_utf8(&путь); //чтение файла в UTF-8
 
