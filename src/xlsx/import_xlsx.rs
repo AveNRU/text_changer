@@ -888,8 +888,8 @@ pub fn открыть_xlsx() {
             Some(значение) => (), //println!("Найдено: {}", значение),
             None => return,       //println!("Индекс не существует"),
         }
-        let mut имя_страницы: String = match имена_страниц[i2].clone() {
-            имя => имя,
+        let mut имя_страницы: String = match &имена_страниц[i2] {
+            имя => имя.to_string(),
             //None =>  continue,
             _ => return,
         };
