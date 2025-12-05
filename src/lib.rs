@@ -1,12 +1,15 @@
 #![crate_type = "lib"]
+
 use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use regex::Regex;
+use std::sync::atomic::AtomicUsize;
 
 //пути
 #[derive(Debug, Clone)]
 pub struct Пути_Общие {
     pub книги: String,
     pub словари: String,
+    pub переносы: String,
     pub вывод_книги: String,
     pub вывод_словари: String,
     pub вывод: String,
@@ -21,6 +24,7 @@ impl Default for Пути_Общие {
         Self {
             книги: "./книги/".to_string(),
             словари: "./словари/".to_string(),
+            переносы: "./перееносы/".to_string(),
             вывод: "./вывод/".to_string(),
             //вложенные
             вывод_словари: "./вывод/словари/".to_string(),
@@ -60,6 +64,7 @@ impl Default for Пути_Вывода {
         }
     }
 }
+
 #[derive(Debug, Default, Clone)]
 pub struct Сообщения_для_книги {
     pub имя_книги: String,
@@ -84,13 +89,16 @@ pub struct Содержимое_папок {
 //Стопка с путём до книги и содержимым виде вектора строк
 #[derive(Debug, Default, Clone)]
 pub struct Книги {
-    pub путь: String,            //путь до книги
-    pub название_книги: String,  //имя книги
-    pub вложения: Vec<Вложения>, //содержимое
-    pub расширение: String,      //формат
+    pub путь: String,                    //путь до книги
+    pub название_книги: String,          //имя книги
+    pub вложения: Vec<Вложения>,         //содержимое
+    pub расширение: String,              //формат
     pub архив: HashMap<String, Vec<u8>>, //для zip
-                                 //pub содержимое:Vec<String>,//сами строки
+    pub книга_ли: bool,
+    //pub содержимое:Vec<String>,//сами строки
 }
+
+
 //содержимое - имя файла и его содержимое
 #[derive(Debug, Default, Clone)]
 pub struct Вложения {
@@ -111,7 +119,10 @@ pub struct Словарь {
     pub составное_важное: Vec<Ячейка_словаря>, //сложные и составные (в 1 очередь)
     pub вездесущее: Vec<Ячейка_словаря>,       //сложные и составные
     pub неизменное: Vec<Ячейка_словаря>,       //
+    pub огласовки: Vec<Ячейка_словаря>,        //
 }
+
+//словарь переносов
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_словаря {
@@ -131,6 +142,62 @@ impl Default for Ячейка_словаря {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Словарь_Переносов {
+    pub однобуквенные: [Ячейка_замены; 7],   //одиночные слова
+    pub двубуквенные: [Ячейка_замены; 69],   //одиночные слова
+    pub трехбуквенные: [Ячейка_замены; 123], //одиночные слова
+    pub многобуквенные: [Ячейка_замены; 58], //одиночные слова
+    pub целиковые: [Ячейка_замены; 251],     //одиночные слова
+    pub исключения: [Ячейка_замены_с_исключением; 16],
+}
+
+//словарь
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены {
+    pub искомое_слово: String,
+    pub re_образец: Regex,
+    pub замена: String,
+    // pub счёчтки:usize,
+}
+impl Default for Ячейка_замены {
+    fn default() -> Self {
+        Self {
+            искомое_слово: "".to_string(),
+            re_образец: Regex::new(r"(?i)").unwrap(),
+            замена: "".to_string(),
+        }
+    }
+}
+//словарь
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_с_исключением {
+    pub искомое_слово: String,
+    pub re_исключение: Regex,
+    pub re_образец: Regex,
+    pub замена: String,
+    // pub счёчтки:usize,
+}
+impl Default for Ячейка_замены_с_исключением {
+    fn default() -> Self {
+        Self {
+            искомое_слово: "".to_string(),
+            re_исключение: Regex::new(r"(?i)").unwrap(),
+            re_образец: Regex::new(r"(?i)").unwrap(),
+            замена: "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Счётчик_замен {
+    pub однобуквенные: Vec<AtomicUsize>,  //одиночные слова
+    pub двубуквенные: Vec<AtomicUsize>,   //одиночные слова
+    pub трехбуквенные: Vec<AtomicUsize>,  //одиночные слова
+    pub многобуквенные: Vec<AtomicUsize>, //одиночные слова
+    pub целиковые: Vec<AtomicUsize>,      //одиночные слова
+    pub исключения: Vec<AtomicUsize>,     //одиночные слова
+}
 //случаи замены
 
 //итоговый общий словарь
@@ -141,25 +208,32 @@ pub struct Куча_Словарь {
     pub составное_важное: foldhash::HashMap<String, HashSet<usize>>,
     pub вездесущее: foldhash::HashMap<String, HashSet<usize>>,
     pub неизменное: foldhash::HashMap<String, HashSet<usize>>,
+    pub огласовки: foldhash::HashMap<String, HashSet<usize>>,
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
 pub struct Полный_Словарь {
     //одиночные
     pub простое: Vec<Ячейка_словаря>, //одиночные слова
-    pub счётчик_простое: Vec<usize>,
     //сложные
     pub составное: Vec<Ячейка_словаря>, //сложные и составные
-    pub счётчик_составное: Vec<usize>,
     //сложные в 1 очередь
     pub составное_важное: Vec<Ячейка_словаря>, //сложные и составные (в 1 очередь)
-    pub счётчик_составное_важное: Vec<usize>,
     //вездесущие слова в 1 очередь
     pub вездесущее: Vec<Ячейка_словаря>, //сложные и составные
-    pub счётчик_вездесущее: Vec<usize>,
     //неизменные
     pub неизменное: Vec<Ячейка_словаря>, //сложные и составные
-    pub счётчик_неизменное: Vec<usize>,
+    pub огласовки: Vec<Ячейка_словаря>,  //сложные и составные
+}
+
+#[derive(Debug)]
+pub struct Счётчики_Словаря {
+    pub простое: Vec<AtomicUsize>,          //одиночные слова
+    pub составное: Vec<AtomicUsize>,        //одиночные слова
+    pub составное_важное: Vec<AtomicUsize>, //одиночные слова
+    pub вездесущее: Vec<AtomicUsize>,       //одиночные слова
+    pub неизменное: Vec<AtomicUsize>,       //одиночные слова
+    pub огласовки: Vec<AtomicUsize>,        //одиночные слова
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
@@ -168,4 +242,9 @@ pub struct Быстрый_Словарь {
     pub простое: Vec<String>, //одиночные слова
 }
 
+#[derive(Debug, Default, Clone)]
+pub struct Куча_Слова_Замены {
+    pub слово: String,
+    pub вложения: String,
+}
 fn main() {}

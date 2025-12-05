@@ -7,15 +7,13 @@ use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
 use std::sync::Mutex;
-use foldhash::fast::RandomState;
-use time::Month::January;
-//HashSet::with_hasher(foldhash::fast::RandomState::default());
+//use time::Month::January;
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
     lazy_static! {
 
-             static ref fb3_исключения_простые: Vec<String> = vec![
+             static ref fb3_исключения_простые: [String;5] = [
             r#"<fb3-body xmlns="#.to_string(),
             r#"<rootfile"#.to_string(),
             "<rootfiles>".to_string(),
@@ -23,7 +21,7 @@ pub fn xml_получить_указатели_на_пропуски(
             r#"<?xml version="1.0"?>"#.to_string(),
         ];
 
-        static ref fb3_исключения: Vec<String> = vec![
+        static ref fb3_исключения: [String;48] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
             //вложения
             "</section></body><binary".to_string(),
@@ -75,8 +73,8 @@ pub fn xml_получить_указатели_на_пропуски(
             "</container>".to_string(),
                     "</rootfiles>".to_string(),
         ];
-        static ref fb3_обязалово: Vec<String> = vec!["<".to_string(), ">".to_string(),];
-        static ref fb3_re_исключения: Vec<Regex> = vec![
+        static ref fb3_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
+        static ref fb3_re_исключения: [Regex;48] = [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
                 //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
@@ -131,39 +129,34 @@ pub fn xml_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
+    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
+
     if !проверка_образцов_для_кучи(
-        &fb3_исключения,
-        &fb3_re_исключения,
+        &*fb3_исключения,
+        &*fb3_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
     }
     //получение значений
-    
-    let пропуски: Mutex<HashSet<usize>> =
-        Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+
     //прогон
-    содержимое
+    let пропуски: HashSet<usize> = содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка)
+                || fb3_проверка_содержимого_на_условия(&строка)
+            {
+                return Some(указатель);
+            } else {
+                None
             }
-            if fb3_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+        })
+        .collect::<HashSet<usize>>();
     return пропуски;
-
     //если истина-то переход к следующей строке
-
     //исключения для расширения
-
     //если возвращает истину - то переход на следующую строку
     fn fb3_обязательное_содержимое(стог_сена: &String) -> bool {
         //проверка что нет пустоты
@@ -189,7 +182,6 @@ pub fn xml_получить_указатели_на_пропуски(
                 return true;
             }
         }
-
         if fb3_исключения_простые
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, &образец))
@@ -200,8 +192,8 @@ pub fn xml_получить_указатели_на_пропуски(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &fb3_исключения,
-            &fb3_re_исключения,
+            &*fb3_исключения,
+            &*fb3_re_исключения,
             &стог_сена,
         );
     }
@@ -211,7 +203,7 @@ pub fn fb2_получить_указатели_на_пропуки(
 ) -> HashSet<usize> {
     lazy_static! {
 
-        static ref fb2_исключения: Vec<String> = vec![
+        static ref fb2_исключения: [String;46] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
             //вложения
             "</section></body><binary".to_string(),
@@ -261,8 +253,8 @@ pub fn fb2_получить_указатели_на_пропуки(
                 "</title>".to_string(),
             "<section id=".to_string(),
         ];
-        static ref fb2_обязалово: Vec<String> = vec!["<".to_string(), ">".to_string(),];
-        static ref fb2_re_исключения: Vec<Regex> = vec![
+        static ref fb2_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
+        static ref fb2_re_исключения: [Regex;46] = [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
                 //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
@@ -315,33 +307,27 @@ pub fn fb2_получить_указатели_на_пропуки(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
+    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
     if !проверка_образцов_для_кучи(
-        &fb2_исключения,
-        &fb2_re_исключения,
+        &*fb2_исключения,
+        &*fb2_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
     }
     //получение значений
 
-    // let mut пропуски: HashSet<usize> = HashSet::default();
-    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+    let пропуски: HashSet<usize> =
     //прогон
     содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка)|| fb2_проверка_содержимого_на_условия(&строка) {
+                return Some(указатель)
             }
-            if fb2_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+            else {None}
+        }).collect::<HashSet<usize>>();
     return пропуски;
     //исключения для расширения
     //если возвращает истину - то переход на следующую строку
@@ -353,7 +339,7 @@ pub fn fb2_получить_указатели_на_пропуки(
         //сначала что есть скобки
         return fb2_обязалово
             .par_iter()
-            .any(|образец| sz_найти(&стог_сена, &образец))
+            .any(|образец| sz_найти(&стог_сена, &образец));
     }
 
     fn fb2_проверка_содержимого_на_условия(
@@ -375,8 +361,8 @@ pub fn fb2_получить_указатели_на_пропуки(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &fb2_исключения,
-            &fb2_re_исключения,
+            &*fb2_исключения,
+            &*fb2_re_исключения,
             &стог_сена,
         );
     }
@@ -384,38 +370,51 @@ pub fn fb2_получить_указатели_на_пропуки(
 }
 
 fn html_получить_указатели_на_пропуски(
-    содержимое: &Vec<String>,
+    содержимое: &[String],
+    условие_архива: bool,
 ) -> HashSet<usize> {
-    let пропуски = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
-    содержимое
+    let пропуски: HashSet<usize> = содержимое
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка)| {
-            if !есть_ли_кириллица(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка)| {
+            if !есть_ли_кириллица(&строка)
+                || html_проверка_содержимого_на_условия(&строка)
+            {
+                return Some(указатель);
+            } else {
+                None
             }
-            if html_проверка_содержимого_на_условия(&строка) {
-                пропуски.lock().unwrap().insert(указатель);
-            }
-        });
-    let mut пропуски = пропуски.into_inner().unwrap();
+        })
+        .collect::<HashSet<usize>>();
     return пропуски;
 
     fn html_проверка_содержимого_на_условия(
         стог_сена: &String,
     ) -> bool {
         lazy_static! {
-            static ref html_исключения: Vec<String> = vec![r#"<!DOCTYPE html PUBLIC"#.to_string(),];
-            static ref html_исключения_с_проверкой: Vec<String> = vec![
+            static ref html_исключения: [String; 1] = [r#"<!DOCTYPE html PUBLIC"#.to_string(),];
+            static ref html_исключения_с_проверкой: [String; 2] = [
                 "<blockquote><div>".to_string(),
                 "</div></body></html>".to_string(),
             ];
-            static ref re_html_исключения_с_проверкой: Vec<Regex> = vec![
+            static ref re_html_исключения_с_проверкой: [Regex; 2] = [
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
             ];
+            static ref строки_исключния: [String; 11] = [
+                format!(r####"<link rel="icon" href="###"####),
+                format!(r##"<link rel="preload" href=""##),
+                format!(r####"<link rel="stylesheet" href=""####),
+                format!(r##"<img src=""##),
+                format!(r##"<img class="logo" src=""##),
+                format!(r##"<img class="mm-header-search-close" src=""##),
+                format!(r##"<script src=""##),
+                format!(r##"src="."##),
+                r#"<script async="" src="#.to_string(),
+                format!(r#"<link href="./"#),
+                format!(r#"href="./"#),
+            ];
         }
-
         //поиск
         if html_исключения
             .par_iter()
@@ -423,10 +422,17 @@ fn html_получить_указатели_на_пропуски(
         {
             return true;
         }
-
+        if строки_исключния
+            .par_iter()
+            .enumerate()
+            .any(|(указатель, образец)| sz_найти(&стог_сена, образец))
+        {
+            //println!("Найдено исключение: {}",стог_сена);
+            return true;
+        }
         return проверка_исключений_в_стоге_сена(
-            &html_исключения_с_проверкой,
-            &re_html_исключения_с_проверкой,
+            &*html_исключения_с_проверкой,
+            &*re_html_исключения_с_проверкой,
             &стог_сена,
         );
         //проверка концов и окончаний строк
@@ -438,6 +444,7 @@ pub fn получить_пропуски_для_содержимого(
     имя_файла: &String,
     расширение_книги: &String,
 ) -> HashSet<usize> {
+    // println!("имя файла: {имя_файла}, расширение_книги: {расширение_книги}");
     //fb2
     if расширение_книги.as_str() == "fb2".to_string() {
         return fb2_получить_указатели_на_пропуки(&содержимое);
@@ -457,9 +464,18 @@ pub fn получить_пропуски_для_содержимого(
                 }
             }
             if sz_найти(имя_файла, ".html") {
-                return html_получить_указатели_на_пропуски(&содержимое);
+                //архив если
+                return html_получить_указатели_на_пропуски(
+                    &содержимое,
+                    true,
+                );
             }
         }
+    }
+    //если это отдельный файл .htm или .html
+    else if sz_найти(расширение_книги, "htm") {
+        //что не архив
+        return html_получить_указатели_на_пропуски(&содержимое, false);
     }
     return HashSet::with_hasher(foldhash::fast::RandomState::default());
 }
@@ -468,7 +484,7 @@ pub fn md_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
     lazy_static! {
-        static ref md_исключения: Vec<String> = vec![
+        static ref md_исключения: [String;25] = [
             r#"---"#.to_string(),
               r#"***"#.to_string(),
                r#"___"#.to_string(),
@@ -497,7 +513,7 @@ pub fn md_получить_указатели_на_пропуки(
             r#"ms.date"#.to_string(),
 
         ];
-        static ref md_re_исключения: Vec<Regex> = vec![
+        static ref md_re_исключения: [Regex;25] = [
             Regex::new(r#"(?i)^\s*(-+)$"#).unwrap(),
               Regex::new(r#"(?i)^\s*(\*+)$"#).unwrap(),
                Regex::new(r#"(?i)^\s*(_+)$"#).unwrap(),
@@ -528,44 +544,32 @@ pub fn md_получить_указатели_на_пропуки(
         ];
         static ref md_примечание:Regex= Regex::new(r#"(?i)^#"#).unwrap();
     }
-    let mut исключения_для_проверки: HashSet<usize> =
-        HashSet::with_hasher(foldhash::fast::RandomState::default());
-    исключения_для_проверки.insert(0);
-    исключения_для_проверки.insert(1);
-    исключения_для_проверки.insert(2);
-    исключения_для_проверки.insert(3);
-    исключения_для_проверки.insert(11);
-    исключения_для_проверки.insert(12);
-    исключения_для_проверки.insert(17);
-    исключения_для_проверки.insert(18);
-    исключения_для_проверки.insert(19);
-    исключения_для_проверки.insert(24);
-
+    let исключения_для_проверки: HashSet<usize> =
+        HashSet::from_iter([0, 1, 2, 3, 11, 12, 17, 18, 19, 24]);
     if !проверка_образцов_для_кучи(
-        &md_исключения,
-        &md_re_исключения,
+        &*md_исключения,
+        &*md_re_исключения,
         &исключения_для_проверки,
     ) {
         panic!()
     }
     //получение значений
 
-    let пропуски: Mutex<HashSet<usize>> = Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
-
-    содержимое
+    let пропуски: HashSet<usize> = содержимое
         .into_par_iter()
         .enumerate()
-        .for_each(|(указатель, строка_внутри)| {
-            if !есть_ли_кириллица(&содержимое[указатель]) {
-                пропуски.lock().unwrap().insert(указатель);
-                return;
-            } else if md_проверка_содержимого_на_условия(
-                &содержимое[указатель],
-            ) {
-                пропуски.lock().unwrap().insert(указатель);
+        .filter_map(|(указатель, строка_внутри)| {
+            if !есть_ли_кириллица(&содержимое[указатель])
+                || md_проверка_содержимого_на_условия(
+                    &содержимое[указатель],
+                )
+            {
+                Some(указатель)
+            } else {
+                None
             }
-        });
-    let пропуски = пропуски.into_inner().unwrap();
+        })
+        .collect::<HashSet<usize>>();
     //прогон
     //исключения для расширения
     return пропуски;
@@ -589,17 +593,16 @@ pub fn md_получить_указатели_на_пропуки(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &md_исключения,
-            &md_re_исключения,
+            &*md_исключения,
+            &*md_re_исключения,
             &стог_сена,
         );
     }
     //если истина-то переход к следующей строке
-
 }
 pub fn проверка_исключений_в_стоге_сена(
-    исключения: &Vec<String>,
-    re_исключения: &Vec<Regex>,
+    исключения: &[String],
+    re_исключения: &[Regex],
     стог_сена: &String,
 ) -> bool {
     // Проверяем, что массивы одинаковой длины
@@ -611,14 +614,14 @@ pub fn проверка_исключений_в_стоге_сена(
     })
 }
 fn проверка_образцов_для_кучи(
-    исключения: &Vec<String>,
-    исключения_re: &Vec<Regex>,
+    исключения: &[String],
+    исключения_re: &[Regex],
     исключения_проверки: &HashSet<usize>,
 ) -> bool {
     if исключения.len() != исключения_re.len() {
         panic!("не равно количество исключений md")
     }
-    
+
     for указатель in 0..исключения.len() {
         //если бессмысленно сравнивать образцы
         if исключения_проверки.contains(&указатель) {
@@ -640,27 +643,27 @@ fn проверка_образцов_для_кучи(
                     )
                 }
             });
-        есть_ли_повторно_строка_в_ряде(&исключения, "исключения_",false);
+        есть_ли_повторно_строка_в_ряде(&исключения, "исключения_", false);
     }
     //перебор RE
-    есть_ли_повторно_строка_в_ряде_regex(
-        &исключения_re,
-        "исключения_re",
-    );
+    есть_ли_повторно_строка_в_ряде_regex(&исключения_re, "исключения_re");
 
     return true;
 }
 
 pub fn есть_ли_кириллица(стог_сена: &String) -> bool {
-    let малые_буквы: Vec<char> = vec![
-        'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о',
-        'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
-    ];
-    let большие_буквы: Vec<char> = vec![
-        'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О',
-        'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
-    ];
-
+    lazy_static! {
+        static ref малые_буквы: [char; 35] = [
+            'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н',
+            'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю',
+            'я',
+        ];
+        static ref большие_буквы: [char; 35] = [
+            'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н',
+            'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю',
+            'Я',
+        ];
+    }
     //малые буквы
     if малые_буквы
         .par_iter()
@@ -673,5 +676,5 @@ pub fn есть_ли_кириллица(стог_сена: &String) -> bool {
     return большие_буквы
         .par_iter()
         .enumerate()
-        .any(|(указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()))
+        .any(|(указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()));
 }
