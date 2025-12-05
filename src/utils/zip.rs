@@ -76,8 +76,8 @@ impl Zips {
 }
 pub fn zip_архив_в_память(
     путь: &String,
-    mut virt_fs: Архив_в_озу,
-) -> Result<Архив_в_озу, Box<dyn std::error::Error>> {
+    virt_fs: &mut Архив_в_озу,
+) -> Result<(), Box<dyn std::error::Error>> {
     //HashMap<String, Vec<u8>>{
     let mut zips = Zips::new(путь).unwrap();
     match zips.распаковать_архив_в_озу() {
@@ -90,7 +90,7 @@ pub fn zip_архив_в_память(
     for (путь, содержимое) in zips.хранение_в_озу.iter() {
         virt_fs.insert(путь.clone(), содержимое.clone());
     }
-    Ok(virt_fs)
+    Ok(())
 }
 
 /// Запаковывает виртуальную файловую систему в Vec<u8>
