@@ -98,7 +98,6 @@ pub struct Книги {
     //pub содержимое:Vec<String>,//сами строки
 }
 
-
 //содержимое - имя файла и его содержимое
 #[derive(Debug, Default, Clone)]
 pub struct Вложения {

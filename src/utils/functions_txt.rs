@@ -64,7 +64,7 @@ pub fn есть_ли_повторно_строка_в_ряде_с_удалени
 ) -> Vec<Ячейка_словаря> {
     //поиск уже добавленных слов
     //поиск уже добавленных слов
-    let mut куча:Arc<Mutex<HashSet<String>>>=Arc::new(Mutex::new(HashSet::default()));
+    let mut куча: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::default()));
     let ряд_два:Vec<Ячейка_словаря>=
     (0..ряд.len()).into_par_iter().flat_map(|i| {
 

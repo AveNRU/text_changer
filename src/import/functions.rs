@@ -1,33 +1,34 @@
+use crate::utils::stringzilla::sz_найти;
 use crate::xlsx::import_xlsx::{
     найти_особые_знаки, обратно_убрать_особые_знаки
 };
 use convert_case::{Case, Casing};
-use lazy_static::lazy_static;
-use crate::utils::stringzilla::sz_найти;
 use foldhash::{HashMap, HashMapExt, HashSet};
+use lazy_static::lazy_static;
 
 pub fn два_слова_из_одного_для_словаря(
     иходное_слово: &String,
 ) -> (String, String) {
-    lazy_static!{
-        static ref куча:HashSet<char>=HashSet::from_iter(['∵','∴']);
+    lazy_static! {
+        static ref куча: HashSet<char> = HashSet::from_iter(['∵', '∴']);
     }
     let временный_составной_ряд: (String, Vec<char>) =
         найти_особые_знаки(&иходное_слово);
     //
     //0 - все буквы нижние, 1 - все буквы заглавные-
-    if временный_составной_ряд.0.starts_with('∵')||временный_составной_ряд.0.starts_with('∴') {
+    if временный_составной_ряд.0.starts_with('∵') || временный_составной_ряд.0.starts_with('∴')
+    {
         //преобразование двух слов
-        let слова_вывод= обратно_убрать_особые_знаки(
+        let слова_вывод = обратно_убрать_особые_знаки(
             //упорядоченный ряд, где производится обратная замена - и _
-                временный_составной_ряд.0.to_case(Case::Lower),
-             //все буквы нижние
+            временный_составной_ряд.0.to_case(Case::Lower),
+            //все буквы нижние
             преобразовать_слово_с_тире(
                 временный_составной_ряд.0.to_case(Case::Sentence),
             ), //1-я буква заглавная
             временный_составной_ряд.1,
         );
-        return слова_вывод
+        return слова_вывод;
     }
     return обратно_убрать_особые_знаки(
         //упорядоченный ряд, где производится обратная замена - и _
