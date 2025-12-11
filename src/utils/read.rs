@@ -211,12 +211,13 @@ fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
     lazy_static! {
-        static ref ряд: [String; 4] = [
+        static ref ряд: [String; 5] = [
             r#"> Реклама <"#.to_string(),
             //Skyeng
             r#"class="promotion-banner -link"#.to_string(),
             r#"another-page-banner"#.to_string(),
             r#"ssm-articles-content-author"#.to_string(),
+            r#"/banner.html"#.to_string(),
            // r#">Learn More<"#.to_string(),
            // r#"sticky_top _blue-theme _renasas"#.to_string(),
         ];
@@ -252,7 +253,55 @@ pub fn добавить_переносы_строк_html(
     входные_строки: Vec<String>,
     указатель: usize,
 ) -> Vec<String> {
-    let mut новый_ряд_строк: Vec<String> = Vec::new();
+    use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
+    lazy_static!{
+        static ref образцы:[String;36]= [
+            r#"</div>"#.to_string(),
+            r#"</figcaption>"#.to_string(),
+            r#"</script>"#.to_string(),
+            r#"</picture>"#.to_string(),
+            r#"</br>"#.to_string(),
+            r#"</style>"#.to_string(),
+             r#"</img>"#.to_string(),
+             r#"</path>"#.to_string(),
+             r#"</use>"#.to_string(),
+             r#"</mask>"#.to_string(),
+             r#"</stop>"#.to_string(),
+             r#"</clippath>"#.to_string(),
+             r#"</lineargradient>"#.to_string(),
+             r#"</radialgradient>"#.to_string(),
+             r#"</symbol>"#.to_string(),
+             r#"</rect>"#.to_string(),
+            r#"</span>"#.to_string(),
+            r#"</svg>"#.to_string(),
+            r#"</iframe>"#.to_string(),
+             r#"</a>"#.to_string(),
+             r#"</femergenode>"#.to_string(),
+            r#"</femorphology>"#.to_string(),
+            r#"</femerge>"#.to_string(),
+              r#"</filter>"#.to_string(),
+             r#"</circle>"#.to_string(),
+                  r#"</ellipse>"#.to_string(),
+               r#"</g>"#.to_string(),
+            r#"</button>"#.to_string(),
+            r#"</header>"#.to_string(),
+            r#"</li>"#.to_string(),
+               r#"</ul>"#.to_string(),
+             r#"</i>"#.to_string(),
+            r#"</blockquote>"#.to_string(),
+             r#"</video>"#.to_string(),
+                 r#"</textarea>"#.to_string(),
+              r#"</body>"#.to_string(),
+        ];
+    }
+    есть_ли_повторно_строка_в_ряде(
+        &образцы.as_ref(),
+        "Образцы разбиения строк",
+        true
+    );
+
+
+    /*let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..входные_строки.len() {
         if sz_найти(&входные_строки[i], r#"</div>"#) {
             //   println!("нашло div");
@@ -266,87 +315,32 @@ pub fn добавить_переносы_строк_html(
             новый_ряд_строк.push(входные_строки[i].clone())
         }
     }
-    // if новый_ряд_строк.len()==входные_строки.len() {
-    //      println!("Новый ряд строк: {} входной ряд: {}, Ряды {указатель} строк равны, что недопустимо",новый_ряд_строк.len(),входные_строки.len());
-    // }
-    let входные_строки2: Vec<String> = новый_ряд_строк;
-    let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i], r#"</figcaption>"#) {
-            //   println!("нашло div");
-            let строки: Vec<String> = входные_строки2[i]
-                .split_inclusive("</figcaption>")
-                .map(|s| s.to_string())
-                .collect();
-            новый_ряд_строк.extend(строки);
-            continue;
-        } else {
-            новый_ряд_строк.push(входные_строки2[i].clone())
-        }
+    return новый_ряд_строк;*/
+    let mut новый_ряд_строк: Vec<String> = входные_строки;
+    //прогон через все образцы
+    for i in 0..образцы.len() {
+        новый_ряд_строк=разбить_строки_через_образец(новый_ряд_строк,&образцы[i]);
     }
-    let входные_строки2: Vec<String> = новый_ряд_строк;
+    return новый_ряд_строк
+    //входные_строки
+}
+
+pub fn разбить_строки_через_образец(исходный_ряд_строк:Vec<String>,образец:&String) ->Vec<String>{
     let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i], r#"</script>"#) {
+    for i in 0..исходный_ряд_строк.len() {
+        if sz_найти(&исходный_ряд_строк[i], &образец) {
             //   println!("нашло div");
-            let строки: Vec<String> = входные_строки2[i]
-                .split_inclusive("</script>")
+            let строки: Vec<String> = исходный_ряд_строк[i]
+                .split_inclusive(образец.as_str())
                 .map(|s| s.to_string())
                 .collect();
             новый_ряд_строк.extend(строки);
             continue;
         } else {
-            новый_ряд_строк.push(входные_строки2[i].clone())
-        }
-    }
-    let входные_строки2: Vec<String> = новый_ряд_строк;
-    let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i], r#"</picture>"#) {
-            //   println!("нашло div");
-            let строки: Vec<String> = входные_строки2[i]
-                .split_inclusive("</picture>")
-                .map(|s| s.to_string())
-                .collect();
-            новый_ряд_строк.extend(строки);
-            continue;
-        } else {
-            новый_ряд_строк.push(входные_строки2[i].clone())
-        }
-    }
-    let входные_строки2: Vec<String> = новый_ряд_строк;
-    let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i], r#"</br>"#) {
-            //   println!("нашло div");
-            let строки: Vec<String> = входные_строки2[i]
-                .split_inclusive("</br>")
-                .map(|s| s.to_string())
-                .collect();
-            новый_ряд_строк.extend(строки);
-            continue;
-        } else {
-            новый_ряд_строк.push(входные_строки2[i].clone())
-        }
-    }
-    let входные_строки2: Vec<String> = новый_ряд_строк;
-    let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..входные_строки2.len() {
-        if sz_найти(&входные_строки2[i], r#"</img>"#) {
-            //   println!("нашло div");
-            let строки: Vec<String> = входные_строки2[i]
-                .split_inclusive("</img>")
-                .map(|s| s.to_string())
-                .collect();
-            новый_ряд_строк.extend(строки);
-            continue;
-        } else {
-            новый_ряд_строк.push(входные_строки2[i].clone())
+            новый_ряд_строк.push(исходный_ряд_строк[i].clone())
         }
     }
     return новый_ряд_строк;
-
-    //входные_строки
 }
 
 pub fn удалить_переносы_калибри(строки: &[String]) -> Vec<String> {
