@@ -30,7 +30,7 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
     return итог;
 }
 
-pub fn read_utf8_без_переносов_строк_htm(
+pub fn read_utf8_без_переносов_строк_htm_не_архив(
     путь_до_файла: &String
 ) -> Vec<String> {
     //println!("вхождение: read_utf8_без_переносов_строк_htm");
@@ -45,6 +45,8 @@ pub fn read_utf8_без_переносов_строк_htm(
         let указатель_строки: usize = указатель + 1;
         let mut строка_в_utf8: String =
             получить_строку_в_utf8(содержимое_в_байтах, указатель_строки); //сохранение строки как UTF-8
+        //итог.push(строка_в_utf8);
+
         //если нет закрытий
         //пустую строку сразу вкладываем
         //  if строка_в_utf8.is_empty() {
@@ -105,6 +107,7 @@ pub fn read_utf8_без_переносов_строк_htm(
     let итог = добавить_переносы_строк_html(итог, 1);
 
     return удалить_рекламу_после_разбиения_строк(итог);
+
     //return итог;
 }
 
@@ -211,8 +214,42 @@ fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
     lazy_static! {
-        static ref ряд: [String; 5] = [
+        static ref ряд: [String; 37] = [
+            "tm-user-info__user".to_string(),
+            "snippet__author".to_string(),
+            "tm-article-sticky-panel".to_string(),
+            "tm-publication".to_string(),
+           "swiper-button-next".to_string(),
+            //"tm-article".to_string(),
+            "tm-scroll-top".to_string(),
+                 r#"element-wrapper above-header"#.to_string(),
+            r#"tm-layout__wrapper"#.to_string(),
+             r#"tm-user-card"#.to_string(),
+            r#"tm-counter"#.to_string(),
+            r#"content-text"#.to_string(),
+            r#"sponsor-block"#.to_string(),
+            r#"tm-stories"#.to_string(),
+            r#"project-block"#.to_string(),
+              r#"tm-project"#.to_string(),
+             r#"tm-promo"#.to_string(),
+            r#"tm-event"#.to_string(),
+            //r#"data-v-"#.to_string(),
+             r#"banner-info visible"#.to_string(),
+              r#"content-action"#.to_string(),
+             r#"content-container"#.to_string(),
+            r#"sponsor-mark"#.to_string(),
+            r#"sponsorship_hub"#.to_string(),
+             r#"tm-header"#.to_string(),
+           r#"tm-digest"#.to_string(),
+             r#"tm-copyright"#.to_string(),
+            r#"tm-footer"#.to_string(),
+            r#"tm-description-list tm"#.to_string(),
+             r#"tm-block"#.to_string(),
+            r#"tm-company"#.to_string(),
+            r#"tm-description-list__body"#.to_string(),
+            r#"tm-widget-banner-content__image-wrapper"#.to_string(),
             r#"> Реклама <"#.to_string(),
+            r#"company-card-top-image"#.to_string(),
             //Skyeng
             r#"class="promotion-banner -link"#.to_string(),
             r#"another-page-banner"#.to_string(),
@@ -255,7 +292,27 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static!{
-        static ref образцы:[String;36]= [
+                static ref образцы:[String;56]= [
+               r#"</code>"#.to_string(),
+            r#"</summary>"#.to_string(),
+            r#"</s>"#.to_string(),
+             r#"</strong>"#.to_string(),
+             r#"</dd>"#.to_string(),
+             r#"</dl>"#.to_string(),
+             r#"</dt>"#.to_string(),
+            r#"</article>"#.to_string(),
+              r#"</p>"#.to_string(),
+               r#"</section>"#.to_string(),
+             r#"</time>"#.to_string(),
+            r#"</form>"#.to_string(),
+            r#"<!--]-->"#.to_string(),
+            r#"</h3>"#.to_string(),
+             r#"</h2>"#.to_string(),
+             r#"</h1>"#.to_string(),
+             r#"</em>"#.to_string(),
+            r#"<!--[-->"#.to_string(),
+            r#"<!---->"#.to_string(),
+            r#"</title>"#.to_string(),
             r#"</div>"#.to_string(),
             r#"</figcaption>"#.to_string(),
             r#"</script>"#.to_string(),
@@ -294,11 +351,11 @@ pub fn добавить_переносы_строк_html(
               r#"</body>"#.to_string(),
         ];
     }
-    есть_ли_повторно_строка_в_ряде(
+  /*  есть_ли_повторно_строка_в_ряде(
         &образцы.as_ref(),
         "Образцы разбиения строк",
         true
-    );
+    );*/
 
 
     /*let mut новый_ряд_строк: Vec<String> = Vec::new();
@@ -434,7 +491,7 @@ fn отсутствие_закрытого_p_тэга_html_в_строке(
     стог_сена: &String,
 ) -> bool {
     lazy_static! {
-        static ref открытый_p: String = "<p".to_string();
+        static ref открытый_p: String = "<p>".to_string();
         static ref закрытый_p: String = "</p>".to_string();
     }
     let mut условие = false;

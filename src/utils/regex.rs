@@ -527,6 +527,10 @@ pub fn замена_слов_через_кучу(
     расширение: &str,
     куча_пропусков: &HashSet<usize>,
     словарь_куча: &HashMap<String, HashSet<usize>>,
+    этап:usize,
+    указатель_содержимого:usize,
+    количество_вложений:usize,
+    вложенный_ли_файл_к_html:bool,
 ) {
     let spinner_style = ProgressStyle::with_template("{wide_msg}")
         .unwrap()
@@ -542,18 +546,24 @@ pub fn замена_слов_через_кучу(
     let количество_шагов = словарь.len() * содержимое.len();
     let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
     let шаг_внутренний = AtomicU64::new(0);
-
-    счетчик_внутренний.set_style(
-        ProgressStyle::with_template(
-            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg:.green}",
-        )
-        .unwrap()
-        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
-            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
-        })
-        .progress_chars("#>-"),
-    );
-    счетчик_внутренний.set_message(format!("{}", сообщение));
+    //выводить или нет
+    if условие_вывода_хода(этап) && !вложенный_ли_файл_к_html {
+        счетчик_внутренний.set_style(
+            ProgressStyle::with_template(
+                "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg:.green}",
+            )
+                .unwrap()
+                .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+                    write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+                })
+                .progress_chars("#>-"),
+        );
+        счетчик_внутренний.set_message(format!("{}", сообщение));
+    } else {
+        счетчик_внутренний.finish_and_clear();
+        pb.finish_and_clear();
+        m.clear().unwrap();
+    }
     // Обрабатываем каждую строку параллельно
     содержимое
         .par_iter_mut()
@@ -625,6 +635,10 @@ pub fn замена_слов_через_кучу(
     .for_each(|(указатель, число)| {
         счётчик_словаря[указатель].fetch_add(число.load(Ordering::Relaxed), Ordering::Relaxed); //
     });*/
+    fn условие_вывода_хода(этап:usize)->bool {
+        //пока отменил вывод с указанием текущего этапа прохода слов, слишком быстро всё делает и в итоге чисто кроме мусора ничего нет
+        if этап==99 {true} else {false}
+    }
 }
 
 //многопоточность
@@ -666,10 +680,10 @@ pub fn убрать_переносы(
 
     //общий счёт
     let количество_шагов = общий_счёт * содержимое.len();
-    let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
+    //let счетчик_внутренний = ProgressBar::new(количество_шагов as u64);
     let шаг_внутренний = AtomicU64::new(0);
 
-    счетчик_внутренний.set_style(
+    /*счетчик_внутренний.set_style(
         ProgressStyle::with_template(
             "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}",
         )
@@ -678,7 +692,7 @@ pub fn убрать_переносы(
             write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
         })
         .progress_chars("#>-"),
-    );
+    );*/
 
     // Обрабатываем каждую строку параллельно
     содержимое
@@ -733,7 +747,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                    //счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //целиковые
                 for указатель_образца in 0..словарь_замен.целиковые.len()
@@ -756,7 +770,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                    //счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //многобуквенные
                 for указатель_образца in 0..словарь_замен.многобуквенные.len()
@@ -780,7 +794,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                   // счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //трехбуквенные
                 for указатель_образца in 0..словарь_замен.трехбуквенные.len()
@@ -806,7 +820,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                    //счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //двубуквенные
                 for указатель_образца in 0..словарь_замен.двубуквенные.len()
@@ -831,7 +845,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                    //счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //однобуквенные
                 for указатель_образца in 0..словарь_замен.однобуквенные.len()
@@ -855,7 +869,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                    счетчик_внутренний.set_position(текущий_шаг);
+                    //счетчик_внутренний.set_position(текущий_шаг);
                 }
             }
         });

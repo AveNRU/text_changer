@@ -246,4 +246,77 @@ pub struct Куча_Слова_Замены {
     pub слово: String,
     pub вложения: String,
 }
+
+
+#[derive(Debug, Clone)]
+pub struct Образцы_для_разбиения_html {
+    pub образцы: [String;56],
+}
+
+impl Default for Образцы_для_разбиения_html {
+    fn default() -> Self {
+        Self {
+            образцы: [
+                r#"</code>"#.to_string(),
+                r#"</summary>"#.to_string(),
+                r#"</s>"#.to_string(),
+                r#"</strong>"#.to_string(),
+                r#"</dd>"#.to_string(),
+                r#"</dl>"#.to_string(),
+                r#"</dt>"#.to_string(),
+                r#"</article>"#.to_string(),
+                r#"</p>"#.to_string(),
+                r#"</section>"#.to_string(),
+                r#"</time>"#.to_string(),
+                r#"</form>"#.to_string(),
+                r#"<!--]-->"#.to_string(),
+                r#"</h3>"#.to_string(),
+                r#"</h2>"#.to_string(),
+                r#"</h1>"#.to_string(),
+                r#"</em>"#.to_string(),
+                r#"<!--[-->"#.to_string(),
+                r#"<!---->"#.to_string(),
+                r#"</title>"#.to_string(),
+                r#"</div>"#.to_string(),
+                r#"</figcaption>"#.to_string(),
+                r#"</script>"#.to_string(),
+                r#"</picture>"#.to_string(),
+                r#"</br>"#.to_string(),
+                r#"</style>"#.to_string(),
+                r#"</img>"#.to_string(),
+                r#"</path>"#.to_string(),
+                r#"</use>"#.to_string(),
+                r#"</mask>"#.to_string(),
+                r#"</stop>"#.to_string(),
+                r#"</clippath>"#.to_string(),
+                r#"</lineargradient>"#.to_string(),
+                r#"</radialgradient>"#.to_string(),
+                r#"</symbol>"#.to_string(),
+                r#"</rect>"#.to_string(),
+                r#"</span>"#.to_string(),
+                r#"</svg>"#.to_string(),
+                r#"</iframe>"#.to_string(),
+                r#"</a>"#.to_string(),
+                r#"</femergenode>"#.to_string(),
+                r#"</femorphology>"#.to_string(),
+                r#"</femerge>"#.to_string(),
+                r#"</filter>"#.to_string(),
+                r#"</circle>"#.to_string(),
+                r#"</ellipse>"#.to_string(),
+                r#"</g>"#.to_string(),
+                r#"</button>"#.to_string(),
+                r#"</header>"#.to_string(),
+                r#"</li>"#.to_string(),
+                r#"</ul>"#.to_string(),
+                r#"</i>"#.to_string(),
+                r#"</blockquote>"#.to_string(),
+                r#"</video>"#.to_string(),
+                r#"</textarea>"#.to_string(),
+                r#"</body>"#.to_string(),
+            ],
+        }
+    }
+}
+
+
 fn main() {}
