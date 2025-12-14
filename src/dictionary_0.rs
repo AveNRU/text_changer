@@ -809,7 +809,11 @@ pub fn выделить_окончание_из_слова(
                               Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})ости$").unwrap(),//10
                               Regex::new(r"(?i)(?:[цкнгшщзхъфвпрлджчсмтьб]{1})остью$").unwrap(),//11
            ];
-                     static ref re_многобуквенные: [Regex;22] =[
+                     static ref re_многобуквенные: [Regex;26] =[
+                  Regex::new(r"(?i)ности$").unwrap(),
+             Regex::new(r"(?i)ностью$").unwrap(),
+            Regex::new(r"(?i)оваться$").unwrap(),
+             Regex::new(r"(?i)овалась$").unwrap(),
                 Regex::new(r"(?i)иумы$").unwrap(),
                    Regex::new(r"(?i)ования$").unwrap(),
                     Regex::new(r"(?i)овать$").unwrap(),
@@ -838,7 +842,9 @@ pub fn выделить_окончание_из_слова(
 
 
                ];
-            static ref re_трехбуквенные: [Regex;58] =[
+            static ref re_трехбуквенные: [Regex;60] =[
+             Regex::new(r"(?i)ана$").unwrap(),//5
+            Regex::new(r"(?i)ями$").unwrap(),//5
                 Regex::new(r"(?i)аны$").unwrap(),//5
                Regex::new(r"(?i)ано$").unwrap(),//5
                Regex::new(r"(?i)ная$").unwrap(),//5
@@ -902,11 +908,12 @@ pub fn выделить_окончание_из_слова(
                Regex::new(r"(?i)ось$").unwrap(),
                    Regex::new(r"(?i)ном$").unwrap(),
            ];
-                static ref re_двубуквенные: [Regex;56] =[
+                static ref re_двубуквенные: [Regex;57] =[
                 //в первую очередь
                 //двукбуквенные
                 // гласные ([иаяуюыоеэё]+)
                 //остальные
+            Regex::new(r"(?i)ны$").unwrap(),
                Regex::new(r"(?i)на$").unwrap(),
                    Regex::new(r"(?i)го$").unwrap(),
                            Regex::new(r"(?i)ея$").unwrap(),
