@@ -13,6 +13,7 @@ use std::sync::{
     atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use walkdir::WalkDir;
+use crate::lib;
 
 //чтение файла в UTF-8
 pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
@@ -104,11 +105,40 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
     let итог = удалить_shy_из_вектора(&итог);
     let итог = удалить_переносы_из_вектора(итог);
     //return удалить_переносы_строк_html(итог, 0);
-    let итог = добавить_переносы_строк_html(итог, 1);
+    //let итог = добавить_переносы_строк_html(итог, 1);
 
     return удалить_рекламу_после_разбиения_строк(итог);
 
-    //return итог;
+    return итог;
+}
+
+pub fn определить_кодировку(ряд_строк: &Vec<String>) -> lib::Кодировка {
+    // Если вы используете Rayon для параллельной обработки (into_par_iter),
+    // нужно убедиться, что он подключен в Cargo.toml и импортирован
+    use rayon::prelude::*; // Добавьте это вверху файла или здесь
+
+    // Находим первую подходящую кодировку
+    if let Some(кодировка) = ряд_строк
+        .into_par_iter() // Параллельная итерация
+        .find_map_any(|строка| { // find_map_any возвращает первый найденный результат
+            if sz_найти(&строка,r#"content="text/html; charset=windows-1251""#) {
+                Some(lib::Кодировка::windows_1251)
+            } else if sz_найти(&строка,r#"content="text/html; charset=utf-8""#) {
+                Some(lib::Кодировка::utf8)
+            } else if sz_найти(&строка,r#"charset=windows-1251"#) {
+                Some(lib::Кодировка::windows_1251)
+            } else if sz_найти(&строка,r#"charset=utf-8"#) {
+                Some(lib::Кодировка::utf8)
+            } else {
+                None
+            }
+        })
+    {
+        return кодировка;
+    }
+
+    // Если ничего не найдено, возвращаем кодировку по умолчанию
+    lib::Кодировка::utf8
 }
 
 pub fn htm_utf8_без_переносов_строк(
@@ -246,6 +276,8 @@ fn есть_ли_реклама_после_разбиения_строк(
             r#"tm-description-list tm"#.to_string(),
              r#"tm-block"#.to_string(),
             r#"tm-company"#.to_string(),
+
+            //старое
             r#"tm-description-list__body"#.to_string(),
             r#"tm-widget-banner-content__image-wrapper"#.to_string(),
             r#"> Реклама <"#.to_string(),
@@ -292,7 +324,7 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static!{
-                static ref образцы:[String;56]= [
+                static ref образцы:[String;53]= [
                r#"</code>"#.to_string(),
             r#"</summary>"#.to_string(),
             r#"</s>"#.to_string(),
@@ -305,13 +337,13 @@ pub fn добавить_переносы_строк_html(
                r#"</section>"#.to_string(),
              r#"</time>"#.to_string(),
             r#"</form>"#.to_string(),
-            r#"<!--]-->"#.to_string(),
+           // r#"<!--]-->"#.to_string(),
             r#"</h3>"#.to_string(),
              r#"</h2>"#.to_string(),
              r#"</h1>"#.to_string(),
              r#"</em>"#.to_string(),
-            r#"<!--[-->"#.to_string(),
-            r#"<!---->"#.to_string(),
+            //r#"<!--[-->"#.to_string(),
+           // r#"<!---->"#.to_string(),
             r#"</title>"#.to_string(),
             r#"</div>"#.to_string(),
             r#"</figcaption>"#.to_string(),

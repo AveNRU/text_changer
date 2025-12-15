@@ -99,14 +99,41 @@ pub struct Книги {
 }
 
 //содержимое - имя файла и его содержимое
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Вложения {
     pub содержимое: Vec<String>, //содержимое
     pub содержимое_в_байтах: Vec<u8>,
     pub имя: String,
     pub имя_без_пути: String,
+    pub кодировка: Кодировка,
     //pub изображение: Vec<u8>, //если это картинки, нельзя в utf8 переводить
 }
+
+impl Default for Вложения {
+    fn default() -> Self {
+        Self {
+            содержимое: Vec::new(),
+            содержимое_в_байтах: Vec::new(),
+            имя: "".to_string(),
+            имя_без_пути: "".to_string(),
+            кодировка: Кодировка::не_определён,
+            //  счёчтки: 0,
+        }
+    }
+}
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Кодировка {
+    windows_1251,
+    utf8,
+    не_определён,
+}
+
+/*impl Clone for Кодировка {
+    fn clone() -> Self { { SomeStruct
+            кодировка: Кодировка::не_определён,
+            //  счёчтки: 0,
+    }}
+}*/
 //словарь
 #[derive(Debug, Default, Clone)]
 pub struct Словарь {
