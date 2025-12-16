@@ -55,6 +55,7 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
         // };
         //если это статья в altium, habr - удалить рекламу
         if есть_ли_реклама_пропуск_строки(&строка_в_utf8) {
+            итог.push(format!(r#"<!--{}"#,строка_в_utf8));
             continue;
         }
         if отсутствие_закрытого_p_тэга_html_в_строке(&строка_в_utf8)
@@ -105,7 +106,7 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
     let итог = удалить_shy_из_вектора(&итог);
     let итог = удалить_переносы_из_вектора(итог);
     //return удалить_переносы_строк_html(итог, 0);
-    //let итог = добавить_переносы_строк_html(итог, 1);
+    let итог = добавить_переносы_строк_html(итог, 1);
 
     return удалить_рекламу_после_разбиения_строк(итог);
 
@@ -116,7 +117,17 @@ pub fn определить_кодировку(ряд_строк: &Vec<String>) 
     // Если вы используете Rayon для параллельной обработки (into_par_iter),
     // нужно убедиться, что он подключен в Cargo.toml и импортирован
     use rayon::prelude::*; // Добавьте это вверху файла или здесь
+    //let количество_строк: usize = usize::try_from(ряд_строк.len() as f32 *0.1).unwrap().into();
+    //let mut кодировка:lib::Кодировка=lib::Кодировка::utf8;
+    for указатель in 0..30 {
+        if let Some(строка) = ряд_строк.get(указатель) {
 
+        if sz_найти(&строка,r#"content="text/html; charset=windows-1251""#) {
+            return lib::Кодировка::windows_1251
+        }
+        }
+    }
+    /*
     // Находим первую подходящую кодировку
     if let Some(кодировка) = ряд_строк
         .into_par_iter() // Параллельная итерация
@@ -125,20 +136,20 @@ pub fn определить_кодировку(ряд_строк: &Vec<String>) 
                 Some(lib::Кодировка::windows_1251)
             } else if sz_найти(&строка,r#"content="text/html; charset=utf-8""#) {
                 Some(lib::Кодировка::utf8)
-            } else if sz_найти(&строка,r#"charset=windows-1251"#) {
+            }/* else if sz_найти(&строка,r#"charset=windows-1251"#) {
                 Some(lib::Кодировка::windows_1251)
             } else if sz_найти(&строка,r#"charset=utf-8"#) {
                 Some(lib::Кодировка::utf8)
             } else {
                 None
-            }
+            }*/
         })
     {
         return кодировка;
     }
-
+    */
     // Если ничего не найдено, возвращаем кодировку по умолчанию
-    lib::Кодировка::utf8
+    return lib::Кодировка::utf8
 }
 
 pub fn htm_utf8_без_переносов_строк(
@@ -159,6 +170,7 @@ pub fn htm_utf8_без_переносов_строк(
         };
         //если это статья в altium, habr - удалить рекламу
         if есть_ли_реклама_пропуск_строки(&строка_в_utf8) {
+            итог.push(format!(r#"<!--{}"#,строка_в_utf8));
             continue;
         }
         //
@@ -234,7 +246,11 @@ fn удалить_рекламу_после_разбиения_строк(
             /* println!("не нашло объяву {}",i+1);
             println!("сама строка: {}",строка.to_string());
             println!();*/
+
             итог.push(строка.to_string())
+        } else {
+          //  let строка_без_продвижения:String=format!(r#"<!--{}"#,строка);
+            итог.push(format!(r#"<!--{}"#,строка))
         }
     }
     // println!("возврат рекламы");
@@ -324,7 +340,9 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static!{
-                static ref образцы:[String;53]= [
+                static ref образцы:[String;52]= [
+            r#"<!--]-->"#.to_string(),
+                    r#"<!---->"#.to_string(),
                r#"</code>"#.to_string(),
             r#"</summary>"#.to_string(),
             r#"</s>"#.to_string(),
@@ -338,9 +356,9 @@ pub fn добавить_переносы_строк_html(
              r#"</time>"#.to_string(),
             r#"</form>"#.to_string(),
            // r#"<!--]-->"#.to_string(),
-            r#"</h3>"#.to_string(),
-             r#"</h2>"#.to_string(),
-             r#"</h1>"#.to_string(),
+            //r#"</h3>"#.to_string(),
+            // r#"</h2>"#.to_string(),
+            // r#"</h1>"#.to_string(),
              r#"</em>"#.to_string(),
             //r#"<!--[-->"#.to_string(),
            // r#"<!---->"#.to_string(),
