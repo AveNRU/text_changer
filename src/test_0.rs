@@ -29,7 +29,7 @@ use regex::Regex;
    }
    //println!("{:?}",&dictionary_path_vec);
    */
-
+/*
 use std::thread;
 use std::time::Duration;
 
@@ -48,3 +48,4 @@ fn main() {
 
     владение.join().unwrap();
 }
+*/

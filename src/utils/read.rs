@@ -10,7 +10,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Cursor, Read};
 use std::sync::{
     Mutex,
-    atomic::{AtomicU64, AtomicUsize, Ordering},
+    atomic::{AtomicU64, AtomicUsize, Ordering,AtomicBool},
 };
 use walkdir::WalkDir;
 use crate::lib;
@@ -401,11 +401,16 @@ pub fn добавить_переносы_строк_html(
               r#"</body>"#.to_string(),
         ];
     }
-  /*  есть_ли_повторно_строка_в_ряде(
-        &образцы.as_ref(),
-        "Образцы разбиения строк",
-        true
-    );*/
+    //переменная для хранения счётчика проверки
+    static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
+    //сама проверка
+    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
+        есть_ли_повторно_строка_в_ряде(
+            &образцы.as_ref(),
+            "Образцы разбиения строк html",
+            //true
+        );
+    }
 
 
     /*let mut новый_ряд_строк: Vec<String> = Vec::new();
