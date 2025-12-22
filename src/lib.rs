@@ -274,7 +274,7 @@ pub struct Куча_Слова_Замены {
     pub вложения: String,
 }
 
-
+/*
 #[derive(Debug, Clone)]
 pub struct Образцы_для_разбиения_html {
     pub образцы: [String;56],
@@ -344,6 +344,7 @@ impl Default for Образцы_для_разбиения_html {
         }
     }
 }
+*/
 
 
 fn main() {}

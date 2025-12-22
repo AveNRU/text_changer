@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="проверка" type="CargoCommandRunConfiguration" factoryName="Cargo Command" focusToolWindowBeforeRun="true">
+  <configuration default="false" name="проверка2" type="CargoCommandRunConfiguration" factoryName="Cargo Command" focusToolWindowBeforeRun="true">
     <option name="buildProfileId" value="release" />
     <option name="command" value="check --package text_changer" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -10,7 +10,7 @@
     <option name="allFeatures" value="true" />
     <option name="withSudo" value="true" />
     <option name="buildTarget" value="REMOTE" />
-    <option name="backtrace" value="SHORT" />
+    <option name="backtrace" value="FULL" />
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
     <method v="2" />
