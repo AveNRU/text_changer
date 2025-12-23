@@ -6,7 +6,11 @@ description = "Заменитель слов по словарю"
 edition = "2024"
 
 [dependencies]
+#для замера ОЗУ
+cap = "0.1.2"
+#смешные лица
 indicatif = "0.18.3"
+#постоянные данные
 lazy_static = "1.5.0"
 regex = "1.12.2"
 calamine = "0.32.0"
@@ -37,9 +41,11 @@ xml-rs = "1.0.0"
 pretty_assertions = "1.4.1"
 console = "0.16.2"
 rand = "0.9.2"
+dhat = "0.3.3"
 #sha2 = "0.10.9"
 #blake3 = "1.8.2"
 serde = { version = "1.0.228", features = ["derive"] }
+cmake = "0.1.57"
 [workspace]
 members = [
     "rzhavchina_proc_macro",
@@ -54,3 +60,10 @@ debug = true  # Включить отладочную информацию
 
 [profile.release]
 debug = true  # Также
+
+[features]
+dhat-heap = []    # if you are doing heap profiling
+dhat-ad-hoc = []  # if you are doing ad hoc profiling
+
+[rust]
+debuginfo-level = 1

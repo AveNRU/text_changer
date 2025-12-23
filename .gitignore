@@ -21,3 +21,6 @@ logs/xvba_debug.log
 *~
 исправления внести/~$слова.xlsx
 /исправления внести
+*.etl
+/DESKTOP-U90GVHD.12-22-2025.17-44-55.etl.NGENPDB
+dhat-heap.json
