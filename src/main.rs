@@ -52,27 +52,27 @@ fn main() {
     //проверка файлов и папок
     check_1::проверка_содержимого_папок();
     //книги
-    println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     let исходная_книга: Vec<lib::Книги> = import::read::считать_книги(&mut сообщения);
     //словари
-    println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких
     let mut полный_словарь: lib::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей();
     //замена слов в книге
     //сама замена слов
-    println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     let выходные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
         &mut полный_словарь,
         исходная_книга,
         &mut сообщения,
     );
-    println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
     //2write::сохранить_книги(&исходная_книга, &mut сообщения).unwrap();
     //время затраченное в итоге
     //вывод сообщений
-    println!("Выделено памяти(main)6: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти(main)6: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     write::вывод_всей_стопки_сообщений_в_txt(сообщения).unwrap();
     //output времени затраченного в итоге
     println!(

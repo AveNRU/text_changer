@@ -1,6 +1,6 @@
 use crate::lib::{self, Полный_Словарь, Словарь, Ячейка_словаря};
 //use crate::write::{self};
-use calamine::{Data, Reader, Xlsx, open_workbook};
+use calamine::{Data, Reader, Xlsx, open_workbook, Range};
 use convert_case::{Case, Casing};
 use foldhash::{
     HashMap, HashSet, HashSetExt,
@@ -25,9 +25,9 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
     #[cfg(feature = "dhat-ad-hoc")]
     dhat::ad_hoc_event(100);
     // Set the limit to 30000MiB.
-    ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
+   // ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
     // ...
-    println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+   // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     use std::default::Default;
     let пути_до_словарей: Vec<String> = import::read::считать_словари();
     //имя словаря вырезать
@@ -36,7 +36,7 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
 
     //let mut ряд_словарей: Mutex<Vec<lib::Словарь>> = Mutex::new(vec![Default::default();ряд_пути_до_словарей.len()]);
     //перебор всех ряда всех путей до словарей
-    println!("Выделено памяти (словари0): {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти (словари0): {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     let ряд_словарей: Vec<lib::Словарь> =
         //for i in 0..ряд_пути_до_словарей.len() {
         пути_до_словарей.par_iter().enumerate().map(|(i, путь_до_словаря)| {
@@ -73,7 +73,7 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
             //4 - неизменные
             //5 - огласовки
             //чтение содержимого всех страниц
-            println!("Выделено памяти (словари1): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+           // println!("Выделено памяти (словари1): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
             //(0..имена_страниц.len()).into_par_iter().for_each(|(указатель_страницы)| {
             //убрал многопоточку
             (0..имена_страниц.len()).into_iter().for_each(|(указатель_страницы)| {
@@ -94,8 +94,8 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
                     Ok(значение)=>значение,
                     Err(ошибка)=>return,
                 };
-                println!("Выделено памяти (словарь: {}, страница имя: {имя_страницы}): {}B, мегов: {}",&пути_до_словарей[i], ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
-                let содержимое_страницы = match рабочая_книга.lock().unwrap().worksheet_range(&имя_страницы) {
+              //  println!("Выделено памяти (словарь: {}, страница имя: {имя_страницы}): {}B, мегов: {}",&пути_до_словарей[i], ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+                let содержимое_страницы: Range<Data> = match рабочая_книга.lock().unwrap().worksheet_range(&имя_страницы) {
                     Ok(область) => область,
                     Err(e) => {
                         println!(
@@ -105,14 +105,14 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
                         return;
                     }
                 };
-                println!("Выделено памяти после взятия страницы (словарь: {}, страница имя: {имя_страницы}): содержимое: {}B, мегов: {}",&пути_до_словарей[i], ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+               // println!("Выделено памяти после взятия страницы (словарь: {}, страница имя: {имя_страницы}): содержимое: {}B, мегов: {}",&пути_до_словарей[i], ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
                 //получение значения последней ячейки (строка)
                 let первая_строка = содержимое_страницы.start().unwrap_or((0, 0));
                 let последняя_строка = содержимое_страницы.end().unwrap_or((0, 0));
                 //println!("Имя словаря: {имя_словаря} Имя страницы: {имя_страницы} последняя строка: {}",последняя_строка.0);
                 //let mut стопки_со_словами: Mutex<Vec<Ячейка_словаря>> = Mutex::new(Vec::new());
                 //let слова_вложенные:Arc<Mutex<HashSet<String>>>=Arc::new(Mutex::new(HashSet::default()));
-                println!("Выделено памяти (словари до взятия всех слов в странице {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+               // println!("Выделено памяти (словари до взятия всех слов в странице {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
                 //сам перебор содержимого страницы
                 /*let стопки_со_словами: Vec<Ячейка_словаря> =
                     //for указатель_ячейки in первая_строка.0..=последняя_строка.0
@@ -162,7 +162,7 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
                         // &имена_страниц_в_куче,
                     );
                 }
-                println!("Выделено памяти (словари после взятия всех слов в странице {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+                //println!("Выделено памяти (словари после взятия всех слов в странице {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
                 // ПОСЛЕДОВАТЕЛЬНАЯ ЧАСТЬ: анализ данных
                 //определить куда вложить
                 /*в_какую_страницу_вложить_слова_из_словаря(
@@ -172,7 +172,7 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
                    // &имена_страниц_в_куче,
                 );*/
 
-                println!("Выделено памяти (словарь страница: {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+              //  println!("Выделено памяти (словарь страница: {этаж_словаря}): {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
             });
 
             //вложение в общую стопку
@@ -180,26 +180,26 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
             //словарь
         }).collect();
     // ...
-    println!("Выделено памяти2: {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+    //println!("Выделено памяти2: {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
     //возврат словаря
     let полный_словарь: Полный_Словарь =
         добавить_все_слова_в_словарь(ряд_словарей);
     // ...
-    println!("Выделено памяти3: {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
+    //println!("Выделено памяти3: {}B, мегов: {}", ALLOCATOR.allocated(),(ALLOCATOR.allocated()/1024/1024));
     //упорядочить словарь
     let полный_словарь = sz_упорядочить_словарь(полный_словарь);
     // ...
-    println!("Выделено памяти4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //проверка слов по правилам
     проверка_соответствия_правилам(&полный_словарь);
     // ...
-    println!("Выделено памяти5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //println!("Выделено памяти5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //проверка что все поисковые слова и re образцы соответствуют
     проверка_соответствия_искомых_слов_образцам_re(
         &полный_словарь,
     );
     // ...
-    println!("Выделено памяти6: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+   // println!("Выделено памяти6: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //
     проверка_что_замены_не_являются_искомыми_словами(
         &полный_словарь,
