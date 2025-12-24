@@ -33,6 +33,7 @@ use std::io::{
     Read,      //Write
 };
 use std::sync::{Arc, Mutex};
+use console::style;
 use walkdir::{DirEntry, WalkDir};
 //use xml::Encoding::Default;
 use crate::utils::stringzilla::sz_найти;
@@ -42,6 +43,10 @@ use zip::{
     ZipWriter,
 };
 use crate::lib::Кодировка::utf8;
+use std::alloc;
+use cap::Cap;
+use crate::ALLOCATOR;
+
 //use std::collections::HashMap;
 
 lazy_static! {
@@ -71,17 +76,26 @@ pub fn считать_словари() -> Vec<String> {
 pub fn считать_книги(
     сообщения_приход: &mut lib::Сообщения
 ) -> Vec<lib::Книги> {
+    
     use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
     use crate::utils::read::*;
     use crate::utils::regex::*;
     use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
     use std::default::Default;
-    //проверить образцы для переносов строк на предмет повтора
+    // Set the limit to 30000MiB.
+     ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
+    // ...
+    // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //основной путь
     let пути_общие: lib::Пути_Общие = Default::default();
     let mut содержимое_папки: Arc<Mutex<lib::Содержимое_папок>> =
         Arc::new(Mutex::new(lib::Содержимое_папок::default()));
+    //вывод этапа
+    println!(
+        "{}",
+        style(format!("\t[1/4]: Считывание книг")).strikethrough().yellow(),
+    );
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //let полный_путь: String = полный_путь_до_файла().unwrap();
     //let стопки_книг: Mutex<Vec<lib::Книги>> = Mutex::new(Vec::new());
@@ -428,5 +442,16 @@ pub fn считать_книги(
         .extend(vec![Default::default(); стопки_книг.len()]);
     //println!("количество в стопке: {}",&сообщения.проверка_после_замен.len());
     *сообщения_приход = сообщения;
+    //for i in 0..стопки_книг.len() {
+    //    println!("#:{i}, путь: {}, расширение:{}, название книги: {}",стопки_книг[i].путь,стопки_книг[i].расширение,стопки_книг[i].название_книги)
+   // }
+    //println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
+    //вывод этапа
+    let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
+    println!(
+        "{}{}",
+        style(format!("\tВыделено памяти на этапе [1/4]: Считывание книг:")).strikethrough().bold(),
+        style(format!("\tМегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
+    );
     return стопки_книг;
 }

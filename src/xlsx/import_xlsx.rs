@@ -19,13 +19,15 @@ use std::io::BufReader;
 use xml::Encoding::Default;
 use std::alloc;
 use cap::Cap;
+use console::style;
+
 //загрузка словаря
 pub fn загрузка_словарей(// ряд_пути_до_словарей: &Vec<String>,
 ) -> lib::Полный_Словарь {
     #[cfg(feature = "dhat-ad-hoc")]
     dhat::ad_hoc_event(100);
     // Set the limit to 30000MiB.
-   // ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
+    ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
     // ...
    // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     use std::default::Default;
@@ -33,6 +35,11 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
     //имя словаря вырезать
     //итоговая стопка
     let пути_общие: lib::Пути_Общие = Default::default();
+    //вывод этапа
+    println!(
+        "{}",
+        style(format!("\t[2/4]: Загрузка словарей")).strikethrough().yellow(),
+    );
 
     //let mut ряд_словарей: Mutex<Vec<lib::Словарь>> = Mutex::new(vec![Default::default();ряд_пути_до_словарей.len()]);
     //перебор всех ряда всех путей до словарей
@@ -203,6 +210,13 @@ pub fn загрузка_словарей(// ряд_пути_до_словаре�
     //
     проверка_что_замены_не_являются_искомыми_словами(
         &полный_словарь,
+    );
+    //вывод этапа
+    let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
+    println!(
+        "{}{}",
+        style(format!("\tВыделено памяти на этапе [2/4]: Загрузка словарей:")).strikethrough().bold(),
+        style(format!("\tМегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
     );
     return полный_словарь;
     fn определить_этаж_словаря(

@@ -14,7 +14,7 @@ use std::time::{
     Instant,
 };
 extern crate rayon;
-use crate::utils;
+use crate::{utils, ALLOCATOR};
 use crate::utils::functions::*;
 use crate::utils::functions_txt::*;
 use crate::utils::hash::есть_ли_кириллица;
@@ -49,6 +49,11 @@ pub fn заменить_слова_в_книге(
     use lib::{
         Словарь_Переносов, Счётчик_замен, Ячейка_замены
     };
+    //вывод этапа
+    println!(
+        "{}",
+        style(format!("\t[3/4]: Замена слов в книгах по словарю")).strikethrough().yellow(),
+    );
     //шкала
     let mut временные_сообщения: Arc<Mutex<lib::Сообщения>> =
         Arc::new(Mutex::new(сообщения.clone()));
@@ -394,11 +399,17 @@ pub fn заменить_слова_в_книге(
         "Время занятое на замену слов: {:.2?}",
         точка_отсчёта_по_времени.elapsed()
     );
-    println!();
     *сообщения = Arc::try_unwrap(временные_сообщения)
         .unwrap()
         .into_inner()
         .unwrap();
+    //вывод этапа
+    let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
+    println!(
+        "{}{}",
+        style(format!("\tВыделено памяти на этапе [3/4]: Замена слов по словарю:")).strikethrough().bold(),
+        style(format!("\tМегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
+    );
     return книги;
 
     fn проверка_есть_ли_изменения(
