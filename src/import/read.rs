@@ -75,7 +75,7 @@ pub fn считать_словари() -> Vec<String> {
 
 pub fn считать_книги(
     сообщения_приход: &mut lib::Сообщения
-) -> Vec<lib::Книги> {
+) -> (Vec<lib::Книги>,usize) {
     
     use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
@@ -447,11 +447,11 @@ pub fn считать_книги(
    // }
     //println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //вывод этапа
-    let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
+    let количество_мегабайт:usize=((ALLOCATOR.allocated()/1024)/1024);
     println!(
         "{}{}",
         style(format!("\tВыделено памяти на этапе [1/4]: Считывание книг:")).strikethrough().bold(),
         style(format!("\tМегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
     );
-    return стопки_книг;
+    return (стопки_книг,количество_мегабайт);
 }

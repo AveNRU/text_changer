@@ -983,37 +983,37 @@ pub fn создать_словарь_замен() -> Словарь_Перено
             Ячейка_замены {
                 искомое_слово: "-о".to_string(),
                 замена: "о".to_string(),
-                re_образец: Regex::new(r"(?i)-о\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-о\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-а".to_string(),
                 замена: "а".to_string(),
-                re_образец: Regex::new(r"(?i)-а\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-а\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-ь".to_string(),
                 замена: "ь".to_string(),
-                re_образец: Regex::new(r"(?i)-ь\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-ь\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-ы".to_string(),
                 замена: "ы".to_string(),
-                re_образец: Regex::new(r"(?i)-ы\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-ы\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-и".to_string(),
                 замена: "и".to_string(),
-                re_образец: Regex::new(r"(?i)-и\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-и\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-ъ".to_string(),
                 замена: "ъ".to_string(),
-                re_образец: Regex::new(r"(?i)-ъ\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-ъ\b{end}").unwrap(),
             },
             Ячейка_замены {
                 искомое_слово: "-у".to_string(),
                 замена: "у".to_string(),
-                re_образец: Regex::new(r"(?i)-у\b{end}").unwrap(),
+                re_образец: Regex::new(r"(?i)\b{end}-у\b{end}").unwrap(),
             },
         ],
 

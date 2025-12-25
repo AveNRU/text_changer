@@ -376,7 +376,7 @@ pub fn сохранить_книги(
     let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
     println!(
         "{}{}",
-        style(format!("\tВыделено памяти на этапе [4/4]: Сохранение книг:")).strikethrough().bold(),
+        style(format!("\tВыделено памяти на этапе [4/4]: Сохранение книг: ")).strikethrough().bold(),
         style(format!("Мегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
     );
     Ok(())

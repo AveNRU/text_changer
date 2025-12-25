@@ -53,18 +53,18 @@ fn main() {
     check_1::проверка_содержимого_папок();
     //книги
     //println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let исходная_книга: Vec<lib::Книги> = import::read::считать_книги(&mut сообщения);
+    let исходная_книга: (Vec<lib::Книги>,usize) = import::read::считать_книги(&mut сообщения);
     //словари
     //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких
     let mut полный_словарь: lib::Полный_Словарь =
-        xlsx::import_xlsx::загрузка_словарей();
+        xlsx::import_xlsx::загрузка_словарей(исходная_книга.1);
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     let выходные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
         &mut полный_словарь,
-        исходная_книга,
+        исходная_книга.0,
         &mut сообщения,
     );
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
