@@ -250,17 +250,41 @@ fn удалить_рекламу_после_разбиения_строк(
             итог.push(строка.to_string())
         } else {
           //  let строка_без_продвижения:String=format!(r#"<!--{}"#,строка);
-            итог.push(format!(r#"<!--{}"#,строка))
+            let строка=строка.replace("<!--","");
+            let строка=строка.replace("[-->","");
+            let строка=строка.replace("-->","");
+            итог.push(format!(r#"<!--{}-->"#,строка))
         }
     }
     // println!("возврат рекламы");
-    return итог;
+    //удалить пустые строки
+    let mut итог2: Vec<String> = Vec::new();
+    for i in 0..итог.len() {
+        //if итог[i].is_empty() {continue} else {итог2.push(итог[i].clone())}
+        if если_пустая_строка_с_отделителями(&итог[i]) {continue} else {итог2.push(итог[i].clone())}
+    }
+    return итог2;
+}
+pub fn если_пустая_строка_с_отделителями(стог_сена:&String) ->bool{
+    lazy_static!{
+        static ref образец:Regex=Regex::new(r#"^\s*$"#).unwrap();
+    }
+    if образец.is_match(стог_сена) {
+        return true
+    } else {return false}
+    
 }
 fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
     lazy_static! {
-        static ref ряд: [String; 37] = [
+        static ref ряд: [String; 46] = [
+            "tm-article-presente".to_string(),
+            "quest__button".to_string(),
+            "quest__text".to_string(),
+            "v_u_ablock".to_string(),
+            "tm-entity-image".to_string(),
+            "tm-article-presenter".to_string(),
             "tm-user-info__user".to_string(),
             "snippet__author".to_string(),
             "tm-article-sticky-panel".to_string(),
@@ -305,6 +329,10 @@ fn есть_ли_реклама_после_разбиения_строк(
             r#"/banner.html"#.to_string(),
            // r#">Learn More<"#.to_string(),
            // r#"sticky_top _blue-theme _renasas"#.to_string(),
+              r#"tm-input-text"#.to_string(),
+            r#"tm-button"#.to_string(),
+            //пошли сами объявления
+            r#"class="subtitle">Присылаем лучшие статьи раз"#.to_string(),
         ];
 
     }
@@ -341,6 +369,9 @@ pub fn добавить_переносы_строк_html(
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static!{
                 static ref образцы:[String;52]= [
+            //r#"<span data"#.to_string(),
+           // r#"<div class"#.to_string(),
+           // r#"<article class"#.to_string(),
             r#"<!--]-->"#.to_string(),
                     r#"<!---->"#.to_string(),
                r#"</code>"#.to_string(),
@@ -399,6 +430,7 @@ pub fn добавить_переносы_строк_html(
              r#"</video>"#.to_string(),
                  r#"</textarea>"#.to_string(),
               r#"</body>"#.to_string(),
+
         ];
     }
     //переменная для хранения счётчика проверки
