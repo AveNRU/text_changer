@@ -146,6 +146,8 @@ pub struct Словарь {
     pub вездесущее: Vec<Ячейка_словаря>,       //сложные и составные
     pub неизменное: Vec<Ячейка_словаря>,       //
     pub огласовки: Vec<Ячейка_словаря>,        //
+    pub неизменное_короткое: Vec<Ячейка_словаря>,       //
+    pub неизменное_длинное: Vec<Ячейка_словаря>,       //
 }
 
 //словарь переносов
@@ -235,6 +237,8 @@ pub struct Куча_Словарь {
     pub вездесущее: foldhash::HashMap<String, HashSet<usize>>,
     pub неизменное: foldhash::HashMap<String, HashSet<usize>>,
     pub огласовки: foldhash::HashMap<String, HashSet<usize>>,
+    pub неизменное_короткое: foldhash::HashMap<String, HashSet<usize>>,
+    pub неизменное_длинное: foldhash::HashMap<String, HashSet<usize>>,
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
@@ -250,6 +254,8 @@ pub struct Полный_Словарь {
     //неизменные
     pub неизменное: Vec<Ячейка_словаря>, //сложные и составные
     pub огласовки: Vec<Ячейка_словаря>,  //сложные и составные
+    pub неизменное_длинное: Vec<Ячейка_словаря>, //сложные и составные
+    pub неизменное_короткое: Vec<Ячейка_словаря>, //сложные и составные
 }
 
 #[derive(Debug)]
@@ -260,6 +266,8 @@ pub struct Счётчики_Словаря {
     pub вездесущее: Vec<AtomicUsize>,       //одиночные слова
     pub неизменное: Vec<AtomicUsize>,       //одиночные слова
     pub огласовки: Vec<AtomicUsize>,        //одиночные слова
+    pub неизменное_короткое: Vec<AtomicUsize>,       //одиночные слова
+    pub неизменное_длинное: Vec<AtomicUsize>,       //одиночные слова
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
