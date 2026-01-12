@@ -51,7 +51,7 @@ pub fn сохранить_книги(
     //вывод этапа
     println!(
         "{}",
-        style(format!("\t[4/4]: Сохранение книг")).strikethrough().yellow(),
+        style(format!("\t[4/4]: Сохранение книг")).yellow(),
     );
     // сообщения.запись_и_чтение = vec![Default::default(); стопки_книг.len()];
     сообщения.запись_и_чтение.extend(
@@ -376,8 +376,8 @@ pub fn сохранить_книги(
     let количество_мегабайт=((ALLOCATOR.allocated()/1024)/1024);
     println!(
         "{}{}",
-        style(format!("\tВыделено памяти на этапе [4/4]: Сохранение книг: ")).strikethrough().bold(),
-        style(format!("Мегабайт: {}",количество_мегабайт)).strikethrough().blue().bold(),
+        style(format!("\tВыделено памяти на этапе [4/4]: Сохранение книг: ")).bold(),
+        style(format!("Мегабайт: {}",количество_мегабайт)).blue().bold(),
     );
     Ok(())
 }

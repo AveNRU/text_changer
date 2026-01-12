@@ -152,3 +152,8 @@ stack backtrace:
 выравнивание:
 text-align:right сменить на  text-align:left
 
+12.01
+googleadservices убрать и script
+сделать вывод количества книг и текущее чтение
+
+
