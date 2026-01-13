@@ -6,13 +6,13 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 use chrono::*;
 //use unirust::*;
 //use std::collections::HashMap;
+use cap::Cap;
+use std::alloc;
 use std::env;
 use std::time::{
     //Duration,
     Instant,
 };
-use std::alloc;
-use cap::Cap;
 pub mod check_1;
 pub mod dictionary_0;
 pub mod import;
@@ -27,7 +27,6 @@ use crate::utils::functions_add::system_pause;
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
 fn main() {
-
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
     unsafe { env::set_var("RUST_BACKTRACE", "full") };
@@ -53,7 +52,8 @@ fn main() {
     check_1::проверка_содержимого_папок();
     //книги
     //println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let исходная_книга: (Vec<lib::Книги>,usize) = import::read::считать_книги(&mut сообщения);
+    let исходная_книга: (Vec<lib::Книги>, usize) =
+        import::read::считать_книги(&mut сообщения);
     //словари
     //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких

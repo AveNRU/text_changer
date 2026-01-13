@@ -1,3 +1,4 @@
+use crate::lib;
 use crate::utils::functions::строка_удалить_utf8_концы_строк;
 use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::sz_найти;
@@ -10,10 +11,9 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Cursor, Read};
 use std::sync::{
     Mutex,
-    atomic::{AtomicU64, AtomicUsize, Ordering,AtomicBool},
+    atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
 };
 use walkdir::WalkDir;
-use crate::lib;
 
 //чтение файла в UTF-8
 pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
@@ -32,7 +32,7 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
 }
 
 pub fn read_utf8_без_переносов_строк_htm_не_архив(
-    путь_до_файла: &String
+    путь_до_файла: &String,
 ) -> Vec<String> {
     //println!("вхождение: read_utf8_без_переносов_строк_htm");
     let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
@@ -108,13 +108,14 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
     //return удалить_переносы_строк_html(итог, 0);
     let итог = добавить_переносы_строк_html(итог, 1);
 
-    let итог: Vec<String> = удалить_рекламу_после_разбиения_строк(итог);
-    let итог: Vec<String> =  удаление_скриптов_после_разбиения_строк(итог);
-    return удаление_noscript_после_разбиения_строк(итог)
-    //return итог;
+    let итог: Vec<String> =
+        удалить_рекламу_после_разбиения_строк(итог);
+    return удаление_script_мусора_после_разбиения_строк(итог);
 }
 
-pub fn определить_кодировку(ряд_строк: &Vec<String>) -> lib::Кодировка {
+pub fn определить_кодировку(
+    ряд_строк: &Vec<String>
+) -> lib::Кодировка {
     // Если вы используете Rayon для параллельной обработки (into_par_iter),
     // нужно убедиться, что он подключен в Cargo.toml и импортирован
     use rayon::prelude::*; // Добавьте это вверху файла или здесь
@@ -122,12 +123,11 @@ pub fn определить_кодировку(ряд_строк: &Vec<String>) 
     //let mut кодировка:lib::Кодировка=lib::Кодировка::utf8;
     for указатель in 0..30 {
         if let Some(строка) = ряд_строк.get(указатель) {
-
-        if sz_найти(&строка,r#"content="text/html; charset=windows-1251""#) {
-            return lib::Кодировка::windows_1251
+            if sz_найти(&строка, r#"content="text/html; charset=windows-1251""#) {
+                return lib::Кодировка::windows_1251;
+            }
         }
-        }
-    } 
+    }
     /*
     // Находим первую подходящую кодировку
     if let Some(кодировка) = ряд_строк
@@ -150,7 +150,7 @@ pub fn определить_кодировку(ряд_строк: &Vec<String>) 
     }
     */
     // Если ничего не найдено, возвращаем кодировку по умолчанию
-    return lib::Кодировка::utf8
+    return lib::Кодировка::utf8;
 }
 
 pub fn htm_utf8_без_переносов_строк(
@@ -233,11 +233,10 @@ pub fn htm_utf8_без_переносов_строк(
         return удалить_переносы_калибри(&итог);
     }
     //let итог=удалить_переносы_из_вектора(итог);
-    let итог: Vec<String>  = добавить_переносы_строк_html(итог, 1);
-    let итог: Vec<String> = удалить_рекламу_после_разбиения_строк(итог);
-    let итог: Vec<String> =  удаление_скриптов_после_разбиения_строк(итог);
-    return удаление_noscript_после_разбиения_строк(итог)
-    // return итог;
+    let итог: Vec<String> = добавить_переносы_строк_html(итог, 1);
+    let итог: Vec<String> =
+        удалить_рекламу_после_разбиения_строк(итог);
+    return удаление_script_мусора_после_разбиения_строк(итог);
 }
 fn удалить_рекламу_после_разбиения_строк(
     ряд: Vec<String>,
@@ -252,11 +251,11 @@ fn удалить_рекламу_после_разбиения_строк(
 
             итог.push(строка.to_string())
         } else {
-          //  let строка_без_продвижения:String=format!(r#"<!--{}"#,строка);
-            let строка=строка.replace("<!--","");
-            let строка=строка.replace("[-->","");
-            let строка=строка.replace("-->","");
-            итог.push(format!(r#"<!--{}-->"#,строка))
+            //  let строка_без_продвижения:String=format!(r#"<!--{}"#,строка);
+            let строка = строка.replace("<!--", "");
+            let строка = строка.replace("[-->", "");
+            let строка = строка.replace("-->", "");
+            итог.push(format!(r#"<!--{}-->"#, строка))
         }
     }
     // println!("возврат рекламы");
@@ -264,89 +263,21 @@ fn удалить_рекламу_после_разбиения_строк(
     let mut итог2: Vec<String> = Vec::new();
     for i in 0..итог.len() {
         //if итог[i].is_empty() {continue} else {итог2.push(итог[i].clone())}
-        if если_пустая_строка_с_отделителями(&итог[i]) {continue} else {итог2.push(итог[i].clone())}
+        if если_пустая_строка_с_отделителями(&итог[i]) {
+            continue;
+        } else {
+            итог2.push(итог[i].clone())
+        }
     }
-        //удалить скрипты
+    //удалить скрипты
 
     return итог2;
 }
-
-fn удаление_скриптов_после_разбиения_строк(
+pub fn удалить_разделы_html_по_ключевым_словам(
     ряд: Vec<String>,
+    начало_строки: &String,
+    конец_строки: &String,
 ) -> Vec<String> {
-    lazy_static! {
-       
-    static ref начало_строки:String="<script".to_string();
-         static ref конец_строки:String="</script>".to_string();
-    }
-    let mut ряд_общий: Vec<String> = Vec::new();
-    //условие - есть ли конец script
-    let mut условие_script: bool = false;
-    //сам ряд куда вкладываются строки
-    let mut итог: Vec<String> = Vec::new();
-        //
-    //let mut условие_начала:bool=false;
-    for i in 0..ряд.len() {
-        //если начался script
-        if условие_script {
-         /*   if sz_найти(&ряд[i], &начало_строки) {
-                println!("Условие: i:{}|{}|",i+1,&ряд[i]);
-            }*/
-            if sz_найти(&ряд[i], &конец_строки)
-            {
-                //добавляем окончание
-                ряд_общий.push(убрать_примечания_из_строки_c_окончанием(&ряд[i]));
-                //условие возвращается в ложь, что нет script
-                условие_script=false;
-                //вложение в итог
-                итог.extend(ряд_общий);
-                //уничтожение содержимого для нового использования
-                ряд_общий=Vec::new();
-                continue
-            }
-                //если нет конца
-            else {
-                ряд_общий.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
-                continue
-            }
-        } else
-        //ищет начало script
-        if sz_найти(&ряд[i], &начало_строки) {
-            //если есть закрытие script в строке
-            if sz_найти(&ряд[i], &конец_строки) {
-                итог.push(убрать_примечания_из_строки_с_преобразованием(&ряд[i]));
-                условие_script=false;
-                continue
-                //итог.push(format!("{}"));
-            }
-            //если нет закрытия script в строке
-            else {
-               // println!("НЕТ КОНЦА: i:{}|{}|",i+1,&ряд[i]);
-                условие_script=true;
-                let строка=убрать_примечания_из_строки_c_началом(&ряд[i]);
-             //   println!("строка с началом без конца: {}",строка);
-                ряд_общий.push(строка);
-                continue
-               // итог.push(ряд[i].clone());
-            }
-        }
-        //если обычная строка
-        if !условие_script {
-            итог.push(ряд[i].clone());
-        }
-    }
-
-    return итог
-}
-
-fn удаление_noscript_после_разбиения_строк(
-    ряд: Vec<String>,
-) -> Vec<String> {
-    lazy_static! {
-
-    static ref начало_строки:String="<noscript".to_string();
-         static ref конец_строки:String="</noscript>".to_string();
-    }
     let mut ряд_общий: Vec<String> = Vec::new();
     //условие - есть ли конец script
     let mut условие_script: bool = false;
@@ -358,43 +289,47 @@ fn удаление_noscript_после_разбиения_строк(
         //если начался script
         if условие_script {
             /*   if sz_найти(&ряд[i], &начало_строки) {
-                   println!("Условие: i:{}|{}|",i+1,&ряд[i]);
-               }*/
-            if sz_найти(&ряд[i], &конец_строки)
-            {
+                println!("Условие: i:{}|{}|",i+1,&ряд[i]);
+            }*/
+            if sz_найти(&ряд[i], конец_строки) {
                 //добавляем окончание
-                ряд_общий.push(убрать_примечания_из_строки_c_окончанием(&ряд[i]));
+                ряд_общий.push(
+                    убрать_примечания_из_строки_c_окончанием(
+                        &ряд[i],
+                    ),
+                );
                 //условие возвращается в ложь, что нет script
-                условие_script=false;
+                условие_script = false;
                 //вложение в итог
                 итог.extend(ряд_общий);
                 //уничтожение содержимого для нового использования
-                ряд_общий=Vec::new();
-                continue
+                ряд_общий = Vec::new();
+                continue;
             }
             //если нет конца
             else {
                 ряд_общий.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
-                continue
+                continue;
             }
         } else
         //ищет начало script
-        if sz_найти(&ряд[i], &начало_строки) {
+        if sz_найти(&ряд[i], начало_строки) {
             //если есть закрытие script в строке
-            if sz_найти(&ряд[i], &конец_строки) {
+            if sz_найти(&ряд[i], конец_строки) {
                 итог.push(убрать_примечания_из_строки_с_преобразованием(&ряд[i]));
-                условие_script=false;
-                continue
+                условие_script = false;
+                continue;
                 //итог.push(format!("{}"));
             }
             //если нет закрытия script в строке
             else {
                 // println!("НЕТ КОНЦА: i:{}|{}|",i+1,&ряд[i]);
-                условие_script=true;
-                let строка=убрать_примечания_из_строки_c_началом(&ряд[i]);
+                условие_script = true;
+                let строка =
+                    убрать_примечания_из_строки_c_началом(&ряд[i]);
                 //   println!("строка с началом без конца: {}",строка);
                 ряд_общий.push(строка);
-                continue
+                continue;
                 // итог.push(ряд[i].clone());
             }
         }
@@ -403,54 +338,219 @@ fn удаление_noscript_после_разбиения_строк(
             итог.push(ряд[i].clone());
         }
     }
-
-    return итог
+    return итог;
 }
 
-pub fn убрать_примечания_из_строки_с_преобразованием(строка:&String) ->String{
+pub fn удалить_разделы_html_по_ключевым_словам_с_повторами(
+    ряд: Vec<String>,
+    начало_строки: &String,
+    конец_строки: &String,
+) -> Vec<String> {
+    let mut ряд_общий: Vec<String> = Vec::new();
+    //условие - есть ли конец script
+    let mut условие_script: bool = false;
+    //сам ряд куда вкладываются строки
+    let mut итог: Vec<String> = Vec::new();
+    //
+    let mut счётчик_открытий: usize = 0;
+    let mut счётчик_закрытий: usize = 0;
+    //let mut условие_начала:bool=false;
+    for i in 0..ряд.len() {
+        //если начался script
+        if условие_script {
+            if sz_найти(&ряд[i], &начало_строки) {
+                // println!("Условие: i:{}|{}|",i+1,&ряд[i]);
+                счётчик_открытий += 1;
+            }
+            if sz_найти(&ряд[i], конец_строки) {
+                счётчик_закрытий += 1;
+                //добавляем окончание
+                ряд_общий.push(
+                    убрать_примечания_из_строки_c_окончанием(
+                        &ряд[i],
+                    ),
+                );
+                //если это закрытие родное
+                if счётчик_открытий == счётчик_закрытий {
+                    //условие возвращается в ложь, что нет script
+                    условие_script = false;
+                    //вложение в итог
+                    итог.extend(ряд_общий);
+                    //уничтожение содержимого для нового использования
+                    ряд_общий = Vec::new();
+                    //
+                    счётчик_открытий = 0;
+                    счётчик_закрытий = 0;
+                    continue;
+                } else {
+                    continue;
+                }
+
+            }
+            //если нет конца
+            else {
+                ряд_общий.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
+                continue;
+            }
+        } else
+        //ищет начало script
+        if sz_найти(&ряд[i], начало_строки) {
+            //если есть закрытие script в строке
+            if sz_найти(&ряд[i], конец_строки) {
+                итог.push(убрать_примечания_из_строки_с_преобразованием(&ряд[i]));
+                условие_script = false;
+                счётчик_открытий += 1;
+                continue;
+                //итог.push(format!("{}"));
+            }
+            //если нет закрытия script в строке
+            else {
+                // println!("НЕТ КОНЦА: i:{}|{}|",i+1,&ряд[i]);
+                условие_script = true;
+
+                let строка =
+                    убрать_примечания_из_строки_c_началом(&ряд[i]);
+                //   println!("строка с началом без конца: {}",строка);
+                ряд_общий.push(строка);
+                continue;
+                // итог.push(ряд[i].clone());
+            }
+        }
+        //если обычная строка
+        if !условие_script {
+            итог.push(ряд[i].clone());
+        }
+    }
+    return итог;
+}
+fn удаление_script_мусора_после_разбиения_строк(
+    ряд: Vec<String>,
+) -> Vec<String> {
+    const ЧИСЛО_ПРОСТОЕ: usize = 8;
+    const ЧИСЛО_СЛОЖНОЕ: usize = 4;
+    lazy_static! {
+    //static ref начало_строки:String="<script".to_string();
+      //   static ref конец_строки:String="</script>".to_string();
+        static ref начала_строк:[String;ЧИСЛО_ПРОСТОЕ]=[
+            "<script".to_string(),
+            "<noscript".to_string(),
+
+        r#"<a href="https://t.me/"#.to_string(),
+            r#"<footer class="PFModalDual"#.to_string(),
+            format!(r#"<footer class="footer">"#),
+            format!(r#"<header class="header fixed"#),
+            format!(r#"<aside id="column-"#),
+              format!(r##"<section class="section_letter">"##).to_string(),//2
+        ];
+            static ref концы_строк:[String;ЧИСЛО_ПРОСТОЕ]=[
+            "</script>".to_string(),
+            "</noscript>".to_string(),
+
+            "</footer>".to_string(),
+            "</a>".to_string(),
+              "</footer>".to_string(),
+            "</header>".to_string(),
+            " </aside>".to_string(),
+                "</section>".to_string(),//2
+        ];
+        //сложные
+         static ref начала_строк_сложные:[String;ЧИСЛО_СЛОЖНОЕ]=[
+            format!(r#"<div class="PFModalHeader"#),
+            format!(r#"<div class=" PFButtonsContainer"#),
+            format!(r#"<div class="PFModalBody""#),
+            r#"<div class=" PFQrText ">"#.to_string(),
+
+        ];
+            static ref концы_строк_сложные:[String;ЧИСЛО_СЛОЖНОЕ]=[
+            "</div>".to_string(),
+             "</div>".to_string(),
+            "</div>".to_string(),
+            "</div>".to_string(),
+
+
+        ];
+    }
+    let mut итог: Vec<String> = ряд;
+    //удаление с вложенностями
+    for i in 0..начала_строк_сложные.len() {
+        итог=удалить_разделы_html_по_ключевым_словам_с_повторами(итог,&начала_строк_сложные[i],&концы_строк_сложные[i]);
+    }
+    //простые
+    for i in 0..начала_строк.len() {
+        итог = удалить_разделы_html_по_ключевым_словам(
+            итог,
+            &начала_строк[i],
+            &концы_строк[i],
+        );
+    }
+
+    return итог;
+}
+
+pub fn убрать_примечания_из_строки_с_преобразованием(
+    строка: &String,
+) -> String {
     let строка = строка.replace("<!--", "");
     let строка = строка.replace("[-->", "");
     let строка = строка.replace("-->", "");
-    return format!(r#"<!--{}-->"#, строка)
+    return format!(r#"<!--{}-->"#, строка);
 }
 
-pub fn убрать_примечания_из_строки_без_преобразований(строка:&String) ->String{
+pub fn убрать_примечания_из_строки_без_преобразований(
+    строка: &String,
+) -> String {
     let строка = строка.replace("<!--", "");
     let строка = строка.replace("[-->", "");
     let строка = строка.replace("-->", "");
-    return строка
+    return строка;
 }
 
-pub fn убрать_примечания_из_строки_c_окончанием(строка:&String) ->String{
+pub fn убрать_примечания_из_строки_c_окончанием(
+    строка: &String,
+) -> String {
     let строка = строка.replace("<!--", "");
     let строка = строка.replace("[-->", "");
     let строка = строка.replace("-->", "");
-    return format!(r#"{}-->"#, строка)
+    return format!(r#"{}-->"#, строка);
 }
 
-pub fn убрать_примечания_из_строки_c_началом(строка:&String) ->String{
+pub fn убрать_примечания_из_строки_c_началом(
+    строка: &String,
+) -> String {
     let строка = строка.replace("<!--", "");
     let строка = строка.replace("[-->", "");
     let строка = строка.replace("-->", "");
-    return format!(r#"<!--{}"#, строка)
+    return format!(r#"<!--{}"#, строка);
 }
-
 
 //
-pub fn если_пустая_строка_с_отделителями(стог_сена:&String) ->bool{
-    lazy_static!{
-        static ref образец:Regex=Regex::new(r#"^\s*$"#).unwrap();
+pub fn если_пустая_строка_с_отделителями(
+    стог_сена: &String
+) -> bool {
+    lazy_static! {
+        static ref образец: Regex = Regex::new(r#"^\s*$"#).unwrap();
     }
     if образец.is_match(стог_сена) {
-        return true
-    } else {return false}
-    
+        return true;
+    } else {
+        return false;
+    }
 }
 fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
     lazy_static! {
-        static ref ряд: [String; 46] = [
+        static ref ряд: [String; 53] = [
+            //radio prog
+            r#"<a class="wcommunity_avatar""#.to_string(),
+            r#"<a class="wcommunity_subscribers"#.to_string(),
+            //https://www.avclub.pro/
+            "PFQrScanImage".to_string(),
+            "Chat widget".to_string(),
+            format!(r#"<a target="_blank" href="https://widget"#),
+            "сделано в </span".to_string(),
+            //
+            "tawk-chat-message-container".to_string(),
             "tm-article-presente".to_string(),
             "quest__button".to_string(),
             "quest__text".to_string(),
@@ -506,7 +606,12 @@ fn есть_ли_реклама_после_разбиения_строк(
             //пошли сами объявления
             r#"class="subtitle">Присылаем лучшие статьи раз"#.to_string(),
         ];
+        static ref двойные_слова_1:[String;1]=[
+            "Promotions".to_string(),
+        ];
+        /*static ref двойные_слова_2:[String;1]=[
 
+        ];*/
     }
     for i in 0..ряд.len() {
         if sz_найти(&строка, &ряд[i]) {
@@ -515,7 +620,7 @@ fn есть_ли_реклама_после_разбиения_строк(
         }
     }
     if есть_ли_реклама_пропуск_строки(&строка) {
-        return true
+        return true;
     }
 
     return false;
@@ -542,11 +647,15 @@ pub fn добавить_переносы_строк_html(
     указатель: usize,
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
-    lazy_static!{
-                static ref образцы:[String;52]= [
+    lazy_static! {
+                static ref образцы:[String;56]= [
             //r#"<span data"#.to_string(),
            // r#"<div class"#.to_string(),
            // r#"<article class"#.to_string(),
+            "</defs>".to_string(),
+             r#"content="text/html; charset=UTF-8">"#.to_string(),
+            "</template>".to_string(),
+            "</head>".to_string(),
             r#"<!--]-->"#.to_string(),
                     r#"<!---->"#.to_string(),
                r#"</code>"#.to_string(),
@@ -619,7 +728,6 @@ pub fn добавить_переносы_строк_html(
         );
     }
 
-
     /*let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..входные_строки.len() {
         if sz_найти(&входные_строки[i], r#"</div>"#) {
@@ -638,13 +746,17 @@ pub fn добавить_переносы_строк_html(
     let mut новый_ряд_строк: Vec<String> = входные_строки;
     //прогон через все образцы
     for i in 0..образцы.len() {
-        новый_ряд_строк=разбить_строки_через_образец(новый_ряд_строк,&образцы[i]);
+        новый_ряд_строк =
+            разбить_строки_через_образец(новый_ряд_строк, &образцы[i]);
     }
-    return новый_ряд_строк
+    return новый_ряд_строк;
     //входные_строки
 }
 
-pub fn разбить_строки_через_образец(исходный_ряд_строк:Vec<String>,образец:&String) ->Vec<String>{
+pub fn разбить_строки_через_образец(
+    исходный_ряд_строк: Vec<String>,
+    образец: &String,
+) -> Vec<String> {
     let mut новый_ряд_строк: Vec<String> = Vec::new();
     for i in 0..исходный_ряд_строк.len() {
         if sz_найти(&исходный_ряд_строк[i], &образец) {

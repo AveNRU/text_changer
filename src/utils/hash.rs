@@ -1,18 +1,17 @@
 use crate::utils::functions_txt::{
     есть_ли_повторно_строка_в_ряде, есть_ли_повторно_строка_в_ряде_regex,
 };
-use std::sync::atomic::{AtomicBool, Ordering};
 use crate::utils::stringzilla::sz_найти;
 use foldhash::{HashMap, HashMapExt, HashSet};
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 //use time::Month::January;
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
-    
     lazy_static! {
 
              static ref fb3_исключения_простые: [String;5] = [
@@ -136,15 +135,15 @@ pub fn xml_получить_указатели_на_пропуски(
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //сама проверка
-    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst){
-    if !проверка_образцов_для_кучи(
-        &*fb3_исключения,
-        &*fb3_re_исключения,
-        &исключения_для_проверки,
-        "fb3_исключения",
-    ) {
-        panic!()
-    }
+    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
+        if !проверка_образцов_для_кучи(
+            &*fb3_исключения,
+            &*fb3_re_исключения,
+            &исключения_для_проверки,
+            "fb3_исключения",
+        ) {
+            panic!()
+        }
     };
     //получение значений
 
@@ -209,8 +208,6 @@ pub fn xml_получить_указатели_на_пропуски(
 pub fn fb2_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
 ) -> HashSet<usize> {
- 
-   
     lazy_static! {
         static ref fb2_исключения: [String;46] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
@@ -320,15 +317,15 @@ pub fn fb2_получить_указатели_на_пропуки(
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //
-    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst){
-    if !проверка_образцов_для_кучи(
-        &*fb2_исключения,
-        &*fb2_re_исключения,
-        &исключения_для_проверки,
-        "fb2_исключения",
-    ) {
-        panic!()
-    }
+    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
+        if !проверка_образцов_для_кучи(
+            &*fb2_исключения,
+            &*fb2_re_исключения,
+            &исключения_для_проверки,
+            "fb2_исключения",
+        ) {
+            panic!()
+        }
     };
     //получение значений
 
@@ -575,7 +572,7 @@ pub fn md_получить_указатели_на_пропуки(
         }
     }
 
-//получение значений
+    //получение значений
 
     let пропуски: HashSet<usize> = содержимое
         .into_par_iter()
@@ -639,7 +636,7 @@ fn проверка_образцов_для_кучи(
     исключения: &[String],
     исключения_re: &[Regex],
     исключения_проверки: &HashSet<usize>,
-    сообщение:&str,
+    сообщение: &str,
 ) -> bool {
     if исключения.len() != исключения_re.len() {
         panic!("не равно количество исключений md")
@@ -666,7 +663,6 @@ fn проверка_образцов_для_кучи(
                     )
                 }
             });
-       
     }
     //есть ли повторно исключения - строки обычные в ряде
     есть_ли_повторно_строка_в_ряде(&исключения, сообщение);

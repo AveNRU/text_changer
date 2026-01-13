@@ -25,6 +25,7 @@ use crate::utils::regex::re_получить_строку_с_описанием;
 use lazy_static::lazy_static;
 //use std::path::Path;
 use clap::builder::Str;
+use console::style;
 use std::fs::{self, File, read_to_string};
 use std::io::{
     //self,
@@ -33,19 +34,18 @@ use std::io::{
     Read,      //Write
 };
 use std::sync::{Arc, Mutex};
-use console::style;
 use walkdir::{DirEntry, WalkDir};
 //use xml::Encoding::Default;
+use crate::ALLOCATOR;
+use crate::lib::Кодировка::utf8;
 use crate::utils::stringzilla::sz_найти;
+use cap::Cap;
+use std::alloc;
 use zip::{
     //write::FileOptions, CompressionMethod,
     ZipArchive,
     ZipWriter,
 };
-use crate::lib::Кодировка::utf8;
-use std::alloc;
-use cap::Cap;
-use crate::ALLOCATOR;
 
 //use std::collections::HashMap;
 
@@ -74,9 +74,8 @@ pub fn считать_словари() -> Vec<String> {
 }
 
 pub fn считать_книги(
-    сообщения_приход: &mut lib::Сообщения
-) -> (Vec<lib::Книги>,usize) {
-    
+    сообщения_приход: &mut lib::Сообщения,
+) -> (Vec<lib::Книги>, usize) {
     use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
     use crate::utils::read::*;
@@ -84,7 +83,7 @@ pub fn считать_книги(
     use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
     use std::default::Default;
     // Set the limit to 30000MiB.
-     ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
+    ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
     // ...
     // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //основной путь
@@ -92,10 +91,7 @@ pub fn считать_книги(
     let mut содержимое_папки: Arc<Mutex<lib::Содержимое_папок>> =
         Arc::new(Mutex::new(lib::Содержимое_папок::default()));
     //вывод этапа
-    println!(
-        "{}",
-        style(format!("\t[1/4]: Считывание книг")).yellow(),
-    );
+    println!("{}", style(format!("\t[1/4]: Считывание книг")).yellow(),);
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //let полный_путь: String = полный_путь_до_файла().unwrap();
     //let стопки_книг: Mutex<Vec<lib::Книги>> = Mutex::new(Vec::new());
@@ -169,7 +165,7 @@ pub fn считать_книги(
                     имя_без_пути: re_получить_имя_файла_без_пути(
                         &название_книги,
                     ),
-                    кодировка:utf8,
+                    кодировка: utf8,
                 }];
                 вложить_строку_в_ряд_с_проверкой(
                     &mut содержимое_папки.lock().unwrap().файлы,
@@ -300,7 +296,8 @@ pub fn считать_книги(
             } else if md_fs_yml(&путь) {
                 //   println!("вхождение: md_fs_yml");
                 let содержимое: Vec<String> = read_utf8(&путь); //чтение файла в UTF-8
-                let кодировка: lib::Кодировка=определить_кодировку(&содержимое);
+                let кодировка: lib::Кодировка =
+                    определить_кодировку(&содержимое);
                 let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
                     содержимое: содержимое,
                     имя: название_книги.clone(),
@@ -329,7 +326,8 @@ pub fn считать_книги(
                 //      println!("вхождение: htm_html_xhtml");
                 let содержимое: Vec<String> =
                     read_utf8_без_переносов_строк_htm_не_архив(&путь); //чтение файла в UTF-8
-                let кодировка: lib::Кодировка=определить_кодировку(&содержимое);
+                let кодировка: lib::Кодировка =
+                    определить_кодировку(&содержимое);
                 let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
                     содержимое: содержимое,
                     имя: название_книги.clone(),
@@ -373,7 +371,7 @@ pub fn считать_книги(
                         имя: название_книги.clone(),
                         имя_без_пути: имя_файла_без_пути,
                         содержимое_в_байтах: содержимое,
-                        кодировка:lib::Кодировка::не_определён,
+                        кодировка: lib::Кодировка::не_определён,
                     }];
                     Some(lib::Книги {
                         вложения: стопка,
@@ -389,7 +387,8 @@ pub fn считать_книги(
                     //         println!("вхождение: если не изображение");
                     //если не изображение
                     let содержимое: Vec<String> = read_utf8(&путь); //чтение файла в UTF-8
-                    let кодировка: lib::Кодировка=определить_кодировку(&содержимое);
+                    let кодировка: lib::Кодировка =
+                        определить_кодировку(&содержимое);
                     let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
                         содержимое: содержимое,
                         имя: название_книги.clone(),
@@ -444,14 +443,19 @@ pub fn считать_книги(
     *сообщения_приход = сообщения;
     //for i in 0..стопки_книг.len() {
     //    println!("#:{i}, путь: {}, расширение:{}, название книги: {}",стопки_книг[i].путь,стопки_книг[i].расширение,стопки_книг[i].название_книги)
-   // }
+    // }
     //println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //вывод этапа
-    let количество_мегабайт:usize=((ALLOCATOR.allocated()/1024)/1024);
+    let количество_мегабайт: usize = ((ALLOCATOR.allocated() / 1024) / 1024);
     println!(
         "{}{}",
-        style(format!("\tВыделено памяти на этапе [1/4]: Считывание книг:")).bold(),
-        style(format!("\tМегабайт: {}",количество_мегабайт)).blue().bold(),
+        style(format!(
+            "\tВыделено памяти на этапе [1/4]: Считывание книг:"
+        ))
+        .bold(),
+        style(format!("\tМегабайт: {}", количество_мегабайт))
+            .blue()
+            .bold(),
     );
-    return (стопки_книг,количество_мегабайт);
+    return (стопки_книг, количество_мегабайт);
 }

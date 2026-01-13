@@ -528,10 +528,10 @@ pub fn замена_слов_через_кучу(
     расширение: &str,
     куча_пропусков: &HashSet<usize>,
     словарь_куча: &HashMap<String, HashSet<usize>>,
-    этап:usize,
-    указатель_содержимого:usize,
-    количество_вложений:usize,
-    вложенный_ли_файл_к_html:bool,
+    этап: usize,
+    указатель_содержимого: usize,
+    количество_вложений: usize,
+    вложенный_ли_файл_к_html: bool,
 ) {
     let spinner_style = ProgressStyle::with_template("{wide_msg}")
         .unwrap()
@@ -553,11 +553,11 @@ pub fn замена_слов_через_кучу(
             ProgressStyle::with_template(
                 "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg:.green}",
             )
-                .unwrap()
-                .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
-                    write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
-                })
-                .progress_chars("#>-"),
+            .unwrap()
+            .with_key("eta", |state: &ProgressState, w: &mut dyn Write| {
+                write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
+            })
+            .progress_chars("#>-"),
         );
         счетчик_внутренний.set_message(format!("{}", сообщение));
     } else {
@@ -636,9 +636,9 @@ pub fn замена_слов_через_кучу(
     .for_each(|(указатель, число)| {
         счётчик_словаря[указатель].fetch_add(число.load(Ordering::Relaxed), Ordering::Relaxed); //
     });*/
-    fn условие_вывода_хода(этап:usize)->bool {
+    fn условие_вывода_хода(этап: usize) -> bool {
         //пока отменил вывод с указанием текущего этапа прохода слов, слишком быстро всё делает и в итоге чисто кроме мусора ничего нет
-        if этап==99 {true} else {false}
+        if этап == 99 { true } else { false }
     }
 }
 
@@ -795,7 +795,7 @@ pub fn убрать_переносы(
                     }
                     // Обновляем прогресс
                     let текущий_шаг = шаг_внутренний.fetch_add(1, Ordering::Relaxed) + 1;
-                   // счетчик_внутренний.set_position(текущий_шаг);
+                    // счетчик_внутренний.set_position(текущий_шаг);
                 }
                 //трехбуквенные
                 for указатель_образца in 0..словарь_замен.трехбуквенные.len()
@@ -1018,6 +1018,12 @@ pub fn создать_словарь_замен() -> Словарь_Перено
         ],
 
         многобуквенные: [
+            
+        Ячейка_замены {
+        искомое_слово: "-ройства ".to_string(),
+        замена: "ройства".to_string(),
+        re_образец: Regex::new(r"(?i)-ройствао\b{end}").unwrap(),
+    },
             Ячейка_замены {
                 искомое_слово: "-вязывающего ".to_string(),
                 замена: "вязывающего".to_string(),
@@ -1932,12 +1938,11 @@ pub fn создать_словарь_замен() -> Словарь_Перено
             },
         ],
         двубуквенные: [
-            
-        Ячейка_замены {
-        искомое_слово: "-ца".to_string(),
-        замена: "ца".to_string(),
-        re_образец: Regex::new(r"(?i)-ца\b{end}").unwrap(),
-    },
+            Ячейка_замены {
+                искомое_слово: "-ца".to_string(),
+                замена: "ца".to_string(),
+                re_образец: Regex::new(r"(?i)-ца\b{end}").unwrap(),
+            },
             Ячейка_замены {
                 искомое_слово: "-сы".to_string(),
                 замена: "сы".to_string(),
@@ -2068,7 +2073,7 @@ pub fn создать_словарь_замен() -> Словарь_Перено
                 замена: "ее".to_string(),
                 re_образец: Regex::new(r"(?i)-ее\b{end}").unwrap(),
             },
-           /* Ячейка_замены {
+            /* Ячейка_замены {
                 искомое_слово: "-ой".to_string(),
                 замена: "ой".to_string(),
                 re_образец: Regex::new(r"(?i)-ой\b{end}").unwrap(),
@@ -3851,7 +3856,7 @@ pub fn проверка_ряда_regex_замен(
             // Проверка на дубликаты
             let повторы: HashSet<String> = (0..ряд.len())
                 .into_par_iter()
-                .filter(|j|*j!=i)
+                .filter(|j| *j != i)
                 .filter_map(|j| {
                     if ряд[i].as_str() == ряд[j].as_str() {
                         Some(format!("есть совпадение Regex: {}", ряд[i]))
