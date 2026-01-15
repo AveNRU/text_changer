@@ -13,6 +13,8 @@ use std::time::{
     //Duration,
     Instant,
 };
+use xml::Encoding::Default;
+
 pub mod check_1;
 pub mod dictionary_0;
 pub mod import;
@@ -27,6 +29,7 @@ use crate::utils::functions_add::system_pause;
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
 fn main() {
+    use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
     unsafe { env::set_var("RUST_BACKTRACE", "full") };
@@ -60,7 +63,7 @@ fn main() {
     let mut полный_словарь: lib::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей(исходная_книга.1);
     //сохранение исходных книг - с разделениями
-    //write::сохранить_книги_с_разделениями(&исходная_книга.0, &mut сообщения).unwrap();
+    write::сохранить_книги_с_разделениями(&исходная_книга.0, &mut сообщения).unwrap();
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
@@ -69,6 +72,7 @@ fn main() {
         исходная_книга.0,
         &mut сообщения,
     );
+   
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
     

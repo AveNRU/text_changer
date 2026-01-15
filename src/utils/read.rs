@@ -582,15 +582,51 @@ fn удаление_script_мусора_после_разбиения_строк
                 начало_простое:r##"<div"##.to_string(),
                 },
             ];
-        static ref заготовленный_ряд:[Ячейка_замены_объявления;33]= [
+        static ref заготовленный_ряд:[Ячейка_замены_объявления;37]= [
+                       Ячейка_замены_объявления {
+                       начало: format!(r#"<footer class="web_footer">"#),
+                      конец:"</footer>".to_string(),
+                re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
+                 re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
+                начало_простое:r##"<footer"##.to_string(),
+            },
+                 Ячейка_замены_объявления {
+                       начало: format!(r#"<iframe src=""#),
+                      конец:"</iframe>".to_string(),
+                re_образец_конца:Regex::new(r##"</iframe>"##).unwrap(),
+                 re_образец_начала:Regex::new(r##"<iframe"##).unwrap(),
+                начало_простое:r##"<iframe"##.to_string(),
+                },
 
-Ячейка_замены_объявления {
+            Ячейка_замены_объявления {
+                       начало: format!(r#"<input type="button" value="google"#),
+                      конец:"</input>".to_string(),
+                re_образец_конца:Regex::new(r##"</input>"##).unwrap(),
+                 re_образец_начала:Regex::new(r##"<input"##).unwrap(),
+                начало_простое:r##"<input"##.to_string(),
+                },
+                       Ячейка_замены_объявления {
+                       начало: format!(r#"<h1 class="title" id="title"><em>"#),
+                      конец:"</h1>".to_string(),
+                re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
+                 re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
+                начало_простое:r##"<h1"##.to_string(),
+                },
+            Ячейка_замены_объявления {
+                       начало: format!(r#"<h1 class="title"><em>"#),
+                      конец:"</h1>".to_string(),
+                re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
+                 re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
+                начало_простое:r##"<h1"##.to_string(),
+                },
+
+/*Ячейка_замены_объявления {
                        начало: format!(r#"<div class="vc_row"#),
                       конец:"</div>".to_string(),
                 re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
                  re_образец_начала:Regex::new(r##"<div"##).unwrap(),
                 начало_простое:r##"<div"##.to_string(),
-                },
+                },*/
 Ячейка_замены_объявления {
                        начало: format!(r#"<div class="tagcloud"#),
                       конец:"</div>".to_string(),
