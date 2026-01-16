@@ -107,7 +107,7 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
     let итог = удалить_переносы_из_вектора(итог);
     //return удалить_переносы_строк_html(итог, 0);
     let итог = добавить_переносы_строк_html(итог, 1);
-    let итог=удалить_примечания_с_пустых_строк(итог);
+    let итог = удалить_примечания_с_пустых_строк(итог);
 
     let итог: Vec<String> =
         удалить_рекламу_после_разбиения_строк(итог);
@@ -236,14 +236,14 @@ pub fn htm_utf8_без_переносов_строк(
 
     //let итог=удалить_переносы_из_вектора(итог);
     let итог: Vec<String> = добавить_переносы_строк_html(итог, 1);
-    let итог=удалить_примечания_с_пустых_строк(итог);
+    let итог = удалить_примечания_с_пустых_строк(итог);
     let итог: Vec<String> =
         удалить_рекламу_после_разбиения_строк(итог);
     return удаление_script_мусора_после_разбиения_строк(итог);
 }
 
 fn удалить_примечания_с_пустых_строк(
-    ряд: Vec<String>,
+    ряд: Vec<String>
 ) -> Vec<String> {
     //пути
     #[derive(Debug, Clone)]
@@ -251,18 +251,18 @@ fn удалить_примечания_с_пустых_строк(
         pub обычное: String,
         pub re: Regex,
     }
-    lazy_static!{
-        static ref ряд_образцов:[Образец;3] = [
-            Образец{
-                обычное:"<!--".to_string(),
+    lazy_static! {
+        static ref ряд_образцов: [Образец; 3] = [
+            Образец {
+                обычное: "<!--".to_string(),
                 re: Regex::new(r"^(?i)\s*(<!--)\s*$").unwrap(),
             },
-                Образец{
-                обычное:"[-->".to_string(),
+            Образец {
+                обычное: "[-->".to_string(),
                 re: Regex::new(r"^(?i)\s*(\[-->)\s*$").unwrap(),
             },
-                Образец{
-                обычное:"-->".to_string(),
+            Образец {
+                обычное: "-->".to_string(),
                 re: Regex::new(r"^(?i)\s*(-->)\s*$").unwrap(),
             },
         ];
@@ -273,29 +273,27 @@ fn удалить_примечания_с_пустых_строк(
     let mut i = 0;
     while i < ряд.len() {
         'mark_j: for j in 0..ряд_образцов.len() {
-            if sz_найти(&ряд[i],&ряд_образцов[j].обычное) {
+            if sz_найти(&ряд[i], &ряд_образцов[j].обычное) {
                 if ряд_образцов[j].re.is_match(&ряд[i]) {
                     //если это начало - то на следующую строку
-                    if j==0 || j==1 {
-                        let строка=format!("{}{}",ряд[i],ряд[i+1]);
+                    if j == 0 || j == 1 {
+                        let строка = format!("{}{}", ряд[i], ряд[i + 1]);
                         итог.push(строка);
-                        i+=2;
+                        i += 2;
                         continue;
                     }
                     //если конец - то на предыдущую
                     else {
-                        let строка=format!("{}{}",ряд[i-1],ряд[i]);
+                        let строка = format!("{}{}", ряд[i - 1], ряд[i]);
                         итог.push(строка);
-                        i+=1;
+                        i += 1;
                         continue;
                     }
                 }
             }
-
         }
         итог.push(ряд[i].clone());
-        i+=1;
-
+        i += 1;
     }
     //println!("количество строк: {}",ряд.len());
 
@@ -335,8 +333,7 @@ fn удалить_рекламу_после_разбиения_строк(
             println!();*/
 
             итог.push(строка.to_string())
-        }
-        else {
+        } else {
             //  let строка_без_продвижения:String=format!(r#"<!--{}"#,строка);
             let строка = строка.replace("<!--", "");
             let строка = строка.replace("[-->", "");
@@ -429,9 +426,15 @@ pub fn удалить_разделы_html_по_ключевым_словам(
 use crate::lib::Ячейка_замены_объявления;
 pub fn удалить_разделы_html_по_ключевым_словам_с_повторами(
     ряд: Vec<String>,
-    заготовленный_ряд:&Ячейка_замены_объявления,
+    заготовленный_ряд: &Ячейка_замены_объявления,
 ) -> Vec<String> {
-    let условие_образца:bool=if sz_найти(&заготовленный_ряд.начало,r##"<div class="PFModalBody"##) {true} else {false};
+    let условие_образца: bool =
+        if sz_найти(&заготовленный_ряд.начало, r##"<div class="PFModalBody"##)
+        {
+            true
+        } else {
+            false
+        };
     let mut ряд_общий: Vec<String> = Vec::new();
     //условие - есть ли конец script
     let mut условие_script: bool = false;
@@ -445,23 +448,38 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
         //если начался script
         if условие_script {
             //если начало найдено
-            if sz_найти(&ряд[i], &заготовленный_ряд.начало_простое) {
+            if sz_найти(&ряд[i], &заготовленный_ряд.начало_простое)
+            {
                 // println!("Условие: i:{}|{}|",i+1,&ряд[i]);
 
-                счётчик_открытий +=  заготовленный_ряд.re_образец_начала.find_iter(&ряд[i]).count();
+                счётчик_открытий += заготовленный_ряд
+                    .re_образец_начала
+                    .find_iter(&ряд[i])
+                    .count();
                 if условие_образца {
-                    println!("нашло доп начало: i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",i+1,&ряд[i]);
+                    println!(
+                        "нашло доп начало: i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",
+                        i + 1,
+                        &ряд[i]
+                    );
                 }
             }
             //если конец найден
             if sz_найти(&ряд[i], &заготовленный_ряд.конец) {
-                счётчик_закрытий += заготовленный_ряд.re_образец_конца.find_iter(&ряд[i]).count();
+                счётчик_закрытий += заготовленный_ряд
+                    .re_образец_конца
+                    .find_iter(&ряд[i])
+                    .count();
                 //добавляем окончание
 
                 //если это закрытие родное
                 if счётчик_открытий == счётчик_закрытий {
-                   if условие_образца {
-                        println!("окончание. i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",i+1,&ряд[i]);
+                    if условие_образца {
+                        println!(
+                            "окончание. i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",
+                            i + 1,
+                            &ряд[i]
+                        );
                     }
                     //условие возвращается в ложь, что нет script
                     условие_script = false;
@@ -485,17 +503,20 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
                             &ряд[i],
                         ),
                     );
-                   if условие_образца {
-                        println!("счётчик не сошёлся: i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",i+1,&ряд[i]);
+                    if условие_образца {
+                        println!(
+                            "счётчик не сошёлся: i: {}, строка: {}\r\nсчётчик_открытий:|{счётчик_открытий}|,счётчик_закрытий:|{счётчик_закрытий}|",
+                            i + 1,
+                            &ряд[i]
+                        );
                     }
                     continue;
                 }
-
             }
             //если нет конца
             else {
                 if условие_образца {
-                    println!("не нашло: i: {}, строка: {}",i+1,&ряд[i]);
+                    println!("не нашло: i: {}, строка: {}", i + 1, &ряд[i]);
                 }
                 ряд_общий.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
                 continue;
@@ -518,7 +539,12 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
                 условие_script = true;
                 счётчик_открытий += 1;
                 if условие_образца {
-                    println!("условие_script: i: {}, строка: {}, счётчик_открытий:|{}|",i+1,&ряд[i],счётчик_открытий);
+                    println!(
+                        "условие_script: i: {}, строка: {}, счётчик_открытий:|{}|",
+                        i + 1,
+                        &ряд[i],
+                        счётчик_открытий
+                    );
                 }
                 let строка =
                     убрать_примечания_из_строки_c_началом(&ряд[i]);
@@ -540,323 +566,454 @@ fn удаление_script_мусора_после_разбиения_строк
 ) -> Vec<String> {
     use crate::lib::Ячейка_замены_объявления;
     lazy_static! {
-        static ref заготовленный_ряд_большой:[Ячейка_замены_объявления;5]= [
+            static ref заготовленный_ряд_большой:[Ячейка_замены_объявления;9]= [
+               /* Ячейка_замены_объявления {
+                           начало: format!(r#"<header id="page-header""#),
+                    конец:"</<header>".to_string(),
+                    re_образец_конца:Regex::new(r##"</<header>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<<header"##).unwrap(),
+                    начало_простое:r##"<<header"##.to_string(),
+                    },*/
+                                               Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="w-grid"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
 
-                      Ячейка_замены_объявления {
-                       начало: format!(r#"<aside id="sidebar"#),
-                конец:"</aside>".to_string(),
-                re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
-                начало_простое:r##"<aside"##.to_string(),
-                },
-              Ячейка_замены_объявления {
-                       начало: format!(r#"<aside id="column-"#),
-                конец:"</aside>".to_string(),
-                re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
-                начало_простое:r##"<aside"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-
-                начало:  format!(r#"<div id="PFModalOverlay"#),
-                    //начало:  format!(r#"<div class="PFModalBody""#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
+                          Ячейка_замены_объявления {
+                           начало: format!(r#"<aside id="sidebar"#),
+                    конец:"</aside>".to_string(),
+                    re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
+                    начало_простое:r##"<aside"##.to_string(),
+                    },
+                              Ячейка_замены_объявления {
+                           начало: format!(r#"<aside id="secondary" class="widget"#),
+                    конец:"</aside>".to_string(),
+                    re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
+                    начало_простое:r##"<aside"##.to_string(),
+                    },
+                  Ячейка_замены_объявления {
+                           начало: format!(r#"<aside id="column-"#),
+                    конец:"</aside>".to_string(),
+                    re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
+                    начало_простое:r##"<aside"##.to_string(),
+                    },
                  Ячейка_замены_объявления {
 
-                начало:  format!(r#"<pf-widget"#),
-                    //начало:  format!(r#"<div class="PFModalBody""#),
-                конец:"</pf-widget>".to_string(),
-                re_образец_конца:Regex::new(r##"</pf-widget>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<pf-widget").unwrap(),
-                   начало_простое:r##"<pf-widget"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="header-nav__links"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-            ];
-        static ref заготовленный_ряд:[Ячейка_замены_объявления;37]= [
-                       Ячейка_замены_объявления {
-                       начало: format!(r#"<footer class="web_footer">"#),
-                      конец:"</footer>".to_string(),
-                re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
-                начало_простое:r##"<footer"##.to_string(),
-            },
-                 Ячейка_замены_объявления {
-                       начало: format!(r#"<iframe src=""#),
-                      конец:"</iframe>".to_string(),
-                re_образец_конца:Regex::new(r##"</iframe>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<iframe"##).unwrap(),
-                начало_простое:r##"<iframe"##.to_string(),
-                },
+                    начало:  format!(r#"<div id="PFModalOverlay"#),
+                        //начало:  format!(r#"<div class="PFModalBody""#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                     Ячейка_замены_объявления {
 
-            Ячейка_замены_объявления {
-                       начало: format!(r#"<input type="button" value="google"#),
-                      конец:"</input>".to_string(),
-                re_образец_конца:Regex::new(r##"</input>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<input"##).unwrap(),
-                начало_простое:r##"<input"##.to_string(),
-                },
-                       Ячейка_замены_объявления {
-                       начало: format!(r#"<h1 class="title" id="title"><em>"#),
-                      конец:"</h1>".to_string(),
-                re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
-                начало_простое:r##"<h1"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                       начало: format!(r#"<h1 class="title"><em>"#),
-                      конец:"</h1>".to_string(),
-                re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
-                начало_простое:r##"<h1"##.to_string(),
-                },
+                    начало:  format!(r#"<pf-widget"#),
+                        //начало:  format!(r#"<div class="PFModalBody""#),
+                    конец:"</pf-widget>".to_string(),
+                    re_образец_конца:Regex::new(r##"</pf-widget>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<pf-widget").unwrap(),
+                       начало_простое:r##"<pf-widget"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="header-nav__links"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                                                                        Ячейка_замены_объявления {
+                           начало: format!(r#"<nav id="site-navigation"#),
+                    конец:"</nav>".to_string(),
+                    re_образец_конца:Regex::new(r##"</nav>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<nav"##).unwrap(),
+                    начало_простое:r##"<nav"##.to_string(),
+                    },
+                                    Ячейка_замены_объявления {
+                           начало: format!(r#"<aside id="" class="widget"#),
+                    конец:"</aside>".to_string(),
+                    re_образец_конца:Regex::new(r##"</aside>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<aside"##).unwrap(),
+                    начало_простое:r##"<aside"##.to_string(),
+                    },
+                ];
+            static ref заготовленный_ряд:[Ячейка_замены_объявления;49]= [
+                                                     Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="site-info"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
 
-/*Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="vc_row"#),
+                                                  Ячейка_замены_объявления {
+                           начало: format!(r#"<section class="footer-widget"#),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section"##).unwrap(),
+                    начало_простое:r##"<section"##.to_string(),
+                    },
+                                      Ячейка_замены_объявления {
+                           начало: format!(r#"<section id="cwp-widget"#),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section"##).unwrap(),
+                    начало_простое:r##"<section"##.to_string(),
+                    },
+                          Ячейка_замены_объявления {
+                           начало: format!(r#"<section id="alo-easymail"#),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section"##).unwrap(),
+                    начало_простое:r##"<section"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<section id="rusel_widget"#),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section"##).unwrap(),
+                    начало_простое:r##"<section"##.to_string(),
+                    },
+                                              Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="padding15">"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                                           /*   Ячейка_замены_объявления {
+                           начало: format!(r#"<div id="content""#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },*/
+
+                                            Ячейка_замены_объявления {
+                           начало: format!(r#"<span class="w-text"#),
+                          конец:"</span>".to_string(),
+                    re_образец_конца:Regex::new(r##"</span>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<span"##).unwrap(),
+                    начало_простое:r##"<span"##.to_string(),
+                    },
+                                  Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="w-text"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+
+                        Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="l-subheader"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="w-iconbox"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<li id="menu"#),
+                          конец:"</li>".to_string(),
+                    re_образец_конца:Regex::new(r##"</li>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<li"##).unwrap(),
+                    начало_простое:r##"<li"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<jdiv"#),
+                          конец:"</jdiv>".to_string(),
+                    re_образец_конца:Regex::new(r##"</jdiv>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<jdiv"##).unwrap(),
+                    начало_простое:r##"<jdiv"##.to_string(),
+                    },
+                           Ячейка_замены_объявления {
+                           начало: format!(r#"<footer class="web_footer">"#),
+                          конец:"</footer>".to_string(),
+                    re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
+                    начало_простое:r##"<footer"##.to_string(),
+                },
+                     Ячейка_замены_объявления {
+                           начало: format!(r#"<iframe src=""#),
+                          конец:"</iframe>".to_string(),
+                    re_образец_конца:Regex::new(r##"</iframe>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<iframe"##).unwrap(),
+                    начало_простое:r##"<iframe"##.to_string(),
+                    },
+
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<input type="button" value="google"#),
+                          конец:"</input>".to_string(),
+                    re_образец_конца:Regex::new(r##"</input>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<input"##).unwrap(),
+                    начало_простое:r##"<input"##.to_string(),
+                    },
+                           Ячейка_замены_объявления {
+                           начало: format!(r#"<h1 class="title" id="title"><em>"#),
+                          конец:"</h1>".to_string(),
+                    re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
+                    начало_простое:r##"<h1"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<h1 class="title"><em>"#),
+                          конец:"</h1>".to_string(),
+                    re_образец_конца:Regex::new(r##"</h1>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<h1"##).unwrap(),
+                    начало_простое:r##"<h1"##.to_string(),
+                    },
+
+    /*Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="vc_row"#),
                       конец:"</div>".to_string(),
                 re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
                  re_образец_начала:Regex::new(r##"<div"##).unwrap(),
                 начало_простое:r##"<div"##.to_string(),
                 },*/
-Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="tagcloud"#),
-                      конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                       начало: format!(r#"<form action"#),
-                конец:"</form>".to_string(),
-                re_образец_конца:Regex::new(r##"</form>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<form"##).unwrap(),
-                начало_простое:r##"<form"##.to_string(),
-                },
-Ячейка_замены_объявления {
-                       начало: format!(r#"<section class="path"#),
-                конец:"</section>".to_string(),
-                re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<section"##).unwrap(),
-                начало_простое:r##"<section"##.to_string(),
-                },
-Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="header-nav__link"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="page-header__logo"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-                 Ячейка_замены_объявления {
-                       начало: format!(r#"<li class="ordermenu"#),
-                конец:"</li>".to_string(),
-                re_образец_конца:Regex::new(r##"</li>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<li"##).unwrap(),
-                начало_простое:r##"<li"##.to_string(),
-                },
- Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="contacts"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-                       начало: format!(r#"<li class="menu-item"#),
-                конец:"</li>".to_string(),
-                re_образец_конца:Regex::new(r##"</li>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<li"##).unwrap(),
-                начало_простое:r##"<li"##.to_string(),
-                },
- Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="news"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-
- Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="ya-share2"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-
- Ячейка_замены_объявления {
-                       начало: format!(r#"<ul class="footer__menu"#),
-                конец:"</ul>".to_string(),
-                re_образец_конца:Regex::new(r##"</ul>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<ul"##).unwrap(),
-                начало_простое:r##"<ul"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-                       начало: format!(r#"<span class="submitbutt"#),
-                конец:"</span>".to_string(),
-                re_образец_конца:Regex::new(r##"</span>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<span"##).unwrap(),
-                начало_простое:r##"<span"##.to_string(),
-                },
-
-             Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="tx-kesearch"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                       начало: format!(r#"<div class="menu-container"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<div"##).unwrap(),
-                начало_простое:r##"<div"##.to_string(),
-                },
-                         Ячейка_замены_объявления {
-                       начало: format!(r#"<header class="header fixed"#),
-                конец:"</header>".to_string(),
-                re_образец_конца:Regex::new(r##"</header>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<header"##).unwrap(),
-                начало_простое:r##"<header"##.to_string(),
-                },
-                    Ячейка_замены_объявления {
-                       начало: format!(r#"<footer class="footer"#),
-                конец:"</footer>".to_string(),
-                re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
-                начало_простое:r##"<footer"##.to_string(),
-                },
-                        Ячейка_замены_объявления {
-                       начало:r#"<footer class="PFModalDual"#.to_string(),
-                конец:"</footer>".to_string(),
-                re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
-                начало_простое:r##"<footer"##.to_string(),
-                },
-               Ячейка_замены_объявления {
-                       начало:r#"<a href="https://t.me/"#.to_string(),
-                конец:"</a>".to_string(),
-                re_образец_конца:Regex::new(r##"</a>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<a"##).unwrap(),
-                начало_простое:r##"<a"##.to_string(),
-                },
-                 Ячейка_замены_объявления {
-                       начало:format!(r##"<noscript"##).to_string(),
-                конец:"</noscript>".to_string(),
-                re_образец_конца:Regex::new(r##"</noscript>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<noscript"##).unwrap(),
-                начало_простое:r##"<noscript"##.to_string(),
-                },
+    Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="tagcloud"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
                 Ячейка_замены_объявления {
-                       начало:format!(r##"<script"##).to_string(),
-                конец:"</script>".to_string(),
-                re_образец_конца:Regex::new(r##"</script>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<script"##).unwrap(),
-                начало_простое:r##"<script"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                    начало:format!(r##"<section class="section_letter">"##).to_string(),
-                конец:"</section>".to_string(),
-                re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<section>"##).unwrap(),
-                начало_простое:r##"<section>"##.to_string(),
-                },
+                           начало: format!(r#"<form action"#),
+                    конец:"</form>".to_string(),
+                    re_образец_конца:Regex::new(r##"</form>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<form"##).unwrap(),
+                    начало_простое:r##"<form"##.to_string(),
+                    },
+    Ячейка_замены_объявления {
+                           начало: format!(r#"<section class="path"#),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section"##).unwrap(),
+                    начало_простое:r##"<section"##.to_string(),
+                    },
+    Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="header-nav__link"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+    Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="page-header__logo"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
                      Ячейка_замены_объявления {
-                    начало:r##"<section class="content__related">"##.to_string(),
-                конец:"</section>".to_string(),
-                re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
-                 re_образец_начала:Regex::new(r##"<section>"##).unwrap(),
-                 начало_простое:r##"<section>"##.to_string(),
-                },
-                    Ячейка_замены_объявления {
-                    начало: r##"<div id="external-counters-view">"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                re_образец_начала:Regex::new(r"<div").unwrap(),
-                 начало_простое:r##"<div"##.to_string(),
-                },
-               Ячейка_замены_объявления {
-                    начало:  format!(r#"<div class="PFModalHeader"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-            Ячейка_замены_объявления {
-                    начало:  format!(r#"<div class=" PFButtonsContainer"#),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
+                           начало: format!(r#"<li class="ordermenu"#),
+                    конец:"</li>".to_string(),
+                    re_образец_конца:Regex::new(r##"</li>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<li"##).unwrap(),
+                    начало_простое:r##"<li"##.to_string(),
+                    },
+     Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="contacts"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                 Ячейка_замены_объявления {
+                           начало: format!(r#"<li class="menu-item"#),
+                    конец:"</li>".to_string(),
+                    re_образец_конца:Regex::new(r##"</li>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<li"##).unwrap(),
+                    начало_простое:r##"<li"##.to_string(),
+                    },
+     Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="news"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
 
-             Ячейка_замены_объявления {
-                    начало:   r#"<div class=" PFQrText"#.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                 re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-                    начало:   r##"<div class="adsense">"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-                    начало:   r##"<div class="share-social-block"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-             Ячейка_замены_объявления {
-                    начало:   r##"<div class="panel-heading"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-                  Ячейка_замены_объявления {
-                    начало:   r##"<div class="panel-body"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
+     Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="ya-share2"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+
+     Ячейка_замены_объявления {
+                           начало: format!(r#"<ul class="footer__menu"#),
+                    конец:"</ul>".to_string(),
+                    re_образец_конца:Regex::new(r##"</ul>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<ul"##).unwrap(),
+                    начало_простое:r##"<ul"##.to_string(),
+                    },
+                 Ячейка_замены_объявления {
+                           начало: format!(r#"<span class="submitbutt"#),
+                    конец:"</span>".to_string(),
+                    re_образец_конца:Regex::new(r##"</span>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<span"##).unwrap(),
+                    начало_простое:r##"<span"##.to_string(),
+                    },
+
+                 Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="tx-kesearch"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="menu-container"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
+                             Ячейка_замены_объявления {
+                           начало: format!(r#"<header class="header fixed"#),
+                    конец:"</header>".to_string(),
+                    re_образец_конца:Regex::new(r##"</header>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<header"##).unwrap(),
+                    начало_простое:r##"<header"##.to_string(),
+                    },
+                        Ячейка_замены_объявления {
+                           начало: format!(r#"<footer class="footer"#),
+                    конец:"</footer>".to_string(),
+                    re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
+                    начало_простое:r##"<footer"##.to_string(),
+                    },
+                            Ячейка_замены_объявления {
+                           начало:r#"<footer class="PFModalDual"#.to_string(),
+                    конец:"</footer>".to_string(),
+                    re_образец_конца:Regex::new(r##"</footer>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<footer"##).unwrap(),
+                    начало_простое:r##"<footer"##.to_string(),
+                    },
                    Ячейка_замены_объявления {
-                    начало:   r##"<div id="vk_widget"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-                  Ячейка_замены_объявления {
-                    начало:   r##"<div class="text-share">Сохранить или поделиться"##.to_string(),
-                конец:"</div>".to_string(),
-                re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
-                  re_образец_начала:Regex::new(r"<div").unwrap(),
-                   начало_простое:r##"<div"##.to_string(),
-                },
-            ];
-    }
+                           начало:r#"<a href="https://t.me/"#.to_string(),
+                    конец:"</a>".to_string(),
+                    re_образец_конца:Regex::new(r##"</a>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<a"##).unwrap(),
+                    начало_простое:r##"<a"##.to_string(),
+                    },
+
+                    Ячейка_замены_объявления {
+                           начало:format!(r##"<script"##).to_string(),
+                    конец:"</script>".to_string(),
+                    re_образец_конца:Regex::new(r##"</script>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<script"##).unwrap(),
+                    начало_простое:r##"<script"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                        начало:format!(r##"<section class="section_letter">"##).to_string(),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section>"##).unwrap(),
+                    начало_простое:r##"<section>"##.to_string(),
+                    },
+                         Ячейка_замены_объявления {
+                        начало:r##"<section class="content__related">"##.to_string(),
+                    конец:"</section>".to_string(),
+                    re_образец_конца:Regex::new(r##"</section>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<section>"##).unwrap(),
+                     начало_простое:r##"<section>"##.to_string(),
+                    },
+                        Ячейка_замены_объявления {
+                        начало: r##"<div id="external-counters-view">"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                    re_образец_начала:Regex::new(r"<div").unwrap(),
+                     начало_простое:r##"<div"##.to_string(),
+                    },
+                   Ячейка_замены_объявления {
+                        начало:  format!(r#"<div class="PFModalHeader"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                Ячейка_замены_объявления {
+                        начало:  format!(r#"<div class=" PFButtonsContainer"#),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+
+                 Ячейка_замены_объявления {
+                        начало:   r#"<div class=" PFQrText"#.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                 Ячейка_замены_объявления {
+                        начало:   r##"<div class="adsense">"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                 Ячейка_замены_объявления {
+                        начало:   r##"<div class="share-social-block"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                 Ячейка_замены_объявления {
+                        начало:   r##"<div class="panel-heading"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                      Ячейка_замены_объявления {
+                        начало:   r##"<div class="panel-body"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                       Ячейка_замены_объявления {
+                        начало:   r##"<div id="vk_widget"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                      Ячейка_замены_объявления {
+                        начало:   r##"<div class="text-share">Сохранить или поделиться"##.to_string(),
+                    конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                      re_образец_начала:Regex::new(r"<div").unwrap(),
+                       начало_простое:r##"<div"##.to_string(),
+                    },
+                 //noscript
+                     Ячейка_замены_объявления {
+                           начало:format!(r##"<noscript"##).to_string(),
+                    конец:"</noscript>".to_string(),
+                    re_образец_конца:Regex::new(r##"</noscript>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<noscript"##).unwrap(),
+                    начало_простое:r##"<noscript"##.to_string(),
+                    },
+                ];
+        }
     let mut итог: Vec<String> = ряд;
     //удаление с вложенностями
     for i in 0..заготовленный_ряд.len() {
@@ -1033,10 +1190,16 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static! {
-                static ref образцы:[String;58]= [
+                static ref образцы:[String;64]= [
+
             //r#"<span data"#.to_string(),
            // r#"<div class"#.to_string(),
            // r#"<article class"#.to_string(),
+            "<br>".to_string(),
+            "</audio>".to_string(),
+            "</nav>".to_string(),
+            "</jdiv>".to_string(),
+            "</noscript>".to_string(),
             "</ol>".to_string(),
             r" -->".to_string(),
             "</defs>".to_string(),
@@ -1101,6 +1264,7 @@ pub fn добавить_переносы_строк_html(
              r#"</video>"#.to_string(),
                  r#"</textarea>"#.to_string(),
               r#"</body>"#.to_string(),
+            "</figure>".to_string(),
 
         ];
     }
