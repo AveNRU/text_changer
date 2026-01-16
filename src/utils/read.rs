@@ -643,7 +643,29 @@ fn удаление_script_мусора_после_разбиения_строк
                     начало_простое:r##"<aside"##.to_string(),
                     },
                 ];
-            static ref заготовленный_ряд:[Ячейка_замены_объявления;49]= [
+            static ref заготовленный_ряд:[Ячейка_замены_объявления;51]= [
+                                Ячейка_замены_объявления {
+                           начало:format!(r##"<script"##).to_string(),
+                    конец:"</script>".to_string(),
+                    re_образец_конца:Regex::new(r##"</script>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<script"##).unwrap(),
+                    начало_простое:r##"<script"##.to_string(),
+                    },
+                                                      Ячейка_замены_объявления {
+                           начало: format!(r#"<ins class="adsbygoogle"#),
+                          конец:"</ins>".to_string(),
+                    re_образец_конца:Regex::new(r##"</ins>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<ins"##).unwrap(),
+                    начало_простое:r##"<ins"##.to_string(),
+                    },
+
+                                          Ячейка_замены_объявления {
+                           начало: format!(r#"<div class="banner"#),
+                          конец:"</div>".to_string(),
+                    re_образец_конца:Regex::new(r##"</div>"##).unwrap(),
+                     re_образец_начала:Regex::new(r##"<div"##).unwrap(),
+                    начало_простое:r##"<div"##.to_string(),
+                    },
                                                      Ячейка_замены_объявления {
                            начало: format!(r#"<div class="site-info"#),
                           конец:"</div>".to_string(),
@@ -912,13 +934,7 @@ fn удаление_script_мусора_после_разбиения_строк
                     начало_простое:r##"<a"##.to_string(),
                     },
 
-                    Ячейка_замены_объявления {
-                           начало:format!(r##"<script"##).to_string(),
-                    конец:"</script>".to_string(),
-                    re_образец_конца:Regex::new(r##"</script>"##).unwrap(),
-                     re_образец_начала:Regex::new(r##"<script"##).unwrap(),
-                    начало_простое:r##"<script"##.to_string(),
-                    },
+
                 Ячейка_замены_объявления {
                         начало:format!(r##"<section class="section_letter">"##).to_string(),
                     конец:"</section>".to_string(),
@@ -1190,11 +1206,13 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static! {
-                static ref образцы:[String;64]= [
+                static ref образцы:[String;66]= [
 
             //r#"<span data"#.to_string(),
            // r#"<div class"#.to_string(),
            // r#"<article class"#.to_string(),
+            "</ins>".to_string(),
+            "</main>".to_string(),
             "<br>".to_string(),
             "</audio>".to_string(),
             "</nav>".to_string(),
