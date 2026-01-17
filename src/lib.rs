@@ -184,12 +184,18 @@ pub struct Словарь_Переносов {
 }
 //замена объявления
 #[derive(Debug, Clone)]
-pub struct Ячейка_замены_объявления {
-    pub начало: String,
+pub struct Ячейка_замены_разделители {
     pub re_образец_конца: Regex,
     pub re_образец_начала: Regex,
     pub начало_простое: String,
     pub конец: String,
+    // pub счёчтки:usize,
+}
+//замена объявления
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_объявления<'a>  {
+    pub начало: String,
+    pub вложение:&'a Ячейка_замены_разделители,
     // pub счёчтки:usize,
 }
 //словарь
@@ -269,6 +275,23 @@ pub struct Полный_Словарь {
     pub неизменное_длинное: Vec<Ячейка_словаря>, //сложные и составные
     pub неизменное_короткое: Vec<Ячейка_словаря>, //сложные и составные
 }
+// Сначала объявите трейт Clear
+pub trait Clear {
+    fn clear(&mut self);
+}
+impl Clear for Полный_Словарь {
+    fn clear(&mut self) {
+        self.простое.clear();
+        self.составное.clear();
+        self.составное_важное.clear();
+        self.вездесущее.clear();
+        self.неизменное.clear();
+        self.огласовки.clear();
+        self.неизменное_длинное.clear();
+        self.неизменное_короткое.clear();
+    }
+}
+
 
 #[derive(Debug)]
 pub struct Счётчики_Словаря {

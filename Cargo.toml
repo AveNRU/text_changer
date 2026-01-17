@@ -18,7 +18,7 @@ rust_xlsxwriter = "0.92.3"
 encoding_rs = "0.8.35"
 encoding_rs_io = "0.1.7"
 rtf-parser = "0.4.2"
-zip = "7.0.0"
+zip = "7.1.0"
 foldhash = "0.2.0"
 #доп
 walkdir = "2.5.0" #вложенные папки
