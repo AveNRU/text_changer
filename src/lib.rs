@@ -195,6 +195,7 @@ pub struct Ячейка_замены_разделители {
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_объявления<'a> {
     pub начало: String,
+    pub начало_re: Regex,
     pub вложение: &'a Ячейка_замены_разделители,
     // pub счёчтки:usize,
 }
