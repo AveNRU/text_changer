@@ -168,6 +168,19 @@ pub fn fb3_epub(стог_сена: &String) -> bool {
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
+pub fn без_кодировки(стог_сена: &String) -> bool {
+    lazy_static! {
+        static ref re_расширения:[Regex;1] = [
+        Regex::new(r"(?i)\.txt$").unwrap(),
+
+        //Regex::new(r"(?i)\.docx$").unwrap(),
+        //Regex::new(r"(?i)\.doc$").unwrap(),
+     ];
+    }
+    return re_расширения
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена));
+}
 //если это архивный файл
 pub fn doc_docx(стог_сена: &String) -> bool {
     lazy_static! {

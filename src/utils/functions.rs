@@ -4,6 +4,7 @@ use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use lazy_static::lazy_static;
 use regex::Regex;
+use rayon::prelude::*;
 use std::fs::File;
 use std::thread;
 use std::time::Duration;
@@ -131,7 +132,7 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if !ряд.iter().any(|n| n.as_str() == строка.as_str()) {
+    if !ряд.par_iter().any(|n| n.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
 }

@@ -119,20 +119,52 @@ pub fn read_utf8_без_переносов_строк_htm_не_архив(
 }
 
 pub fn определить_кодировку(
-    ряд_строк: &Vec<String>
+    ряд_строк: &Vec<String>,
+    имя: &String,
+    путь: &String,
+    mut ошибки: &mut Vec<String>,
 ) -> lib::Кодировка {
+    use crate::utils::regex::{fb3_epub,без_кодировки};
+    use crate::utils::functions_txt::{вывод_сообщения_на_экран_и_вложение_в_ряд,вложить_строку_в_ряд_с_проверкой};
     // Если вы используете Rayon для параллельной обработки (into_par_iter),
     // нужно убедиться, что он подключен в Cargo.toml и импортирован
     use rayon::prelude::*; // Добавьте это вверху файла или здесь
     //let количество_строк: usize = usize::try_from(ряд_строк.len() as f32 *0.1).unwrap().into();
     //let mut кодировка:lib::Кодировка=lib::Кодировка::utf8;
-    for указатель in 0..30 {
+    if fb3_epub(&имя) || без_кодировки(&имя)||!sz_найти(&имя,".") {return lib::Кодировка::utf8 }
+    let конец:usize={
+        if ряд_строк.len()<31 {ряд_строк.len()} else {31}
+    };
+    
+    for указатель in 0..конец {
         if let Some(строка) = ряд_строк.get(указатель) {
-            if sz_найти(&строка, r#"content="text/html; charset=windows-1251""#) {
+            if sz_найти(&строка, r#"content="text/html; charset=windows-1251""#)
+                || sz_найти(&строка, r#"content="text/xhtml; charset=windows-1251""#)
+            {
                 return lib::Кодировка::windows_1251;
+            }
+            if sz_найти(&строка, r#"content="text/html; charset=UTF-8"#)
+                || sz_найти(&строка, r#"meta charset="UTF-8""#)
+                || sz_найти(&строка, r#"content="text/html; charset=utf-8"#)
+                || sz_найти(&строка, r#"content="text/xhtml; charset=UTF-8"#)
+                || sz_найти(&строка, r#"content="text/xhtml; charset=utf-8"#)
+                || sz_найти(&строка,r##"content="application/xhtml+xml; charset=utf-8""##)
+            {
+                return lib::Кодировка::utf8;
+            }
+            if sz_найти(&строка, r#"content="text/html; charset=windows-1252""#)
+                || sz_найти(&строка, r#"content="text/xhtml; charset=windows-1252""#)
+            {
+                return lib::Кодировка::windows_1252;
             }
         }
     }
+    // r#"content="text/html; charset=utf-8"/>"#.to_string(),
+    //             r#"content="text/html; charset=windows-1251""#.to_string(),
+    //             r#"content="text/xhtml; charset=UTF-8""#.to_string(),
+    //             r#"content="text/xhtml; charset=windows-1251""#.to_string(),
+    //             r#"content="text/xhtml; charset=windows-1252""#.to_string(),
+    //              r#"content="text/xhtml; charset=utf-8"/>"#.to_string(),
     /*
     // Находим первую подходящую кодировку
     if let Some(кодировка) = ряд_строк
@@ -155,6 +187,16 @@ pub fn определить_кодировку(
     }
     */
     // Если ничего не найдено, возвращаем кодировку по умолчанию
+    let сообщение_об_ошибке: String = format!(
+        "Не определена кодировка у файла: |{}|, задано по умолчанию UTF-8\r\nЕго путь: |{}|",
+        имя, путь
+    );
+    вложить_строку_в_ряд_с_проверкой(
+        &mut ошибки,
+        &сообщение_об_ошибке,
+        
+        //true,//нужен доп разрыв
+    );
     return lib::Кодировка::utf8;
 }
 
@@ -433,6 +475,8 @@ pub fn удалить_разделы_html_по_ключевым_словам(
     return итог;
 }
 use crate::lib::Ячейка_замены_объявления;
+use crate::utils::functions_txt::вложить_строку_в_ряд_с_проверкой;
+
 pub fn удалить_разделы_html_по_ключевым_словам_с_повторами(
     ряд: Vec<String>,
     заготовленный_ряд: &Ячейка_замены_объявления,
@@ -1554,7 +1598,7 @@ fn есть_ли_реклама_после_разбиения_строк(
             "Promotions".to_string(),
         ];
         /*static ref двойные_слова_2:[String;1]=[
-            
+
         ];*/
     }
 
@@ -1562,7 +1606,10 @@ fn есть_ли_реклама_после_разбиения_строк(
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //сама проверка
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
-        crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде(&ряд.as_ref(),"реклама после разбиения строк");
+        crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде(
+            &ряд.as_ref(),
+            "реклама после разбиения строк",
+        );
     };
     for i in 0..ряд.len() {
         if sz_найти(&строка, &ряд[i]) {
@@ -1599,7 +1646,17 @@ pub fn добавить_переносы_строк_html(
 ) -> Vec<String> {
     use crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде;
     lazy_static! {
-                static ref образцы:[String;96]= [
+        static ref первичный_ряд:[String;4]=[
+            r#"charset=UTF-8">"#.to_string(),
+             r#"charset=utf-8">"#.to_string(),
+            r#"charset=windows-1251">"#.to_string(),
+            r#"charset=windows-1252">"#.to_string(),
+
+        ];
+        // r#"content="text/html; charset=UTF-8">"#.to_string(),
+                static ref образцы:[String;100]= [
+            "<blockquote>".to_string(),
+            //"<div>".to_string(),
             //разделение div
             r##"<div id="pagetop">##.to_string(),
             r#"<div class="container">"#.to_string(),
@@ -1608,6 +1665,8 @@ pub fn добавить_переносы_строк_html(
             r##"<div class="ce-column">"##.to_string(),
             r##"<figure class="image">"##.to_string(),
             r##" <div class="footer__links">"##.to_string(),
+            "<head>".to_string(),
+            "</meta>".to_string(),
             "</td>".to_string(),
             "</tr>".to_string(),
             "<noscript>".to_string(),
@@ -1648,8 +1707,9 @@ pub fn добавить_переносы_строк_html(
             "</ol>".to_string(),
             r" -->".to_string(),
             "</defs>".to_string(),
-             r#"content="text/html; charset=UTF-8">"#.to_string(),
+
             "</template>".to_string(),
+            "<body>".to_string(),
             "</head>".to_string(),
             r#"<!--]-->"#.to_string(),
                     r#"<!---->"#.to_string(),
@@ -1668,6 +1728,7 @@ pub fn добавить_переносы_строк_html(
            // r#"<!--]-->"#.to_string(),
 
              r#"</em>"#.to_string(),
+            r#"</link>"#.to_string(),
             //r#"<!--[-->"#.to_string(),
            // r#"<!---->"#.to_string(),
             r#"</title>"#.to_string(),
@@ -1721,6 +1782,11 @@ pub fn добавить_переносы_строк_html(
             "Образцы разбиения строк html",
             //true
         );
+        есть_ли_повторно_строка_в_ряде(
+            &первичный_ряд.as_ref(),
+            "Образцы разбиения строк html",
+            //true
+        );
     }
 
     /*let mut новый_ряд_строк: Vec<String> = Vec::new();
@@ -1739,10 +1805,21 @@ pub fn добавить_переносы_строк_html(
     }
     return новый_ряд_строк;*/
     let mut новый_ряд_строк: Vec<String> = входные_строки;
-    //прогон через все образцы
+    //первично до 80 строки - так как кодировка
+    for i in 0..первичный_ряд.len() {
+        новый_ряд_строк = разбить_строки_через_образец(
+            новый_ряд_строк,
+            &первичный_ряд[i],
+            false,
+        );
+    }
+    //прогон через все образцы - полностью прогон, так как всё остальное
     for i in 0..образцы.len() {
-        новый_ряд_строк =
-            разбить_строки_через_образец(новый_ряд_строк, &образцы[i]);
+        новый_ряд_строк = разбить_строки_через_образец(
+            новый_ряд_строк,
+            &образцы[i],
+            true,
+        );
     }
     return новый_ряд_строк;
     //входные_строки
@@ -1751,9 +1828,24 @@ pub fn добавить_переносы_строк_html(
 pub fn разбить_строки_через_образец(
     исходный_ряд_строк: Vec<String>,
     образец: &String,
+    полностью: bool, //до какой строки перебирать
 ) -> Vec<String> {
     let mut новый_ряд_строк: Vec<String> = Vec::new();
-    for i in 0..исходный_ряд_строк.len() {
+    let конец: usize = {
+        //если кодировка только - то до 80
+        if полностью {
+            исходный_ряд_строк.len()
+        } else {
+            if исходный_ряд_строк.len() < 80 {
+                исходный_ряд_строк.len() 
+            } 
+            else
+            {
+                80
+            }
+        }
+    };
+    for i in 0..конец {
         if sz_найти(&исходный_ряд_строк[i], &образец) {
             //   println!("нашло div");
             let строки: Vec<String> = исходный_ряд_строк[i]
