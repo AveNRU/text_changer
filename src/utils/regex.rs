@@ -38,7 +38,7 @@ static COMMANDS: &[&str] = &[
     "make test",
 ];
 */
-static LOOKING_GLASS: &str = "🔍";
+//static LOOKING_GLASS: &str = "🔍";
 //если это картинка
 use crate::lib::{
     self, Быстрый_Словарь, Полный_Словарь, Счётчик_замен, Ячейка_словаря

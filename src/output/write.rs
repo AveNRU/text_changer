@@ -22,7 +22,7 @@ use std::fs::{self, File};
 use std::io::{self, BufReader, Cursor, Error, Write};
 use std::path::Path;
 use std::sync::atomic::Ordering::Relaxed;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 //use xml::Encoding::Default;
 use crate::ALLOCATOR;
@@ -1480,6 +1480,12 @@ pub fn есть_ли_мусорные_расширения(строка: &String
             ".mht".to_string(),
         ];
     }
+    //счётчик - лишь 1 раз проверяет весь ряд
+    static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
+    //сама проверка
+    if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
+        crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде(&исключения.as_ref(), "реклама после разбиения строк");
+    };
     return исключения
         .par_iter()
         .any(|исключение| sz_найти(строка, исключение));
