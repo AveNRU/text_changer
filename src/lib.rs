@@ -4,6 +4,19 @@ use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use regex::Regex;
 use std::sync::atomic::AtomicUsize;
 
+pub enum Расширение {
+    fb2,
+    fb3,
+    epub,
+    html,
+    htm,
+    xhtml,
+    mhtml,
+    js,
+    css,
+    jpeg,
+
+}
 //пути
 #[derive(Debug, Clone)]
 pub struct Пути_Общие {
