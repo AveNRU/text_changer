@@ -516,6 +516,34 @@ pub fn строка_примечание(стог_сена:&String) -> bool{
     //иначе ложь
     return false
 }
+//
+pub fn строка_js(стог_сена:&String) -> bool{
+
+    lazy_static!{
+        static ref образцы_re_простые:[Regex;3]=[
+
+
+           Regex::new(r#"^\s*!function\(\)"#).unwrap(),
+            Regex::new(r#"^\s*function"#).unwrap(),
+            Regex::new(r#"^\s*\$\("#).unwrap(),
+
+        ];
+
+        static ref образцы:[String;0]=[
+
+        ];
+
+        }
+    //если есть совпадение
+    for i in 0..образцы_re_простые.len() {
+        if образцы_re_простые[i].is_match(&стог_сена)
+
+        {return true}
+    }
+
+    //иначе ложь
+    return false
+}
 pub fn есть_ли_примечания_html(стог_сена:&String) -> bool{
     pub struct образец_сложный {
         pub начало:Regex,
@@ -566,15 +594,22 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
     //let условие_отладки:bool=if заготовленный_ряд.вложение.начало_простое==r"<script" {true} else {false};
     let условие_отладки:bool=false;
     //let mut условие_начала:bool=false;
+    //перебор всего ряда
     for i in 0..ряд.len() {
-        //
+        //если не ищет конец открытого раздела
         if !условие_script {
-            if строка_примечание(&ряд[i]) {
+            //если эта строка начинается с примечания
+            if строка_примечание(&ряд[i])  {
                 итог.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
                 continue
             }
         }
+        //
+        /*if строка_js(&ряд[i]){
+            итог.push(убрать_примечания_из_строки_без_преобразований(&ряд[i]));
+            continue
 
+        }*/
         //если это примечание
         //если начался script
         if условие_script {
@@ -584,15 +619,16 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
                // &&
             {
                 // println!("Условие: i:{}|{}|",i+1,&ряд[i]);
-                //если это пустая строа или строка с javascript
+                //если это пустая строа или строка с javascript либо является примечанием
                 if строка_примечание(&ряд[i]) {
-                    /*  ряд_общий.push(
+                    /*ряд_общий.push(
                           убрать_примечания_из_строки_без_преобразований(
                               &ряд[i],
                           ),
                       );
                       continue*/
-                } else {
+                }
+                else {
                     счётчик_открытий += заготовленный_ряд
                         .вложение
                         .re_образец_начала
@@ -611,6 +647,9 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
             //если конец найден
             if sz_найти(&ряд[i], &заготовленный_ряд.вложение.конец)
             {
+               // if !строка_примечание(&ряд[i]) {
+
+
                 счётчик_закрытий += заготовленный_ряд
                     .вложение
                     .re_образец_конца
@@ -644,7 +683,8 @@ pub fn удалить_разделы_html_по_ключевым_словам_с_
                     указатель_строки_где_взят_образец = 0;
 
                     continue;
-                } else {
+                }
+                 else {
                     ряд_общий.push(
                         убрать_примечания_из_строки_без_преобразований(
                             &ряд[i],
@@ -779,133 +819,133 @@ fn удаление_script_мусора_после_разбиения_строк
                Ячейка_замены_разделители{
                    конец:"</div>".to_string(),
                            re_образец_конца:Regex::new(r"</div>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<div").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<div"#).unwrap(),
                            начало_простое:r"<div".to_string(),
                };
                   static ref разделитель_aside:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                    конец:"</aside>".to_string(),
                            re_образец_конца:Regex::new(r"</aside>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<aside").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<aside"#).unwrap(),
                            начало_простое:r"<aside".to_string(),
                };
                  static ref разделитель_nav:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                 конец:"</nav>".to_string(),
                            re_образец_конца:Regex::new(r"</nav>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<nav").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<nav"#).unwrap(),
                            начало_простое:r"<nav".to_string(),
                     };
                 static ref разделитель_script:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                 конец:"</script>".to_string(),
                            re_образец_конца:Regex::new(r"</script>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<script").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<script"#).unwrap(),
                            начало_простое:r"<script".to_string(),
                };
                 static ref разделитель_noscript:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                 конец:"</noscript>".to_string(),
                            re_образец_конца:Regex::new(r"</noscript>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<noscript").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<noscript"#).unwrap(),
                            начало_простое:r"<noscript".to_string(),
                };
                 static ref разделитель_ins:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                    конец:"</ins>".to_string(),
                            re_образец_конца:Regex::new(r"</ins>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<ins").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<ins"#).unwrap(),
                            начало_простое:r"<ins".to_string(),
                 };
                 static ref разделитель_section:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                  конец:"</section>".to_string(),
                            re_образец_конца:Regex::new(r"</section>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<section").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<section"#).unwrap(),
                            начало_простое:r"<section".to_string(),
                };
            static ref разделитель_span:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                 конец:"</span>".to_string(),
                            re_образец_конца:Regex::new(r"</span>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<span").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<span"#).unwrap(),
                            начало_простое:r"<span".to_string(),
                };
                 static ref разделитель_footer:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                 конец:"</footer>".to_string(),
                            re_образец_конца:Regex::new(r"</footer>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<footer").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<footer"#).unwrap(),
                            начало_простое:r"<footer".to_string(),
                };
            static ref разделитель_input:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</input>".to_string(),
                            re_образец_конца:Regex::new(r"</input>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<input").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<input"#).unwrap(),
                            начало_простое:r"<input".to_string(),
                };
                static ref разделитель_h1:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</h1>".to_string(),
                            re_образец_конца:Regex::new(r"</h1>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<h1").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<h1"#).unwrap(),
                            начало_простое:r"<h1".to_string(),
                };
                static ref разделитель_iframe:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</iframe>".to_string(),
                             re_образец_конца:Regex::new(r"</iframe>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<iframe").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<iframe"#).unwrap(),
                            начало_простое:r"<iframe".to_string(),
                };
                static ref разделитель_a:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</a>".to_string(),
                             re_образец_конца:Regex::new(r"</a>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<a").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<a"#).unwrap(),
                            начало_простое:r"<a".to_string(),
                };
                static ref разделитель_jdiv:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</jdiv>".to_string(),
                             re_образец_конца:Regex::new(r"</jdiv>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<jdiv").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<jdiv"#).unwrap(),
                            начало_простое:r"<jdiv".to_string(),
                };
                       static ref разделитель_li:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</li>".to_string(),
                             re_образец_конца:Regex::new(r"</li>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<li").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<li"#).unwrap(),
                            начало_простое:r"<li".to_string(),
                };
                       static ref разделитель_ul:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</ul>".to_string(),
                             re_образец_конца:Regex::new(r"</ul>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<ul").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<ul"#).unwrap(),
                            начало_простое:r"<ul".to_string(),
                };
                static ref разделитель_header:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</header>".to_string(),
                             re_образец_конца:Regex::new(r"</header>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<header").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<header"#).unwrap(),
                            начало_простое:r"<header".to_string(),
                    };
        static ref разделитель_pf_widget:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</pf-widget>".to_string(),
                             re_образец_конца:Regex::new(r"</pf-widget>").unwrap(),
-                             re_образец_начала:Regex::new(r"(^|[^'])<pf-widget").unwrap(),
+                             re_образец_начала:Regex::new(r#"(^|[^'])<pf-widget"#).unwrap(),
                               начало_простое:r"<pf-widget".to_string(),
                };
          static ref разделитель_form:Ячейка_замены_разделители=
                Ячейка_замены_разделители{
                конец:"</form>".to_string(),
                             re_образец_конца:Regex::new(r"</form>").unwrap(),
-                            re_образец_начала:Regex::new(r"(^|[^'])<form").unwrap(),
+                            re_образец_начала:Regex::new(r#"(^|[^'])<form"#).unwrap(),
                            начало_простое:r"<form".to_string(),
         };
             //сами ряды пошли
@@ -929,61 +969,61 @@ fn удаление_script_мусора_после_разбиения_строк
 
                    Ячейка_замены_объявления {
                                   начало:format!(r##"<div class="cky-notice"##).to_string(),
-                   начало_re:Regex::new(r##"(^|[^'])<div class="cky-notice"##).unwrap(),
+                   начало_re:Regex::new(r##"([^'\"])<div class="cky-notice"##).unwrap(),
                            вложение:&разделитель_div,
                            },
                                                       Ячейка_замены_объявления {
                                   начало: format!(r#"<div class="w-grid"#),
-                   начало_re:Regex::new(r##"(^|[^'])<div class="w-grid"##).unwrap(),
+                   начало_re:Regex::new(r##"([^'\"])<div class="w-grid"##).unwrap(),
                            вложение:&разделитель_div,
                            },
 
 
                                      Ячейка_замены_объявления {
                                   начало: format!(r#"<aside id="secondary" class="widget"#),
-                     начало_re:Regex::new(r##"(^|[^'])<aside id="secondary" class="widget"##).unwrap(),
+                     начало_re:Regex::new(r##"([^'\"])<aside id="secondary" class="widget"##).unwrap(),
                            вложение:&разделитель_aside,
                            },
                          Ячейка_замены_объявления {
                                   начало: format!(r#"<aside id="column-"#),
-                         начало_re:Regex::new(r##"(^|[^'])<aside id="column-"##).unwrap(),
+                         начало_re:Regex::new(r##"([^'\"])<aside id="column-"##).unwrap(),
                            вложение:&разделитель_aside,
                            },
                         Ячейка_замены_объявления {
                            начало:  format!(r#"<div id="PFModalOverlay"#),
-                       начало_re:Regex::new(r##"(^|[^'])<div id="PFModalOverlay"##).unwrap(),
+                       начало_re:Regex::new(r##"([^'\"])<div id="PFModalOverlay"##).unwrap(),
                            вложение:&разделитель_div,
                            },
                             Ячейка_замены_объявления {
 
                            начало:  format!(r#"<pf-widget"#),
-                   начало_re:Regex::new(r##"(^|[^'])<pf-widget"##).unwrap(),
+                   начало_re:Regex::new(r##"([^'\"])<pf-widget"##).unwrap(),
                            вложение:&разделитель_pf_widget,
                            },
                        Ячейка_замены_объявления {
                                   начало: format!(r#"<div class="header-nav__links"#),
-                   начало_re:Regex::new(r##"(^|[^'])<div class="header-nav__links"##).unwrap(),
+                   начало_re:Regex::new(r##"([^'\"])<div class="header-nav__links"##).unwrap(),
                            вложение:&разделитель_div,
                            },
                                                                                Ячейка_замены_объявления {
                                   начало: format!(r#"<nav id="site-navigation"#),
-                     начало_re:Regex::new(r##"(^|[^'])<nav id="site-navigation"##).unwrap(),
+                     начало_re:Regex::new(r##"([^'\"])<nav id="site-navigation"##).unwrap(),
                            вложение:&разделитель_nav,
                            },
                                            Ячейка_замены_объявления {
                                   начало: format!(r#"<aside id="" class="widget"#),
-                    начало_re:Regex::new(r##"(^|[^'])<aside id="" class="widget"##).unwrap(),
+                    начало_re:Regex::new(r##"([^'\"])<aside id="" class="widget"##).unwrap(),
                            вложение:&разделитель_aside,
                            },
                                                    Ячейка_замены_объявления {
                                   начало:format!(r##"<script"##).to_string(),
-                    начало_re:Regex::new(r##"(^|[^'])<script"##).unwrap(),
+                    начало_re:Regex::new(r##"([^'\"])<script"##).unwrap(),
                            вложение:&разделитель_script,
                            },
                         //noscript
                             Ячейка_замены_объявления {
                                   начало:format!(r"<noscript").to_string(),
-                    начало_re:Regex::new(r##"(^|[^'])<noscript"##).unwrap(),
+                    начало_re:Regex::new(r##"([^'\"])<noscript"##).unwrap(),
                            вложение:&разделитель_noscript,
                            },
                        ];
@@ -1608,7 +1648,7 @@ pub fn убрать_примечания_из_строки_без_преобра
     let строка = строка.replace("<!--", "");
     let строка = строка.replace("[-->", "");
     let строка = строка.replace("-->", "");
-    let строка:String= строка.replace("//", "");
+    //let строка:String= строка.replace("//", "");
     return строка;
 }
 
@@ -1777,7 +1817,8 @@ pub fn добавить_переносы_строк_html(
 
         ];
         // r#"content="text/html; charset=UTF-8">"#.to_string(),
-                static ref образцы:[String;100]= [
+                static ref образцы:[String;101]= [
+            r##"<script type="text/javascript">"##.to_string(),
             "<blockquote>".to_string(),
             //"<div>".to_string(),
             //разделение div

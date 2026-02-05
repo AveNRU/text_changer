@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Обновление" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="update --package text_changer" />
+    <option name="command" value="update" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs />
     <option name="emulateTerminal" value="true" />
