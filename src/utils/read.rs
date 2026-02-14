@@ -2268,7 +2268,8 @@ fn считать_содержимое_папки(
         .filter_map(|e| e.ok())
     {
         let полученное = вхождение.path().to_string_lossy().to_string();
-        if вхождение.file_type().is_file() && !sz_найти(&полученное, "~$") && !sz_найти(&полученное, ".~") {
+        //не открытые рабочие книги Excel и Libreoffice
+        if вхождение.file_type().is_file() && !sz_найти(&полученное, "~$") && !sz_найти(&полученное, ".~lock") {
             let путь = вхождение.path();
             match fs::read_to_string(путь) {
                 Ok(содержимое) => {
