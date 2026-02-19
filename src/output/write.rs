@@ -32,7 +32,7 @@ use crate::lib::{
 use crate::output::dir::создать_вложенные_папки;
 use crate::output::write;
 use crate::utils::functions_txt::сравнение_двух_рядов_построчно;
-use crate::utils::read::read_utf8;
+use crate::utils::read::считать_в_utf8;
 use crate::utils::stringzilla::sz_найти;
 use calamine::*;
 use cap::Cap;
@@ -1567,7 +1567,7 @@ fn запись_если_есть_разница_строки(
 
     let существующий_файл_ряд_строк: Vec<String> =
         //прочитать_содержимое_построчно(&пути_до_книг[i])
-        read_utf8(&путь); //чтение файла в UTF-8
+        считать_в_utf8(&путь); //чтение файла в UTF-8
     if существующий_файл_ряд_строк.len() == 0 {
         let сообщение_вывода = format!("☢️ Запись1:  файл {}. Пустой. Перезапись", путь);
         if условие && есть_ли_мусорные_расширения(&сообщение_вывода)

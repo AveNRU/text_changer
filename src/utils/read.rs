@@ -16,7 +16,7 @@ use std::sync::{
 use walkdir::WalkDir;
 
 //чтение файла в UTF-8
-pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
+pub fn считать_в_utf8(путь_до_файла: &String) -> Vec<String> {
     let mut итог: Vec<String> = Vec::new(); //вектор строк - куда все помещается
     let содержимое: Box<dyn BufRead> = считать_файл(путь_до_файла); //чтение файла
     for (указатель, содержимое_в_байтах) in содержимое.split(b'\n').enumerate()
@@ -31,7 +31,7 @@ pub fn read_utf8(путь_до_файла: &String) -> Vec<String> {
     return итог;
 }
 
-pub fn read_utf8_без_переносов_строк_htm_не_архив(
+pub fn считать_в_utf8_без_переносов_строк_htm_не_архив(
     путь_до_файла: &String,
     имя_файла: &String,
 ) -> Vec<String> {
