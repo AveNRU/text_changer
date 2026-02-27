@@ -227,10 +227,16 @@ pub struct Словарь_Переносов {
     pub многобуквенные: [Ячейка_замены; 59], //одиночные слова
     pub целиковые: [Ячейка_замены; 251],     //одиночные слова
     pub исключения: [Ячейка_замены_с_исключением; 17],
+    //
+}
+#[derive(Debug, Clone)]
+pub struct Словарь_разделителей {
+    pub ряд_1: [Ячейка_замены_с_разделителями; 22],   //одиночные слова
+    //
 }
 //замена объявления
 #[derive(Debug, Clone)]
-pub struct Ячейка_замены_разделители {
+pub struct Ячейка_замены_переносов {
     pub re_образец_конца: Regex,
     pub re_образец_начала: Regex,
     pub начало_простое: String,
@@ -242,7 +248,7 @@ pub struct Ячейка_замены_разделители {
 pub struct Ячейка_замены_объявления<'a> {
     pub начало: String,
     pub начало_re: Regex,
-    pub вложение: &'a Ячейка_замены_разделители,
+    pub вложение: &'a Ячейка_замены_переносов,
     // pub счёчтки:usize,
 }
 //словарь
@@ -262,12 +268,34 @@ impl Default for Ячейка_замены {
         }
     }
 }
+
+//словарь
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_с_разделителями {
+    pub искомое_слово: String,
+    pub re_исключение: Vec<Regex>,
+    pub re_образец_для_поиска: Regex,
+    pub замена: String,
+    // pub счёчтки:usize,
+    pub re_образец_для_замены: Regex,
+}
+impl Default for Ячейка_замены_с_разделителями {
+    fn default() -> Self {
+        Self {
+            искомое_слово: "".to_string(),
+            re_исключение: Vec::new(),//Regex::new(r"(?i)").unwrap(),
+            re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
+            замена: "".to_string(),
+            re_образец_для_замены:Regex::new(r"(?i)").unwrap(),
+        }
+    }
+}
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_с_исключением {
     pub искомое_слово: String,
-    pub re_исключение: Regex,
-    pub re_образец: Regex,
+    pub re_исключение: Vec<Regex>,
+    pub re_образец_для_поиска: Regex,
     pub замена: String,
     // pub счёчтки:usize,
 }
@@ -275,13 +303,20 @@ impl Default for Ячейка_замены_с_исключением {
     fn default() -> Self {
         Self {
             искомое_слово: "".to_string(),
-            re_исключение: Regex::new(r"(?i)").unwrap(),
-            re_образец: Regex::new(r"(?i)").unwrap(),
+            re_исключение: Vec::new(),//Regex::new(r"(?i)").unwrap(),
+            re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
             замена: "".to_string(),
         }
     }
 }
-
+//
+#[derive(Debug)]
+pub struct Счётчик_разделителей {
+    pub подсчёт: Vec<AtomicUsize>,  //одиночные слова
+   // pub с_заглавной: Vec<AtomicUsize>,   //одиночные слова
+ 
+}
+//
 #[derive(Debug)]
 pub struct Счётчик_замен {
     pub однобуквенные: Vec<AtomicUsize>,  //одиночные слова
