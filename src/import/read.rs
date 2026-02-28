@@ -79,7 +79,7 @@ pub fn считать_книги(
     use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
     use crate::utils::read::*;
-    use crate::utils::regex::*;
+    use crate::utils::regex::{определить_имя_книги,fb2_rtf_mht_mhtml,изображение_расширение_с_точкой,fb3_epub,re_получить_имя_файла_без_пути,htm_html_xhtml, doc_docx,md_fs_yml,мусорное_содержимое_архивов};
     use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
     use std::default::Default;
     // Set the limit to 30000MiB.

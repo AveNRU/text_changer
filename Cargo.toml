@@ -28,7 +28,7 @@ serde_json = "1.0.149"
 convert_case = "0.11.0"
 stringzilla = "4.6.0"
 time = "0.3.47"
-chrono = "0.4.43"
+chrono = "0.4.44"
 unirust = "0.1.0"
 #rzhavchina = { path = "./rzhavchina_proc_macro/" }
 sysinfo = "0.38.2"
