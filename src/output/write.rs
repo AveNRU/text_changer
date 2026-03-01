@@ -37,7 +37,7 @@ use console::style;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use std::alloc;
-use text_changer::Пути_Общие;
+use text_changer::{Пути_Общие, Раздел_Словаря};
 
 pub fn сохранить_книги(
     стопки_книг: &Vec<lib::Книги>,
@@ -1691,7 +1691,7 @@ pub fn есть_ли_мусорные_расширения(строка: &String
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //сама проверка
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
-        crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде(&исключения.as_ref(), "реклама после разбиения строк");
+        crate::utils::functions_txt::есть_ли_повторно_строка_в_ряде(&исключения.as_ref(), "реклама после разбиения строк",lib::Раздел_Словаря::не_является_разделом);
     };
     return исключения
         .par_iter()
