@@ -18,7 +18,7 @@ rust_xlsxwriter = "0.94.0"
 encoding_rs = "0.8.35"
 encoding_rs_io = "0.1.7"
 rtf-parser = "0.4.2"
-zip = "8.1.0"
+zip = "8.2.0"
 foldhash = "0.2.0"
 #доп
 walkdir = "2.5.0" #вложенные папки
@@ -31,7 +31,7 @@ time = "0.3.47"
 chrono = "0.4.44"
 unirust = "0.1.0"
 #rzhavchina = { path = "./rzhavchina_proc_macro/" }
-sysinfo = "0.38.2"
+sysinfo = "0.38.3"
 vergen = "9.1.0"
 rayon = "1.11.0"
 xml-rs = "1.0.0"
