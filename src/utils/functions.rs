@@ -3,8 +3,8 @@ use crate::utils::regex::*;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use lazy_static::lazy_static;
-use regex::Regex;
 use rayon::prelude::*;
+use regex::Regex;
 use std::fs::File;
 use std::thread;
 use std::time::Duration;
@@ -137,7 +137,9 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     }
 }
 pub fn не_изображение_или_мусор(стог_сена: &String) -> bool {
-    use crate::utils::regex::{мусорное_содержимое_архивов,изображение_расширение_с_точкой};
+    use crate::utils::regex::{
+        изображение_расширение_с_точкой, мусорное_содержимое_архивов
+    };
     return !изображение_расширение_с_точкой(&стог_сена)
         && !мусорное_содержимое_архивов(&стог_сена);
 }

@@ -1,9 +1,10 @@
 #![crate_type = "lib"]
 
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
+//use foldhash::{rapidhash::fast::RapidHashMap,  fast::RandomState,*};
 use regex::Regex;
 use std::sync::atomic::AtomicUsize;
-
+use rapidhash::*;
+use std::hash::{Hash, Hasher};
 pub enum Расширение {
     fb2,
     fb3,
@@ -15,7 +16,6 @@ pub enum Расширение {
     js,
     css,
     jpeg,
-
 }
 //пути
 #[derive(Debug, Clone)]
@@ -63,7 +63,7 @@ pub struct Пути_Вывода {
     pub вывод_кучи_словаря_ключи: String,
     pub вывод_книг_проверки_замен: String,
     pub вывод_книги_запись_и_чтение: String,
-    pub вывод_кодировка:String,
+    pub вывод_кодировка: String,
 }
 
 impl Default for Пути_Вывода {
@@ -74,11 +74,11 @@ impl Default for Пути_Вывода {
             вывод_кучи_словаря: "./вывод/кучи/куча_".to_string(),
             вывод_кучи_словаря_ключи: "./вывод/кучи/куча_словарь_ключи_"
                 .to_string(),
-            вывод_книг_проверки_замен:
-                "./вывод/проверка_после_замены_слов/".to_string(),
+            вывод_книг_проверки_замен: "./вывод/проверка_после_замены_слов/"
+                .to_string(),
             вывод_книги_запись_и_чтение: "./вывод/запись_проверка/"
                 .to_string(),
-            вывод_кодировка:"./вывод/остальное/кодировка.txt".to_string(),
+            вывод_кодировка: "./вывод/остальное/кодировка.txt".to_string(),
         }
     }
 }
@@ -97,7 +97,7 @@ pub struct Сообщения {
     pub запись_и_чтение: Vec<Сообщения_для_книги>,
     pub проверка_после_замен: Vec<Сообщения_для_книги>,
     pub чтение_книг: Vec<String>,
-    pub кодировка:Vec<String>,
+    pub кодировка: Vec<String>,
 }
 //содержимое
 #[derive(Debug, Default, Clone)]
@@ -114,7 +114,7 @@ pub struct Книги {
     pub название_книги: String,          //имя книги
     pub вложения: Vec<Вложения>,         //содержимое
     pub расширение: String,              //формат
-    pub архив: HashMap<String, Vec<u8>>, //для zip
+    pub архив: rapidhash::fast::RapidHashMap<String, Vec<u8>>, //для zip
     pub книга_ли: bool,
     //pub содержимое:Vec<String>,//сами строки
 }
@@ -154,18 +154,25 @@ pub enum Имена_страниц {
     неизменные_короткие,
 }
 use std::fmt;
+
 //
 impl fmt::Display for Имена_страниц {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Имена_страниц::простые => write!(f, "Простые"),
             Имена_страниц::составные => write!(f, "Составные"),
-            Имена_страниц::составные_важные => write!(f, "Составные важные"),
+            Имена_страниц::составные_важные => {
+                write!(f, "Составные важные")
+            }
             Имена_страниц::огласовки => write!(f, "Огласовки"),
             Имена_страниц::вездесущие => write!(f, "Вездесущие"),
             Имена_страниц::неизменные => write!(f, "Неизменные"),
-            Имена_страниц::неизменные_длинные => write!(f, "Неизменные длинные"),
-            Имена_страниц::неизменные_короткие => write!(f, "Неизменные короткие"),
+            Имена_страниц::неизменные_длинные => {
+                write!(f, "Неизменные длинные")
+            }
+            Имена_страниц::неизменные_короткие => {
+                write!(f, "Неизменные короткие")
+            }
         }
     }
 }
@@ -201,13 +208,36 @@ pub struct Словарь {
 
 //словарь переносов
 //словарь
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,)]
 pub struct Ячейка_словаря {
     pub искомое_слово: String,
     pub re_образец: Regex,
     pub замена: String,
     // pub счёчтки:usize,
 }
+// Ручная реализация PartialEq
+// Ручная реализация PartialEq
+impl PartialEq for Ячейка_словаря {
+    fn eq(&self, other: &Self) -> bool {
+        // Сравните все поля, которые должны определять уникальность
+        self.искомое_слово == other.искомое_слово &&
+            self.замена == other.замена &&
+            self.re_образец.as_str()== other.re_образец.as_str()
+    }
+}
+
+// Потом пустая реализация Eq (маркерный трейт)
+impl Eq for Ячейка_словаря {} // 👈 ВОТ ТАК ПРАВИЛЬНО!
+
+// Ручная реализация Hash
+impl Hash for Ячейка_словаря {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.искомое_слово.hash(state);
+        self.замена.hash(state);
+        self.re_образец.as_str().hash(state);
+    }
+}
+
 impl Default for Ячейка_словаря {
     fn default() -> Self {
         Self {
@@ -233,22 +263,28 @@ pub struct Словарь_Переносов {
 
 #[derive(Debug, Clone)]
 pub enum Раздел_Словаря {
-     простые,
-     составные,
-     составные_важные,
-     огласовки,
-     неизменные,
-     неизменные_короткие,
-     неизменные_длинные,
+    простые,
+    составные,
+    составные_важные,
+    огласовки,
+    неизменные,
+    неизменные_короткие,
+    неизменные_длинные,
     вездесущие,
     не_является_разделом,
+}
+
+#[derive(Debug, Clone)]
+pub enum Примечания {
+    html,
+    js,
 }
 
 //
 #[derive(Debug, Clone)]
 pub struct Словарь_разделителей {
-    pub ряд_1: [Ячейка_замены_с_разделителями; 37],   //одиночные слова
-    //
+    pub ряд_1: [Ячейка_замены_с_разделителями; 42], //одиночные слова
+                                                    //
 }
 //замена объявления
 #[derive(Debug, Clone)]
@@ -265,6 +301,7 @@ pub struct Ячейка_замены_объявления<'a> {
     pub начало: String,
     pub начало_re: Regex,
     pub вложение: &'a Ячейка_замены_переносов,
+    pub примечания: Примечания,
     // pub счёчтки:usize,
 }
 //словарь
@@ -289,9 +326,10 @@ impl Default for Ячейка_замены {
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_с_разделителями {
     pub искомое_слово: String,
-    pub re_исключение: Vec<Regex>,
+    pub ряд_re_исключений: Vec<Regex>,
     pub re_образец_для_поиска: Regex,
     pub замена: String,
+    pub ряд_исключений: Vec<String>,
     // pub счёчтки:usize,
     pub re_образец_для_замены: Regex,
 }
@@ -299,11 +337,28 @@ impl Default for Ячейка_замены_с_разделителями {
     fn default() -> Self {
         Self {
             искомое_слово: "".to_string(),
-            re_исключение: Vec::new(),//Regex::new(r"(?i)").unwrap(),
+            ряд_re_исключений: Vec::new(), //Regex::new(r"(?i)").unwrap(),
             re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
             замена: "".to_string(),
-            re_образец_для_замены:Regex::new(r"(?i)").unwrap(),
+            re_образец_для_замены: Regex::new(r"(?i)").unwrap(),
+            ряд_исключений: Vec::new(),
         }
+    }
+}
+
+pub trait Возможности_ячейки_замены {
+    fn добавить_re_исключения_изнутри(&self) -> Vec<Regex>;
+}
+impl Возможности_ячейки_замены for Ячейка_замены_с_разделителями {
+    fn добавить_re_исключения_изнутри(&self) -> Vec<Regex> {
+        self.ряд_исключений
+            .iter()
+            .map(|ячейка| {
+                //let исключение: Regex = Regex::new(исключение).unwrap();
+                let исключение_2: String = format!(r#"({})"#, ячейка);
+                Regex::new(&исключение_2).unwrap()
+            })
+            .collect()
     }
 }
 //словарь
@@ -319,7 +374,7 @@ impl Default for Ячейка_замены_с_исключением {
     fn default() -> Self {
         Self {
             искомое_слово: "".to_string(),
-            re_исключение: Vec::new(),//Regex::new(r"(?i)").unwrap(),
+            re_исключение: Vec::new(), //Regex::new(r"(?i)").unwrap(),
             re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
             замена: "".to_string(),
         }
@@ -328,9 +383,8 @@ impl Default for Ячейка_замены_с_исключением {
 //
 #[derive(Debug)]
 pub struct Счётчик_разделителей {
-    pub подсчёт: Vec<AtomicUsize>,  //одиночные слова
-   // pub с_заглавной: Vec<AtomicUsize>,   //одиночные слова
- 
+    pub подсчёт: Vec<AtomicUsize>, //одиночные слова
+                                   // pub с_заглавной: Vec<AtomicUsize>,   //одиночные слова
 }
 //
 #[derive(Debug)]
@@ -347,31 +401,58 @@ pub struct Счётчик_замен {
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
 pub struct Куча_Словарь {
-    pub простое: foldhash::HashMap<String, HashSet<usize>>,
-    pub составное: foldhash::HashMap<String, HashSet<usize>>,
-    pub составное_важное: foldhash::HashMap<String, HashSet<usize>>,
-    pub вездесущее: foldhash::HashMap<String, HashSet<usize>>,
-    pub неизменное: foldhash::HashMap<String, HashSet<usize>>,
-    pub огласовки: foldhash::HashMap<String, HashSet<usize>>,
-    pub неизменное_короткое: foldhash::HashMap<String, HashSet<usize>>,
-    pub неизменное_длинное: foldhash::HashMap<String, HashSet<usize>>,
+    pub простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub составное_важное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub вездесущее: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub неизменное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub огласовки: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub неизменное_короткое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub неизменное_длинное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
 pub struct Полный_Словарь {
     //одиночные
     pub простое: Vec<Ячейка_словаря>, //одиночные слова
+    pub куча_простое: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //одиночные слова
+    pub куча_простое_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_простое_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     //сложные
     pub составное: Vec<Ячейка_словаря>, //сложные и составные
+    pub куча_составное: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные
+    pub куча_составное_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_составное_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     //сложные в 1 очередь
     pub составное_важное: Vec<Ячейка_словаря>, //сложные и составные (в 1 очередь)
+    pub куча_составное_важное: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные (в 1 очередь)
+    pub куча_составное_важное_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_составное_важное_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     //вездесущие слова в 1 очередь
     pub вездесущее: Vec<Ячейка_словаря>, //сложные и составные
+    pub куча_вездесущее: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные
+    pub куча_вездесущее_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_вездесущее_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     //неизменные
     pub неизменное: Vec<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_неизменное_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    //
     pub огласовки: Vec<Ячейка_словаря>,  //сложные и составные
+    pub куча_огласовки: rapidhash::fast::RapidHashSet<Ячейка_словаря>,  //сложные и составные
+    pub куча_огласовки_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_огласовки_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    //
     pub неизменное_длинное: Vec<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное_длинное: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное_длинное_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_неизменное_длинное_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    //
     pub неизменное_короткое: Vec<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное_короткое: rapidhash::fast::RapidHashSet<Ячейка_словаря>, //сложные и составные
+    pub куча_неизменное_короткое_искомые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub куча_неизменное_короткое_замены: rapidhash::fast::RapidHashSet<String>, //одиночные слова
 }
 // Сначала объявите трейт Clear
 pub trait Clear {

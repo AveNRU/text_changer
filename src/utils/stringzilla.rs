@@ -1,5 +1,4 @@
 use crate::lib::{self, Полный_Словарь, Ячейка_словаря};
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use rayon::prelude::*;
 use regex::Regex;
 use std::sync::{
@@ -63,7 +62,7 @@ pub fn sz_упорядочить_кучу_словарь_замены(
     }
     return новый_ряд;
 }
-pub fn sz_упорядочить_кучу(ряд: HashSet<String>) -> Vec<String> {
+pub fn sz_упорядочить_кучу(ряд: rapidhash::fast::RapidHashSet<String>) -> Vec<String> {
     let ряд: Vec<String> = ряд.into_iter().collect();
     let mut порядок: Vec<usize> = vec![0; ряд.len()];
     sz::argsort_permutation(&ряд, &mut порядок).unwrap();

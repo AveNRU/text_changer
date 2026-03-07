@@ -2,7 +2,7 @@ use crate::utils::functions::{
     вложить_строку_в_ряд_с_проверкой, вывод_сообщения_на_экран_и_вложение_в_ряд,
 };
 use crate::utils::zip::Архив_в_озу;
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
+//use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState, quality::FixedState};
 use std::io::{self, BufReader, Cursor, Error, Write};
 pub fn сравнить_2_архива_из_озу(
     озу_книга_куча: &Архив_в_озу,

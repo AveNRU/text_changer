@@ -26,6 +26,7 @@ pub mod xlsx;
 //use time::*; //{self,OffsetDateTime};
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
+use console::{Emoji, style};
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
 fn main() {
@@ -86,8 +87,13 @@ fn main() {
     write::вывод_всей_стопки_сообщений_в_txt(сообщения).unwrap();
     //output времени затраченного в итоге
     println!(
-        "Время занятое всего выполнения (от начала до конца): {:.2?}",
-        время_отсчёта.elapsed()
+        "{}",
+        style(format!(
+            "⌚  Время занятое всего выполнения (от начала до конца): {:.2?}",
+            время_отсчёта.elapsed()
+        ))
+        .true_color(154, 136, 252)
+        .blink()
     );
     system_pause();
 }

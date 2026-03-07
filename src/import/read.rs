@@ -1,12 +1,13 @@
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
+//use foldhash::{rapidhash::fast::RapidHashMap, HashSet, HashSetExt, fast::RandomState};
 use regex::Regex;
 use std::fmt;
 //use std::fs::File;
 //use std::io::prelude::*;
 use std::io::{Cursor, Seek, SeekFrom, Write};
 //use crate::write;
+use console::{Emoji, style};
 use std::time::{
     //Duration,
     Instant,
@@ -25,7 +26,6 @@ use crate::utils::regex::re_получить_строку_с_описанием;
 use lazy_static::lazy_static;
 //use std::path::Path;
 use clap::builder::Str;
-use console::style;
 use std::fs::{self, File, read_to_string};
 use std::io::{
     //self,
@@ -47,7 +47,7 @@ use zip::{
     ZipWriter,
 };
 
-//use std::collections::HashMap;
+//use std::collections::rapidhash::fast::RapidHashMap;
 
 lazy_static! {
     static ref re_расширение_файла_c_точкой: Regex = Regex::new(r"(?i)(?:\.)+([\d\w\s&&[^\.]]+)$").unwrap();//расширение файла
@@ -79,9 +79,15 @@ pub fn считать_книги(
     use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
     use crate::utils::read::*;
-    use crate::utils::regex::{определить_имя_книги,fb2_rtf_mht_mhtml,изображение_расширение_с_точкой,fb3_epub,re_получить_имя_файла_без_пути,htm_html_xhtml, doc_docx,md_fs_yml,мусорное_содержимое_архивов};
+    use crate::utils::regex::{
+        doc_docx, fb2_rtf_mht_mhtml, fb3_epub, htm_html_xhtml, md_fs_yml,
+        re_получить_имя_файла_без_пути, изображение_расширение_с_точкой,
+        мусорное_содержимое_архивов, определить_имя_книги,
+    };
     use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
     use std::default::Default;
+    //время, занятое на этот шаг
+    let точка_отсчёта_по_времени: Instant = Instant::now();
     // Set the limit to 30000MiB.
     ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
     // ...
@@ -188,7 +194,7 @@ pub fn считать_книги(
                 let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
                 let книга_в_озу: Архив_в_озу = match zip_архив_в_память(
                     &путь,
-                    HashMap::with_hasher(RandomState::default()),
+                    rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default()),
                 ) {
                     Ok(успех) => успех,
                     Err(ошибка) => {
@@ -197,7 +203,7 @@ pub fn считать_книги(
                             format!("☢️ Запись2:  книга {}. Пустое содержимое книги", путь),
                             &mut сообщения_свои.чтение_книг,
                         );
-                            HashMap::with_hasher(RandomState::default())
+                            rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default())
                             //return None;
                         } else {
                             panic!("Ошибка при распаковке файла в архив: {путь}")
@@ -280,7 +286,7 @@ pub fn считать_книги(
                     .unwrap()
                     .кодировка
                     .extend(сообщения_свои.кодировка);
-                let архив: HashMap<String, Vec<u8>> = HashMap::with_hasher(RandomState::default());
+                let архив: rapidhash::fast::RapidHashMap<String, Vec<u8>> = rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
                 //вложение содержимого всего архива в стопку
                 Some(lib::Книги {
                     вложения: приложения_книги,
@@ -306,7 +312,7 @@ pub fn считать_книги(
                     &mut содержимое_папки.lock().unwrap().файлы,
                     &название_книги,
                 );
-                let архив: HashMap<String, Vec<u8>> = HashMap::with_hasher(RandomState::default());
+                let архив: rapidhash::fast::RapidHashMap<String, Vec<u8>> = rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
                 Some(lib::Книги {
                     вложения: Vec::new(),
                     архив,
@@ -500,6 +506,16 @@ pub fn считать_книги(
         style(format!("Мегабайт: {}", количество_мегабайт))
             .blue()
             .bold(),
+    );
+    //вывод отчёта по времени, занятого на этот шаг
+    println!(
+        "{}",
+        style(format!(
+            "⌚  Время занятое на чтение книг: {:.2?}",
+            точка_отсчёта_по_времени.elapsed()
+        ))
+        .true_color(154, 136, 252)
+        .blink()
     );
     return (стопки_книг, количество_мегабайт);
 }

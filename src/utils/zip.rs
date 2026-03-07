@@ -1,11 +1,10 @@
 use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
-use foldhash::{HashMap, HashSet, HashSetExt, fast::RandomState};
 use std::io::{Cursor, SeekFrom};
 use std::time::Instant;
 use std::{fmt, fs};
 use zip::{ZipArchive, ZipWriter};
 
-pub type Архив_в_озу = HashMap<String, Vec<u8>>;
+pub type Архив_в_озу = rapidhash::fast::RapidHashMap<String, Vec<u8>>;
 
 #[derive(Debug)]
 enum ZipsError {
@@ -44,11 +43,11 @@ impl Zips {
     // Конструктор: читает файл в память, создаёт Cursor и пустой виртуальный FS
     fn new(путь: &str) -> Result<Self, ZipsError> {
         let данные = fs::read(путь).map_err(|_| ZipsError::FileNotFound).unwrap();
-        let пустая_стопка_hashmap: foldhash::HashMap<String, Vec<u8>> =
-            foldhash::HashMap::with_hasher(foldhash::fast::RandomState::default());
+        let пустая_стопка:rapidhash::fast::RapidHashMap<String, Vec<u8>> =
+            rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
         Ok(Self {
             указатель: Cursor::new(данные),
-            хранение_в_озу: пустая_стопка_hashmap,
+            хранение_в_озу: пустая_стопка,
         })
     }
     // Распаковка архива fs
@@ -78,7 +77,7 @@ pub fn zip_архив_в_память(
     путь: &String,
     mut virt_fs: Архив_в_озу,
 ) -> Result<Архив_в_озу, Box<dyn std::error::Error>> {
-    //HashMap<String, Vec<u8>>{
+    //rapidhash::fast::RapidHashMap<String, Vec<u8>>{
     let mut zips = Zips::new(путь).unwrap();
     match zips.распаковать_архив_в_озу() {
         Ok(zip) => (),

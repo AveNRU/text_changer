@@ -1,19 +1,20 @@
+use crate::lib;
 use crate::utils::functions_txt::{
     есть_ли_повторно_строка_в_ряде, есть_ли_повторно_строка_в_ряде_regex,
 };
 use crate::utils::stringzilla::sz_найти;
-use foldhash::{HashMap, HashMapExt, HashSet};
+use console::{Emoji, style};
+//use foldhash::{HashMap, HashMapExt, rapidhash::fast::RapidHashSet};
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
-use crate::lib;
 
 //use time::Month::January;
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
-) -> HashSet<usize> {
+) -> rapidhash::fast::RapidHashSet<usize> {
     lazy_static! {
 
              static ref fb3_исключения_простые: [String;5] = [
@@ -132,7 +133,7 @@ pub fn xml_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
+    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from_iter([0]);
     //проверка образцов
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
@@ -150,7 +151,7 @@ pub fn xml_получить_указатели_на_пропуски(
     //получение значений
 
     //прогон
-    let пропуски: HashSet<usize> = содержимое
+    let пропуски: rapidhash::fast::RapidHashSet<usize> = содержимое
         .par_iter()
         .enumerate()
         .filter_map(|(указатель, строка)| {
@@ -162,7 +163,7 @@ pub fn xml_получить_указатели_на_пропуски(
                 None
             }
         })
-        .collect::<HashSet<usize>>();
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
     return пропуски;
     //если истина-то переход к следующей строке
     //исключения для расширения
@@ -209,7 +210,7 @@ pub fn xml_получить_указатели_на_пропуски(
 }
 pub fn fb2_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
-) -> HashSet<usize> {
+) -> rapidhash::fast::RapidHashSet<usize> {
     lazy_static! {
         static ref fb2_исключения: [String;46] = [
             r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
@@ -315,7 +316,7 @@ pub fn fb2_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let исключения_для_проверки: HashSet<usize> = HashSet::from_iter([0]);
+    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from_iter([0]);
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //
@@ -331,7 +332,7 @@ pub fn fb2_получить_указатели_на_пропуски(
     };
     //получение значений
 
-    let пропуски: HashSet<usize> =
+    let пропуски: rapidhash::fast::RapidHashSet<usize> =
     //прогон
     содержимое
         .par_iter()
@@ -341,7 +342,7 @@ pub fn fb2_получить_указатели_на_пропуски(
                 return Some(указатель)
             }
             else {None}
-        }).collect::<HashSet<usize>>();
+        }).collect::<rapidhash::fast::RapidHashSet<usize>>();
     return пропуски;
     //исключения для расширения
     //если возвращает истину - то переход на следующую строку
@@ -386,8 +387,8 @@ pub fn fb2_получить_указатели_на_пропуски(
 fn html_получить_указатели_на_пропуски(
     содержимое: &[String],
     условие_архива: bool,
-) -> HashSet<usize> {
-    let пропуски: HashSet<usize> = содержимое
+) -> rapidhash::fast::RapidHashSet<usize> {
+    let пропуски: rapidhash::fast::RapidHashSet<usize> = содержимое
         .par_iter()
         .enumerate()
         .filter_map(|(указатель, строка)| {
@@ -399,7 +400,7 @@ fn html_получить_указатели_на_пропуски(
                 None
             }
         })
-        .collect::<HashSet<usize>>();
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
     return пропуски;
 
     fn html_проверка_содержимого_на_условия(
@@ -432,8 +433,11 @@ fn html_получить_указатели_на_пропуски(
         static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
         //сама проверка
         if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
-            есть_ли_повторно_строка_в_ряде(&строки_исключния.as_ref(),"исключения html",lib::Раздел_Словаря::не_является_разделом);
-            
+            есть_ли_повторно_строка_в_ряде(
+                &строки_исключния.as_ref(),
+                "исключения html",
+                lib::Раздел_Словаря::не_является_разделом,
+            );
         }
         //поиск
         if html_исключения
@@ -463,7 +467,7 @@ pub fn получить_пропуски_для_содержимого(
     содержимое: &Vec<String>,
     имя_файла: &String,
     расширение_книги: &String,
-) -> HashSet<usize> {
+) -> rapidhash::fast::RapidHashSet<usize> {
     // println!("имя файла: {имя_файла}, расширение_книги: {расширение_книги}");
     //fb2
     if расширение_книги.as_str() == "fb2".to_string() {
@@ -497,12 +501,12 @@ pub fn получить_пропуски_для_содержимого(
         //что не архив
         return html_получить_указатели_на_пропуски(&содержимое, false);
     }
-    return HashSet::with_hasher(foldhash::fast::RandomState::default());
+    return rapidhash::fast::RapidHashSet::with_hasher(rapidhash::fast::RandomState::default());
 }
 
 pub fn md_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
-) -> HashSet<usize> {
+) -> rapidhash::fast::RapidHashSet<usize> {
     lazy_static! {
         static ref md_исключения: [String;25] = [
             r#"---"#.to_string(),
@@ -564,8 +568,8 @@ pub fn md_получить_указатели_на_пропуки(
         ];
         static ref md_примечание:Regex= Regex::new(r#"(?i)^#"#).unwrap();
     }
-    let исключения_для_проверки: HashSet<usize> =
-        HashSet::from_iter([0, 1, 2, 3, 11, 12, 17, 18, 19, 24]);
+    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
+        rapidhash::fast::RapidHashSet::from_iter([0, 1, 2, 3, 11, 12, 17, 18, 19, 24]);
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //
@@ -582,7 +586,7 @@ pub fn md_получить_указатели_на_пропуки(
 
     //получение значений
 
-    let пропуски: HashSet<usize> = содержимое
+    let пропуски: rapidhash::fast::RapidHashSet<usize> = содержимое
         .into_par_iter()
         .enumerate()
         .filter_map(|(указатель, строка_внутри)| {
@@ -596,7 +600,7 @@ pub fn md_получить_указатели_на_пропуки(
                 None
             }
         })
-        .collect::<HashSet<usize>>();
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
     //прогон
     //исключения для расширения
     return пропуски;
@@ -643,7 +647,7 @@ pub fn проверка_исключений_в_стоге_сена(
 fn проверка_образцов_re_и_слов_для_кучи(
     исключения: &[String],
     исключения_re: &[Regex],
-    исключения_проверки: &HashSet<usize>,
+    исключения_проверки: &rapidhash::fast::RapidHashSet<usize>,
     сообщение: &str,
 ) -> bool {
     if исключения.len() != исключения_re.len() {
@@ -673,7 +677,11 @@ fn проверка_образцов_re_и_слов_для_кучи(
             });
     }
     //есть ли повторно исключения - строки обычные в ряде
-    есть_ли_повторно_строка_в_ряде(&исключения, сообщение,lib::Раздел_Словаря::не_является_разделом);
+    есть_ли_повторно_строка_в_ряде(
+        &исключения,
+        сообщение,
+        lib::Раздел_Словаря::не_является_разделом,
+    );
     //перебор RE
     есть_ли_повторно_строка_в_ряде_regex(&исключения_re, сообщение);
 
@@ -684,21 +692,25 @@ pub fn есть_ли_кириллица(стог_сена: &String) -> bool {
     use crate::utils::functions_txt::есть_ли_повторно_знак_в_ряде_строк;
     lazy_static! {
         static ref малые_буквы: [char; 33] = [
-            'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'и', 'й', 'к', 'л', 'м', 'н',
-            'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю',
-            'я',
+            'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п',
+            'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
         ];
         static ref большие_буквы: [char; 33] = [
-            'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'И', 'Й', 'К', 'Л', 'М', 'Н',
-            'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю',
-            'Я',
+            'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П',
+            'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
         ];
     }
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //сама проверка
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
-        есть_ли_повторно_знак_в_ряде_строк(&малые_буквы.as_ref(),"малые буквы");
-        есть_ли_повторно_знак_в_ряде_строк(&большие_буквы.as_ref(),"большие буквы");
+        есть_ли_повторно_знак_в_ряде_строк(
+            &малые_буквы.as_ref(),
+            "малые буквы",
+        );
+        есть_ли_повторно_знак_в_ряде_строк(
+            &большие_буквы.as_ref(),
+            "большие буквы",
+        );
     }
     //малые буквы
     if малые_буквы

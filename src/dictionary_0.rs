@@ -1,5 +1,6 @@
+use std::collections::HashSet;
 //use std::default;
-use crate::lib::{self, Полный_Словарь, Словарь, Словарь_Переносов, Словарь_разделителей, Сообщения_для_книги, Счётчик_разделителей, Счётчики_Словаря};
+use crate::lib::{self, Полный_Словарь, Словарь, Словарь_Переносов, Словарь_разделителей, Сообщения_для_книги, Счётчик_разделителей, Счётчики_Словаря, Ячейка_словаря};
 use lazy_static::lazy_static;
 use std::thread;
 
@@ -15,14 +16,12 @@ extern crate rayon;
 use crate::utils::functions::*;
 use crate::utils::functions_txt::*;
 use crate::utils::hash::есть_ли_кириллица;
+use crate::utils::regex::*;
 use crate::utils::stringzilla::{sz_найти, sz_упорядочить_ряд_строк};
 use crate::xlsx::import_xlsx::поиск_уже_добавленных_слов;
 use crate::{ALLOCATOR, utils};
 use console::{Emoji, style};
-use foldhash::{
-    HashMap, HashSet, HashSetExt,
-    fast::{FixedState, RandomState},
-};
+use rapidhash::fast::RapidHashSet;
 use indicatif::ProgressBar;
 use indicatif::*;
 use rayon::prelude::*;
@@ -30,12 +29,12 @@ use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use stringzilla::sz;
-use crate::utils::regex::*;
+use rapidhash::*;
 
 #[derive(Debug, Default, Clone)]
 pub struct Исключения_для_кучи {
     pub указатель: usize,
-    pub исключения: foldhash::HashSet<String>,
+    pub исключения: rapidhash::fast::RapidHashSet<String>,
 }
 //изменение слов в книге
 pub fn заменить_слова_в_книге(
@@ -44,8 +43,11 @@ pub fn заменить_слова_в_книге(
     сообщения: &mut lib::Сообщения,
 ) -> Vec<lib::Книги> {
     use crate::utils::regex::{
-        создать_счётчики_словаря,убрать_переносы,замена_слов_через_кучу,добавить_разделители,
-        создать_словарь_замен,создать_словарь_разделителей,создать_второй_словарь_разделителей,создать_второй_словарь_переносов,создать_счётчик_словаря_разделителей,создать_счётчик_словаря_замен,создать_третий_словарь_переносов};
+        добавить_разделители, замена_слов_через_кучу, создать_второй_словарь_переносов,
+        создать_второй_словарь_разделителей, создать_словарь_замен, создать_словарь_разделителей,
+        создать_счётчик_словаря_замен, создать_счётчик_словаря_разделителей,
+        создать_счётчики_словаря, создать_третий_словарь_переносов, убрать_переносы,
+    };
     use crate::utils::stringzilla::sz_найти;
     use lib::{
         Словарь_Переносов, Счётчик_замен, Ячейка_замены
@@ -79,18 +81,31 @@ pub fn заменить_слова_в_книге(
     //словарь переносов и тире
     let создать_составной_ряд_замен: Словарь_Переносов = создать_словарь_замен();
     //
-    let создать_словарь_разделителей:Словарь_разделителей=создать_словарь_разделителей();
+    let создать_словарь_разделителей: Словарь_разделителей =
+        создать_словарь_разделителей();
     //let создать_второй_составной_ряд_замен=создать_составной_ряд_замен.1.clone();
     // Создаем атомарные счетчики для каждого шаблона
 
-    let словарь_разделителей: [crate::lib::Словарь_разделителей; 2] =[
+    let словарь_разделителей: [crate::lib::Словарь_разделителей; 3] = [
         создать_словарь_разделителей.clone(),
-        создать_второй_словарь_разделителей(создать_словарь_разделителей.clone()),
+        создать_второй_словарь_разделителей(
+            создать_словарь_разделителей.clone(),
+        ),
+        создать_третий_словарь_разделителей(
+            создать_словарь_разделителей.clone(),
+        ),
     ];
     //
-    let mut счётчики_разделителей: [Arc<Счётчик_разделителей>; 2] = [
-        создать_счётчик_словаря_разделителей(&словарь_разделителей[0]),
-        создать_счётчик_словаря_разделителей(&словарь_разделителей[1]),
+    let mut счётчики_разделителей: [Arc<Счётчик_разделителей>; 3] = [
+        создать_счётчик_словаря_разделителей(
+            &словарь_разделителей[0],
+        ),
+        создать_счётчик_словаря_разделителей(
+            &словарь_разделителей[1],
+        ),
+        создать_счётчик_словаря_разделителей(
+            &словарь_разделителей[2],
+        ),
     ];
     // Создаем атомарные счетчики для каждого шаблона
 
@@ -101,7 +116,6 @@ pub fn заменить_слова_в_книге(
         ),
         создать_третий_словарь_переносов(создать_составной_ряд_замен),
     ];
-
 
     //
 
@@ -167,7 +181,7 @@ pub fn заменить_слова_в_книге(
                     let mut счётчики_замен_вложенные: [Arc<Счётчик_замен>;3] =
                         счётчики_замен.clone();
                     //счётчики разделителей
-                    let mut счётчики_разделителей_вложенные: [Arc<Счётчик_разделителей>;2] =
+                    let mut счётчики_разделителей_вложенные: [Arc<Счётчик_разделителей>;3] =
                         счётчики_разделителей.clone();
                     let текущий_шаг_всех_книг:String = format!("[{}/{}]", главный_указатель + 1, количество_книг);
                     let шаг_вложенных_книг = format!("[{}/{}]", шаг_внутренний.load(Ordering::Relaxed) + 1, счётчик_количества_вложенных_файлов);
@@ -181,7 +195,7 @@ pub fn заменить_слова_в_книге(
                         + полный_словарь.неизменное.len()*к1   + полный_словарь.неизменное_короткое.len()*к1
                         + полный_словарь.неизменное_длинное.len()*к1;
                 //получение указаталей на попуски
-                let куча_пропусков: HashSet<usize> = utils::hash::получить_пропуски_для_содержимого(
+                let куча_пропусков: rapidhash::fast::RapidHashSet<usize> = utils::hash::получить_пропуски_для_содержимого(
                     &вложения.содержимое,
                     &вложения.имя,
                     &книга_взятая.расширение);
@@ -478,15 +492,20 @@ pub fn заменить_слова_в_книге(
     }
     //
     use crate::output::write::вывод_страницы_словаря_разделителей_с_исключениями;
-        write::вывод_всех_счётчиков_разделителей_в_xls(
-            &счётчики_разделителей,
-            &словарь_разделителей,
-        )
-            .unwrap();
-
+    write::вывод_всех_счётчиков_разделителей_в_xls(
+        &счётчики_разделителей,
+        &словарь_разделителей,
+    )
+    .unwrap();
+    //
     println!(
-        "Время занятое на замену слов: {:.2?}",
-        точка_отсчёта_по_времени.elapsed()
+        "{}",
+        style(format!(
+            "⌚\tВремя занятое на замену слов: {:.2?}",
+            точка_отсчёта_по_времени.elapsed()
+        ))
+        .true_color(154, 136, 252)
+        .blink()
     );
     *сообщения = Arc::try_unwrap(временные_сообщения)
         .unwrap()
@@ -573,6 +592,9 @@ pub fn определеить_вложенный_ли_файл(путь: &String
         false
     }
 }
+//
+
+
 //создание словаря regex
 pub fn добавить_все_слова_в_словарь(
     mut ряд_словарей: Vec<Словарь>, //вектор словарей
@@ -581,45 +603,100 @@ pub fn добавить_все_слова_в_словарь(
     //итоговый словарь
     //let mut полный_словарь: Mutex<Полный_Словарь> = Mutex::new(Default::default());
     //перебор словаря
+    let точка_отсчёта_по_времени_2: Instant = Instant::now();
+    //возврат словаря
+//
+    let mut множество_простое:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut множество_сложное:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut множество_сложное_составное:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut множество_неизменное:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut множество_неизменное_длинное:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut множество_неизменное_короткие:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+    let mut вездесущие:Arc<Mutex<RapidHashSet<Ячейка_словаря>>> = Arc::new(Mutex::new(RapidHashSet::default()));
+
+    //
     let полный_словарь = ряд_словарей
         .into_par_iter()
-        .fold_with(
-            lib::Полный_Словарь::default(),
-            |mut накопитель, ячейка| {
-                накопитель.простое.extend(ячейка.простое);
-                накопитель.вездесущее.extend(ячейка.вездесущее);
-                накопитель.составное.extend(ячейка.составное);
-                накопитель.составное_важное.extend(ячейка.составное_важное);
-                накопитель.неизменное.extend(ячейка.неизменное);
-                накопитель.огласовки.extend(ячейка.огласовки);
-                накопитель
-                    .неизменное_короткое
-                    .extend(ячейка.неизменное_короткое);
-                накопитель
-                    .неизменное_длинное
-                    .extend(ячейка.неизменное_длинное);
+        .fold(
+            || Полный_Словарь::default(),
+            |mut накопитель, словарь| {
+                // Заполняем векторы
+                накопитель.простое.extend(словарь.простое.iter().cloned());
+                накопитель.вездесущее.extend(словарь.вездесущее.iter().cloned());
+                накопитель.составное.extend(словарь.составное.iter().cloned());
+                накопитель.составное_важное.extend(словарь.составное_важное.iter().cloned());
+                накопитель.неизменное.extend(словарь.неизменное.iter().cloned());
+                накопитель.огласовки.extend(словарь.огласовки.iter().cloned());
+                накопитель.неизменное_короткое.extend(словарь.неизменное_короткое.iter().cloned());
+                накопитель.неизменное_длинное.extend(словарь.неизменное_длинное.iter().cloned());
+
+                // Заполняем rapidhash::fast::RapidHashSet
+                /*накопитель.куча_простое.extend(словарь.простое.iter().cloned());
+                накопитель.куча_вездесущее.extend(словарь.вездесущее.iter().cloned());
+                накопитель.куча_составное.extend(словарь.составное.iter().cloned());
+                накопитель.куча_составное_важное.extend(словарь.составное_важное.iter().cloned());
+                накопитель.куча_неизменное.extend(словарь.неизменное.iter().cloned());
+                накопитель.куча_огласовки.extend(словарь.огласовки.iter().cloned());
+                накопитель.куча_неизменное_короткое.extend(словарь.неизменное_короткое.iter().cloned());
+                накопитель.куча_неизменное_длинное.extend(словарь.неизменное_длинное.iter().cloned());*/
+
                 накопитель
             },
         )
         .reduce(
-            || lib::Полный_Словарь::default(),
-            |mut a, b| {
-                a.простое.extend(b.простое);
-                a.вездесущее.extend(b.вездесущее);
-                a.составное.extend(b.составное);
-                a.составное_важное.extend(b.составное_важное);
-                a.неизменное.extend(b.неизменное);
-                a.огласовки.extend(b.огласовки);
-                a.неизменное_короткое.extend(b.неизменное_короткое);
-                a.неизменное_длинное.extend(b.неизменное_длинное);
-                a
+            || Полный_Словарь::default(),
+            |mut аккумулятор, часть| {
+                // Объединяем векторы
+                аккумулятор.простое.extend(часть.простое);
+                аккумулятор.вездесущее.extend(часть.вездесущее);
+                аккумулятор.составное.extend(часть.составное);
+                аккумулятор.составное_важное.extend(часть.составное_важное);
+                аккумулятор.неизменное.extend(часть.неизменное);
+                аккумулятор.огласовки.extend(часть.огласовки);
+                аккумулятор.неизменное_короткое.extend(часть.неизменное_короткое);
+                аккумулятор.неизменное_длинное.extend(часть.неизменное_длинное);
+
+                // Объединяем rapidhash::fast::RapidHashSet
+                /*аккумулятор.куча_простое.extend(часть.куча_простое);
+                аккумулятор.куча_вездесущее.extend(часть.куча_вездесущее);
+                аккумулятор.куча_составное.extend(часть.куча_составное);
+                аккумулятор.куча_составное_важное.extend(часть.куча_составное_важное);
+                аккумулятор.куча_неизменное.extend(часть.куча_неизменное);
+                аккумулятор.куча_огласовки.extend(часть.куча_огласовки);
+                аккумулятор.куча_неизменное_короткое.extend(часть.куча_неизменное_короткое);
+                аккумулятор.куча_неизменное_длинное.extend(часть.куча_неизменное_длинное);*/
+
+                аккумулятор
             },
         );
+    //вывод отчёта по времени, занятого на этот шаг
+    println!(
+        "{}",
+        style(format!(
+            "⏰  Время занятое на добавление всех слов в словарь : {:.2?}",
+            точка_отсчёта_по_времени_2.elapsed()
+        ))
+        .true_color(214, 49, 121)
+        .blink()
+    );
+    //количество времени, занятое на данный шаг
+    let точка_отсчёта_по_времени_2: Instant = Instant::now();
     //проверка пересечений составных, составных важных и неизменных слов
     //return
     поиск_уже_добавленных_слов_в_полном_словаре(
         &полный_словарь,
     ); //номер страницы
+    
+    ////количество времени, занятое на данный шаг
+    println!(
+        "{}",
+        style(format!(
+            "⏰  Время занятое на поиск уже добавленных слов в словаре : {:.2?}",
+            точка_отсчёта_по_времени_2.elapsed()
+        ))
+        .true_color(214, 49, 121)
+        .blink()
+    );
     //поиск уже добавленных слов
     return полный_словарь;
 }
@@ -628,7 +705,7 @@ pub fn создать_быстрый_словарь(
     слова_из_словаря: &Vec<String>,
     вид_слов: &str,
     mut счётчик_входа: &mut AtomicUsize,
-) -> HashMap<String, HashSet<usize>> {
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
     use crate::lib::Куча_Слова_Замены;
 
     //let ряд_вывод2: Arc<Mutex<Vec<Куча_Слова_Замены>>> = Arc::new(Mutex::new(Vec::new()));
@@ -642,7 +719,7 @@ pub fn создать_быстрый_словарь(
         false
     };
     //создать кучу словаря с окончаниями и указателями
-    let словарь_куча: HashMap<String, HashSet<usize>> =
+    let словарь_куча: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(
             &слова_из_словаря,
             &mut счётчик_входа,
@@ -724,15 +801,15 @@ pub fn создать_быстрый_словарь(
 pub fn создать_быстрый_словарь2(
     слова_из_словаря: &Vec<String>,
     вид_слов: &str,
-) -> HashMap<String, HashSet<usize>> {
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
     use crate::utils::stringzilla::sz_упорядочить_кучу;
-    //let куча_пропусков:HashMap<String,Vec<usize>>=HashMap::with_hasher(foldhash::fast::RandomState::default());
+    //let куча_пропусков:rapidhash::fast::RapidHashMap<String,Vec<usize>>=rapidhash::fast::RapidHashMap::with_hasher(foldhash::fast::RandomState::default());
     //let mut куча_простая=куча_пропусков.clone();
     let mut ряд_вывод: Arc<Mutex<Vec<String>> >= Arc::new(Mutex::new(Vec::new()));
-    let словарь_куча: HashMap<String, HashSet<usize>> =
+    let словарь_куча: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         выделить_кучу_из_ряда_для_словаря(&слова_из_словаря);
-    let ряд_временный: Mutex<HashSet<String>> =
-        Mutex::new(HashSet::with_hasher(foldhash::fast::RandomState::default()));
+    let ряд_временный: Mutex<rapidhash::fast::RapidHashSet<String>> =
+        Mutex::new(rapidhash::fast::RapidHashSet::with_hasher(foldhash::fast::RandomState::default()));
     //
     словарь_куча.par_iter().for_each(|(ключ, значения)| {
         ряд_временный.lock().unwrap().insert(ключ.to_string());
@@ -772,25 +849,25 @@ pub fn создать_быстрый_словарь2(
 
 pub fn выделить_кучу_из_ряда_для_словаря3(
     ряд_слов: &Vec<String>,
-) -> HashMap<String, HashSet<usize>> {
-    let куча:HashMap<String, HashSet<usize>>=ряд_слов.par_iter()
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
+    let куча:rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>=ряд_слов.par_iter()
         .enumerate()
         .fold(
-            || HashMap::default(),
+            || rapidhash::fast::RapidHashMap::default(),
             |mut acc, (i, строка)| {
                 let слово = выделить_окончание_из_слова(строка);
                 acc.entry(слово)
-                    .or_insert_with(HashSet::new)
+                    .or_insert_with(rapidhash::fast::RapidHashSet::new)
                     .insert(i);
                 acc
             }
         )
         .reduce(
-            || HashMap::default(),
+            || rapidhash::fast::RapidHashMap::default(),
             |mut acc1, acc2| {
                 for (ключ, значения) in acc2 {
                     acc1.entry(ключ)
-                        .or_insert_with(HashSet::new)
+                        .or_insert_with(rapidhash::fast::RapidHashSet::new)
                         .extend(значения);
                 }
                 acc1
@@ -801,16 +878,16 @@ pub fn выделить_кучу_из_ряда_для_словаря3(
 
 pub fn выделить_кучу_из_ряда_для_словаря1(
     ряд_слов: &Vec<String>,
-) -> HashMap<String, HashSet<usize>> {
-    let mut куча_пропусков: HashMap<String, HashSet<usize>> =
-        HashMap::with_hasher(foldhash::fast::RandomState::default());
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
+    let mut куча_пропусков: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
+        rapidhash::fast::RapidHashMap::with_hasher(foldhash::fast::RandomState::default());
     //перебор ряда слов
     for i in 0..ряд_слов.len() {
         let слово: String = выделить_окончание_из_слова(&ряд_слов[i]);
         //создание пустой кучи
              //проверка есть ли в куче
         if !куча_пропусков.contains_key(&слово) {
-            куча_пропусков.insert(слово,   HashSet::from_iter([i]));
+            куча_пропусков.insert(слово,   rapidhash::fast::RapidHashSet::from_iter([i]));
         }
         //если содержит куча ключ
         else {
@@ -831,8 +908,8 @@ pub fn выделить_кучу_из_ряда_для_словаря(
     ряд_слов: &[String],
     mut счётчик_входа: &mut AtomicUsize,
     условие: bool,
-) -> HashMap<String, HashSet<usize>> {
-    let mut куча_пропусков: HashMap<String, HashSet<usize>> = HashMap::default();
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
+    let mut куча_пропусков: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = rapidhash::fast::RapidHashMap::default();
     //выделение окончаний из слов
     for (указатель, исходное_слово) in ряд_слов.iter().enumerate() {
         //если больше 3-х букв
@@ -845,19 +922,19 @@ pub fn выделить_кучу_из_ряда_для_словаря(
         };
         куча_пропусков
             .entry(слово)
-            .or_insert_with(HashSet::new)
+            .or_insert_with(rapidhash::fast::RapidHashSet::new)
             .insert(указатель);
     }
 
     куча_пропусков
 }
-
+/*
 pub fn foldhash_пример(слова: &Vec<usize>, значение: usize) {
-    let my_set: HashSet<usize> = (0..слова.len())
+    let my_set: rapidhash::fast::RapidHashSet<usize> = (0..слова.len())
         .map(|_| if значение == 0 { 1 } else { 2 })
-        .collect::<HashSet<usize>>();
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
     let слова: Vec<String> = Vec::new();
-    let пропуски: HashSet<usize> = слова
+    let пропуски: rapidhash::fast::RapidHashSet<usize> = слова
         .par_iter()
         .enumerate()
         .filter_map(|(указатель, строка)| {
@@ -867,29 +944,29 @@ pub fn foldhash_пример(слова: &Vec<usize>, значение: usize) {
                 None
             }
         })
-        .collect::<HashSet<usize>>();
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
 
     use std::hash::BuildHasher;
-    //let my_set: HashSet<usize> = 1.into();
-    let my_set = HashSet::from_iter([1, 2, 3, 4, 5]);
+    //let my_set: rapidhash::fast::RapidHashSet<usize> = 1.into();
+    let my_set = rapidhash::fast::RapidHashSet::from_iter([1, 2, 3, 4, 5]);
     let random_state = RandomState::default();
     let hash = random_state.hash_one("hello world");
-    let hash: HashSet<usize> = HashSet::from_iter([1, 2])
+    let hash: rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from_iter([1, 2])
         .into_iter()
-        .collect::<HashSet<usize>>();
-    //et my_set:HashSet<usize> = HashSet::from( 1);
+        .collect::<rapidhash::fast::RapidHashSet<usize>>();
+    //et my_set:rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from( 1);
 
-    let my_set: HashSet<usize> = [1, 2, 3, 4, 5].into_iter().collect::<HashSet<usize>>();
-}
+    let my_set: rapidhash::fast::RapidHashSet<usize> = [1, 2, 3, 4, 5].into_iter().collect::<rapidhash::fast::RapidHashSet<usize>>();
+}*/
 
 pub fn выделить_окончание_из_слова(
     слово: &String,
     //  mut счётчик_входа: &mut AtomicUsize,
 ) -> String {
-    /*let куча_исключений_знак: HashSet<char> =
-       HashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
+    /*let куча_исключений_знак: rapidhash::fast::RapidHashSet<char> =
+       rapidhash::fast::RapidHashSet::from_iter(['ы', 'и', 'а', 'я', 'у', 'е', 'ю'])
            .into_iter()
-           .collect::<HashSet<char>>();
+           .collect::<rapidhash::fast::RapidHashSet<char>>();
     */
     //куча_исключений_знак.insert('ь');
     //куча_исключений_знак.insert('ъ');
@@ -1283,10 +1360,10 @@ pub fn прогон_и_замена_в_слове_через_ряд_re_c_иск�
 }
 pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сообщение: &str) {
     let ряд = re_ряд.as_ref();
-    let куча: HashSet<String> = (0..ряд.len())
+    let куча: rapidhash::fast::RapidHashSet<String> = (0..ряд.len())
         .into_par_iter()
         .flat_map(|i| {
-            let mut куча_2: std::collections::HashSet<String, RandomState> = HashSet::default();
+            let mut куча_2: rapidhash::fast::RapidHashSet<String> = rapidhash::fast::RapidHashSet::default();
 
             // Проверка на отсутствие $
             // if !ряд[i].as_str().contains('$') {
@@ -1295,7 +1372,7 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сооб�
             }
 
             // Проверка на дубликаты
-            let повторы: HashSet<String> = ((i + 1)..ряд.len())
+            let повторы: rapidhash::fast::RapidHashSet<String> = ((i + 1)..ряд.len())
                 .into_par_iter()
                 .filter_map(|j| {
                     if ряд[i].as_str() == ряд[j].as_str() {
@@ -1307,12 +1384,12 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сооб�
                 .collect();
 
             куча_2.extend(повторы);
-            куча_2.into_iter().collect::<HashSet<String>>()
+            куча_2.into_iter().collect::<rapidhash::fast::RapidHashSet<String>>()
         })
         .collect();
 
     if !куча.is_empty() {
-        println!("длина кучи: {}", куча.len());
+        //println!("длина кучи: {}", куча.len());
         for слово in &куча {
             println!("{} : {}", сообщение, слово);
         }
@@ -1323,7 +1400,7 @@ fn получить_кучи_из_словарей(
     полный_словарь: &Полный_Словарь,
 ) -> lib::Куча_Словарь {
     let mut счётчик_входа: AtomicUsize = AtomicUsize::new(0);
-    let простое: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+    let простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .простое
             .par_iter()
@@ -1332,7 +1409,7 @@ fn получить_кучи_из_словарей(
         "простые",
         &mut счётчик_входа,
     );
-    let составное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+    let составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .составное
             .par_iter()
@@ -1341,7 +1418,7 @@ fn получить_кучи_из_словарей(
         "составные",
         &mut счётчик_входа,
     );
-    let составное_важное: HashMap<String, HashSet<usize>> =
+    let составное_важное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         создать_быстрый_словарь(
             &полный_словарь
                 .составное_важное
@@ -1351,7 +1428,7 @@ fn получить_кучи_из_словарей(
             "составные_важные",
             &mut счётчик_входа,
         );
-    let вездесущее: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+    let вездесущее: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .вездесущее
             .par_iter()
@@ -1361,7 +1438,7 @@ fn получить_кучи_из_словарей(
         &mut счётчик_входа,
     );
     //неизменное
-    let неизменное: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+    let неизменное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .неизменное
             .par_iter()
@@ -1370,7 +1447,7 @@ fn получить_кучи_из_словарей(
         "неизменные",
         &mut счётчик_входа,
     );
-    let огласовки: HashMap<String, HashSet<usize>> = создать_быстрый_словарь(
+    let огласовки: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> = создать_быстрый_словарь(
         &полный_словарь
             .огласовки
             .par_iter()
@@ -1380,7 +1457,7 @@ fn получить_кучи_из_словарей(
         &mut счётчик_входа,
     );
     //неизменное короткое
-    let неизменное_короткое: HashMap<String, HashSet<usize>> =
+    let неизменное_короткое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         создать_быстрый_словарь(
             &полный_словарь
                 .неизменное_короткое
@@ -1391,7 +1468,7 @@ fn получить_кучи_из_словарей(
             &mut счётчик_входа,
         );
     //неизменное длинное
-    let неизменное_длинное: HashMap<String, HashSet<usize>> =
+    let неизменное_длинное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         создать_быстрый_словарь(
             &полный_словарь
                 .неизменное_длинное
