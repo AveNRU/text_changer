@@ -133,7 +133,8 @@ pub fn xml_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from_iter([0]);
+    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
+        rapidhash::fast::RapidHashSet::from_iter([0]);
     //проверка образцов
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
@@ -316,7 +317,8 @@ pub fn fb2_получить_указатели_на_пропуски(
           static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
          static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
     }
-    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> = rapidhash::fast::RapidHashSet::from_iter([0]);
+    let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
+        rapidhash::fast::RapidHashSet::from_iter([0]);
     //переменная для хранения счётчика проверки
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //

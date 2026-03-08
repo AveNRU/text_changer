@@ -13,6 +13,7 @@ use std::time::{
     //Duration,
     Instant,
 };
+use tokio::*;
 use xml::Encoding::Default;
 
 pub mod check_1;
@@ -29,7 +30,8 @@ use crate::utils::functions_add::system_pause;
 use console::{Emoji, style};
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
-fn main() {
+#[tokio::main] // или #[async_std::main]
+async fn main() {
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
@@ -72,14 +74,17 @@ fn main() {
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let выходные_книги: Vec<lib::Книги> = dictionary_0::заменить_слова_в_книге(
-        &mut полный_словарь,
-        исходная_книга.0,
-        &mut сообщения,
-    );
-
+    let итог_замены_слов_в_книгах: (Vec<lib::Книги>, lib::Сообщения) =
+        dictionary_0::заменить_слова_в_книге_и_их_вывод(
+            полный_словарь,
+            исходная_книга.0,
+            сообщения,
+        )
+        .await;
+    let выходные_книги: Vec<lib::Книги> = итог_замены_слов_в_книгах.0;
+    let сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
+    //write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
 
     //время затраченное в итоге
     //вывод сообщений
@@ -96,4 +101,5 @@ fn main() {
         .blink()
     );
     system_pause();
+    println!();
 }

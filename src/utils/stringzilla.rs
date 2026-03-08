@@ -62,7 +62,9 @@ pub fn sz_упорядочить_кучу_словарь_замены(
     }
     return новый_ряд;
 }
-pub fn sz_упорядочить_кучу(ряд: rapidhash::fast::RapidHashSet<String>) -> Vec<String> {
+pub fn sz_упорядочить_кучу(
+    ряд: rapidhash::fast::RapidHashSet<String>,
+) -> Vec<String> {
     let ряд: Vec<String> = ряд.into_iter().collect();
     let mut порядок: Vec<usize> = vec![0; ряд.len()];
     sz::argsort_permutation(&ряд, &mut порядок).unwrap();

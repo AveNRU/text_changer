@@ -286,7 +286,8 @@ pub fn вложена_ли_строка_в_ряд(
     return false;
 }
 pub fn есть_ли_строка_в_куче(
-    куча: &rapidhash::fast::RapidHashSet<String>, строка: &String
+    куча: &rapidhash::fast::RapidHashSet<String>,
+    строка: &String,
 ) -> bool {
     if куча
         .par_iter()

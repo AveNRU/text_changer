@@ -10,7 +10,8 @@ pub fn два_слова_из_одного_для_словаря(
     иходное_слово: &String,
 ) -> (String, String) {
     lazy_static! {
-        static ref куча: rapidhash::fast::RapidHashSet<char> = rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
+        static ref куча: rapidhash::fast::RapidHashSet<char> =
+            rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
     }
     let временный_составной_ряд: (String, Vec<char>) =
         найти_особые_знаки(&иходное_слово);
@@ -73,7 +74,8 @@ pub fn три_слова_из_одного_для_словаря(
     иходное_слово: &String,
 ) -> (String, String, String) {
     lazy_static! {
-        static ref куча: rapidhash::fast::RapidHashSet<char> = rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
+        static ref куча: rapidhash::fast::RapidHashSet<char> =
+            rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
     }
     let временный_составной_ряд: (String, Vec<char>) =
         найти_особые_знаки(&иходное_слово);
@@ -126,4 +128,18 @@ pub fn если_слово_начинается_с_особых_знаков(
     } else {
         false
     }
+}
+
+pub fn f64_в_i64_безопасно(значение: f64) -> Option<i64> {
+    // Проверка на NaN и бесконечность
+    if значение.is_nan() || значение.is_infinite() {
+        return None;
+    }
+
+    // Проверка границ i64
+    if значение < i64::MIN as f64 || значение > i64::MAX as f64 {
+        return None;
+    }
+
+    Some(значение as i64)
 }

@@ -43,7 +43,7 @@ impl Zips {
     // Конструктор: читает файл в память, создаёт Cursor и пустой виртуальный FS
     fn new(путь: &str) -> Result<Self, ZipsError> {
         let данные = fs::read(путь).map_err(|_| ZipsError::FileNotFound).unwrap();
-        let пустая_стопка:rapidhash::fast::RapidHashMap<String, Vec<u8>> =
+        let пустая_стопка: rapidhash::fast::RapidHashMap<String, Vec<u8>> =
             rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
         Ok(Self {
             указатель: Cursor::new(данные),
