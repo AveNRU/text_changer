@@ -28,6 +28,8 @@ pub mod xlsx;
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
 use console::{Emoji, style};
+use rayon::scope;
+
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
 #[tokio::main] // или #[async_std::main]
@@ -100,6 +102,7 @@ async fn main() {
         .true_color(154, 136, 252)
         .blink()
     );
+
     system_pause();
     println!();
 }
