@@ -2,7 +2,7 @@
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
-
+use crate::sync::mpsc;
 use chrono::*;
 //use unirust::*;
 //use std::collections::HashMap;
@@ -68,11 +68,7 @@ async fn main() {
     let mut полный_словарь: lib::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей(исходная_книга.1);
     //сохранение исходных книг - с разделениями
-    write::сохранить_книги_с_разделениями(
-        &исходная_книга.0,
-        &mut сообщения,
-    )
-    .unwrap();
+    let  книги_вывод=исходная_книга.0.clone();
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
@@ -84,7 +80,23 @@ async fn main() {
         )
         .await;
     let выходные_книги: Vec<lib::Книги> = итог_замены_слов_в_книгах.0;
-    let сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
+    let mut сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
+    //
+    let (tx,mut rx) = mpsc::unbounded_channel();
+    rayon::spawn(move || {
+
+        let результат =write::сохранить_книги_с_разделениями(
+            книги_вывод,
+        )
+            .unwrap();
+        tx.send(результат).unwrap_or(());
+    });
+    let сообщения2=match rx.try_recv() {
+        Ok(сообщения) => сообщения,
+        Err(ошибка) => {println!("Результат еще не готов : {}",ошибка); Default::default()},
+    };
+    //
+    сообщения.вложить(сообщения2);
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
 

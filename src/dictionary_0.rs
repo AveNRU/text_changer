@@ -463,6 +463,17 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
 
              pb.finish_and_clear();
     });
+    //
+    let книги_2=книги.clone();
+    let (tx,mut rx) = tokio::sync::mpsc::unbounded_channel();
+    rayon::spawn(move || {
+    let результат: lib::Сообщения = crate::write::сохранить_книги(&книги_2).unwrap();
+        tx.send(результат).unwrap_or(());
+    });
+    let сообщенияя=match rx.try_recv() {
+        Ok(сообщения) => сообщения,
+        Err(ошибка) => {println!("Результат еще не готов : {}",ошибка); Default::default()},
+    };
     //вывод словаря
     //
     println!(
@@ -558,7 +569,7 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
         Ok(сообщения) => сообщения,
         Err(ошибка) => {println!("Результат еще не готов : {}",ошибка); Default::default()},
     };*/
-    let сообщения: lib::Сообщения = crate::write::сохранить_книги(&книги, сообщения).unwrap();
+
     /*rayon::spawn(move || {
     let сообщения:lib::Сообщения=crate::write::сохранить_книги(&книги, сообщения).unwrap();
     });*/
