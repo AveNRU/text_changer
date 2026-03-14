@@ -83,22 +83,24 @@ async fn main() {
     let выходные_книги: Vec<lib::Книги> = итог_замены_слов_в_книгах.0;
     let mut сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
     //
-    let (tx,mut rx) = mpsc::unbounded_channel();
+    /*let (tx,mut rx) = mpsc::unbounded_channel();
     let handle = thread::spawn(move|| {
-
+*/
         let результат =write::сохранить_книги_с_разделениями(
             книги_вывод,
         )
             .unwrap();
-        tx.send(результат).unwrap_or(());
+    println!("Прошёл шаг!!!!!!!!");
+  /*      tx.send(результат).unwrap_or(());
     });
     let result = handle.join().unwrap();
     let сообщения2=match rx.try_recv() {
         Ok(сообщения) => сообщения,
         Err(ошибка) => {println!("Сохранить книги с разделителями еще не готов : {}",ошибка); Default::default()},
-    };
+    };*/
     //
-    сообщения.вложить(сообщения2);
+   // сообщения.вложить(сообщения2);
+    сообщения.вложить(результат);
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
 
