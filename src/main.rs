@@ -32,6 +32,7 @@ use rayon::scope;
 
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
+use std::thread;
 #[tokio::main] // или #[async_std::main]
 async fn main() {
     use std::default::Default;
@@ -83,7 +84,7 @@ async fn main() {
     let mut сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
     //
     let (tx,mut rx) = mpsc::unbounded_channel();
-    rayon::spawn(move || {
+    let handle = thread::spawn(move|| {
 
         let результат =write::сохранить_книги_с_разделениями(
             книги_вывод,
@@ -91,9 +92,10 @@ async fn main() {
             .unwrap();
         tx.send(результат).unwrap_or(());
     });
+    let result = handle.join().unwrap();
     let сообщения2=match rx.try_recv() {
         Ok(сообщения) => сообщения,
-        Err(ошибка) => {println!("Результат еще не готов : {}",ошибка); Default::default()},
+        Err(ошибка) => {println!("Сохранить книги с разделителями еще не готов : {}",ошибка); Default::default()},
     };
     //
     сообщения.вложить(сообщения2);

@@ -7,46 +7,46 @@ edition = "2024"
 
 [dependencies]
 #для замера ОЗУ
-cap = "0.1.2"
+cap = "*"
 #смешные лица
-indicatif = "0.18.4"
+indicatif = "*"
 #постоянные данные
-lazy_static = "1.5.0"
-regex = "1.12.3"
-calamine = "0.34.0"
-rust_xlsxwriter = "0.94.0"
-encoding_rs = "0.8.35"
-encoding_rs_io = "0.1.7"
-rtf-parser = "0.4.2"
-zip = "8.2.0"
-#foldhash = "0.2.0"
+lazy_static = "*"
+regex = "*"
+calamine = "*"
+rust_xlsxwriter = "*"
+encoding_rs = "*"
+encoding_rs_io = "*"
+rtf-parser = "*"
+zip = "*"
+#foldhash = "*"
 #доп
-walkdir = "2.5.0" #вложенные папки
-anyhow = "1.0.102"
-clap = "4.5.60"
-serde_json = "1.0.149"
-convert_case = "0.11.0"
-stringzilla = "4.6.0"
-time = "0.3.47"
-chrono = "0.4.44"
-unirust = "0.1.0"
+walkdir = "*" #вложенные папки
+anyhow = "*"
+clap = "*"
+serde_json = "*"
+convert_case = "*"
+stringzilla = "*"
+time = "*"
+chrono = "*"
+unirust = "*"
 #rzhavchina = { path = "./rzhavchina_proc_macro/" }
-sysinfo = "0.38.4"
-vergen = "9.1.0"
-rayon = "1.11.0"
-xml-rs = "1.0.0"
-#quick-xml = "0.38.3"
-pretty_assertions = "1.4.1"
-console = "0.16.2"
-rand = "0.10.0"
-dhat = "0.3.3"
-#sha2 = "0.10.9"
-#blake3 = "1.8.2"
-rapidhash = "4.4.1"
-serde = { version = "1.0.228", features = ["derive"] }
-unicode-segmentation = "1.12.0"
-tokio = { version = "1.50.0", features = ["full"]  }
-tokio-macros = "2.6.1"
+sysinfo = "*"
+vergen = "*"
+rayon = "*"
+xml-rs = "*"
+#quick-xml = "*"
+pretty_assertions = "*"
+console = "*"
+rand = "*"
+dhat = "*"
+#sha2 = "*"
+#blake3 = "*"
+rapidhash = "*"
+serde = { version = "*", features = ["derive"] }
+unicode-segmentation = "*"
+tokio = { version = "*", features = ["full"]  }
+tokio-macros = "*"
 [workspace]
 members = [
     "rzhavchina_proc_macro",
