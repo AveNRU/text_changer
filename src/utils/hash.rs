@@ -418,7 +418,7 @@ fn html_получить_указатели_на_пропуски(
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
             ];
-            static ref строки_исключния: [String; 11] = [
+            static ref строки_исключния: [String; 12] = [
                 format!(r####"<link rel="icon" href="###"####),
                 format!(r##"<link rel="preload" href=""##),
                 format!(r####"<link rel="stylesheet" href=""####),
@@ -430,6 +430,7 @@ fn html_получить_указатели_на_пропуски(
                 r#"<script async="" src="#.to_string(),
                 format!(r#"<link href="./"#),
                 format!(r#"href="./"#),
+                format!(r#"<a class="lightbox" href=""#),
             ];
         }
         static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);

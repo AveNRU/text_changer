@@ -1464,9 +1464,9 @@ fn удаление_script_мусора_после_разбиения_строк
         итог=удалить_разделы_html_по_ключевым_словам_с_повторами(итог,&ячейка,&имя_файла);
     }
     //
-    for ячейка in заготовленный_ряд_js.iter() {
+    /*for ячейка in заготовленный_ряд_js.iter() {
         итог=удалить_разделы_js_по_ключевым_словам_с_повторами(итог,&ячейка,&имя_файла);
-    }
+    }*/
     итог = приведение_примечаний_к_общему_виду(итог);
     return итог;
 }
@@ -1934,10 +1934,11 @@ pub fn добавить_переносы_строк_html(
 
         ];
         // r#"content="text/html; charset=UTF-8">"#.to_string(),
-                static ref образцы:[String;101]= [
+                static ref образцы:[String;102]= [
             r##"<script type="text/javascript">"##.to_string(),
             "<blockquote>".to_string(),
             //"<div>".to_string(),
+            "<figure>".to_string(),
             //разделение div
             r##"<div id="pagetop">##.to_string(),
             r#"<div class="container">"#.to_string(),
