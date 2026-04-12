@@ -190,9 +190,14 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
                     //счётчики разделителей
                     let mut счётчики_разделителей_вложенные: [Arc<Счётчик_разделителей>;3] =
                         счётчики_разделителей.clone();
+                    //слшком жрёт дохрена - нахрен
+                    let mut шаг_внутренний:usize=0;
                     let текущий_шаг_всех_книг:String = format!("[{}/{}]", главный_указатель + 1, количество_книг);
-                    let шаг_вложенных_книг = format!("[{}/{}]", шаг_внутренний.load(Ordering::Relaxed) + 1, счётчик_количества_вложенных_файлов);
-                    шаг_внутренний.fetch_add(1, Ordering::Relaxed);
+                    //let шаг_вложенных_книг = format!("[{}/{}]", шаг_внутренний.load(Ordering::Relaxed) + 1, счётчик_количества_вложенных_файлов);
+                    //временно
+                    let шаг_вложенных_книг = format!("[{}/{}]", шаг_внутренний+ 1, счётчик_количества_вложенных_файлов);
+
+                    //шаг_внутренний.fetch_add(1, Ordering::Relaxed);
                     //вывод названия вложенного файла\
                 // получение значений шагов всего для шкалы отсчёта
                     let к1= вложения.содержимое.len();
@@ -689,7 +694,6 @@ pub fn определеить_вложенный_ли_файл(путь: &String
 pub fn проверка_на_пересечения_в_словаре(
     полный_словарь: lib::Полный_Словарь, //вектор словарей
 ) {
-
     //пересечения
     let пересечения_искомых_слов_во_всём_словаре: rapidhash::fast::RapidHashSet<String> =
             crate::dictionary_0::проверить_совпадений_слова_замен_и_искомых_слов_в_куче_во_всех_словарях(
@@ -1876,11 +1880,13 @@ pub fn проверить_совпадений_слова_замен_и_иско
     куча_словарь_замены: &[lib::Куча_Словарь_Замены; 3],
     раздел_словаря: lib::Раздел_Словаря,*/
 ) -> rapidhash::fast::RapidHashSet<String> {
+    use std::thread;
+    use std::time::Duration;
+    use std::{cmp::min, fmt::Write};
     use indicatif::{ProgressBar, ProgressStyle,ProgressState};
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::sync::Arc;
     use std::time::Instant;
-    use std::fmt::Write;
     let точка_отсчёта_по_времени_2: std::time::Instant = Instant::now();
     //
     //
@@ -1893,34 +1899,58 @@ pub fn проверить_совпадений_слова_замен_и_иско
         &полный_словарь.неизменное_длинное,
         &полный_словарь.простое,
     ];
+    let количество_шагов:u64= полный_словарь.простое.len() as u64;
+    //
+    let pb =ProgressBar::with_draw_target(Some(количество_шагов), ProgressDrawTarget::stderr_with_hz(1));
+   // let pb = ProgressBar::new(полный_словарь.простое.len() as u64);
+    pb.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{bar:.cyan/blue}] ({pos:>7}/{len:7}) |{percent:.yellow}% {msg} ({eta})")
+        .unwrap()
+        .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
+        .progress_chars("#>-"));
     //
     let сообщение:String="Пересечения внутри себя".to_string();
+    pb.set_message(сообщение);
+    // Обновляем экран реже
+   // pb.set_draw_target(ProgressDrawTarget::stderr_with_hz(1));
+    /*
     //счётчик
-    /*let spinner_style = ProgressStyle::with_template("{wide_msg}")
+    let spinner_style = ProgressStyle::with_template("{wide_msg}")
         .unwrap()
         .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ ");
     let m = MultiProgress::new();
     let pb = m.add(ProgressBar::new(15));
-    pb.set_style(spinner_style.clone());*/
-    let количество_шагов:u64= (полный_словарь.простое.len()*(полный_словарь.простое.len()-1)) as u64;
+    pb.set_style(spinner_style.clone());
+    let количество_шагов:u64= полный_словарь.простое.len() as u64;
     //
-    let счетчик_внутренний: ProgressBar = ProgressBar::new(количество_шагов as u64);
+    let счетчик_внутренний: ProgressBar = ProgressBar::new(количество_шагов as u64);*/
     //через полный слварь
     let куча: rapidhash::fast::RapidHashSet<String>=
         полный_словарь.простое.par_iter().enumerate()
-            .flat_map(|(указатель_искомого_яруса,раздел_искомого)|{
-                указатели_словаря.iter().enumerate()
+            .flat_map(|(указатель_простого_слова,раздел_искомого)|
+                {
+                    //увеличиваем на 1000
+                    if указатель_простого_слова % 1000 ==0 {
+                        pb.inc(1000 as u64);
+                       // pb.set_position(указатель_простого_слова as u64);
+                    }
+                    //
+                    указатели_словаря.iter().enumerate()
                     .filter(|(указатель_ячеек, _)| {
                         // Фильтруем на основе регистра первого символа
                         разрешить_ли_проход(&раздел_искомого.искомое_слово, *указатель_ячеек)
                     })
                     .flat_map(|(указатель_ячеек,ячейки_словаря)|{
+                        //указание счётчика
+                        //pb.set_position(указатель_ячеек as u64);
+                        //
+
                 ячейки_словаря.iter().filter_map(|ячейка_словаря| {
                     //
                     //let шаги_для_этой_строки:u64 = указатель_искомого_яруса as u64+ указатель_ячеек as u64 ;
                     //шаг_внутренний.fetch_add(1, Ordering::Relaxed);
                     //счетчик_внутренний.inc(1);
-                   // pb.set_position(шаг_внутренний.load(Ordering::Relaxed));
+                    //pb.set_position(шаг_внутренний.load(Ordering::Relaxed));
+
                     //
                     if раздел_искомого.re_образец.is_match(&ячейка_словаря.замена)
                     //if sz_найти(&ячейка_словаря.замена, &раздел_искомого.искомое_слово)
@@ -1934,22 +1964,25 @@ pub fn проверить_совпадений_слова_замен_и_иско
                     } else { None }
                 }).collect::<rapidhash::fast::RapidHashSet<String>>()
 
-
             }).collect::<rapidhash::fast::RapidHashSet<String>>()
             }).collect::<rapidhash::fast::RapidHashSet<String>>();
 
     //сообщения
     //получить искомое слово
     //
-    счетчик_внутренний.finish_and_clear();
-    /*pb.finish_and_clear();
-    m.clear().unwrap();*/
+    //счетчик_внутренний.finish_and_clear();
+
+    //m.clear().unwrap();
     //pb.finish_with_message("downloaded");
     //время, занятое на этот шаг
-    println!("{}",
+    let сообщение_вывод=format!("{}",
              style(format!(     "⏰  Время занятое на соответствие проверку, что замены не являются искомыми словами для всех слов: {:.2?}",
                                 точка_отсчёта_по_времени_2.elapsed())).true_color(222, 245, 120).dim()
     );
+    //
+    pb.finish_and_clear();
+    println!("{}",сообщение_вывод);
+
     //указатель_раздела
     куча.iter().for_each(|слово| println!("{}", слово));
     return куча;

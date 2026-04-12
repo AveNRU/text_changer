@@ -9,7 +9,7 @@ edition = "2024"
 #для замера ОЗУ
 cap = "*"
 #смешные лица
-indicatif = "*"
+indicatif = {version = "*", features = ["rayon"]}
 #постоянные данные
 lazy_static = "*"
 regex = "*"
