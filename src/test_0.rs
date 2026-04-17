@@ -1,51 +1,40 @@
-/*
-use std::io::{//self,
-    BufRead, BufReader,// Error,
-    Read, //Write
-};
-use encoding_rs::WINDOWS_1251;
-use encoding_rs_io::DecodeReaderBytesBuilder;
-//use std::path::Path;
-use std::fs::{self,
-    //metadata,
-    //File
-};
-//use std::fs::read_to_string;
-use crate::lib_1::{self, Dictionary};
-use lazy_static::lazy_static;
-//use std::collections::HashMap;
+use clap::builder::Str;
+use crate::lib;
+use rapidhash::*;
+use rayon::prelude::*;
+use convert_case::{Case, Casing};
+pub fn сравнить_основной_и_запасной_словари(
+    основной_словарь:&lib::Полный_Словарь,
+    запасной_словарь:&lib::Полный_Словарь,
+) ->Result<(),()> {
+    println!("Длина простых слов: Основной - |{}| Запасной - |{}|",
+             основной_словарь.простое.len(),
+        запасной_словарь.простое.len(),
+    );
+    //
+    let куча_простых_слов:rapidhash::fast::RapidHashSet<&String>=
+        основной_словарь.простое.par_iter().filter_map(|ячейка| {
+            Some(&ячейка.искомое_слово)
+        }).collect::<rapidhash::fast::RapidHashSet<&String>>();
+    //
+    println!("Длина кучи простых слов - |{}|",куча_простых_слов.len());
+    //
+    let куча_указателей_на_словарь_запасной:rapidhash::fast::RapidHashSet<usize>=
+        запасной_словарь.простое.par_iter().enumerate()//.filter(|(указатель,ячейка)|!ячейка.искомое_слово.is_empty())
+            .filter_map(|(указатель,ячейка)| {
+            //если нет искомого слова из запасного словаря - то добавить его указатель в кучу
+            let ряд_знаков: Vec<char> = ячейка.искомое_слово.chars().collect();
+            if ряд_знаков[0].is_uppercase() {return None}
+            //
+            if !куча_простых_слов.contains(&ячейка.искомое_слово) {
+                Some(указатель)
+            } else {None}
 
-use regex::Regex;
-*/
-/*
-//output слов
-   for i in 0..dictionary_lib.len() {
-       for j in 0..dictionary_lib[i].простое.len() {
-          // println!("j: {j}");
-           for k in 0..dictionary_lib[i].простое[j].len () {
-          // println!("слово: {}",&dictionary_lib[i].простое[j][k]);
-           }
-       }
-   }
-   //println!("{:?}",&dictionary_path_vec);
-   */
-/*
-use std::thread;
-use std::time::Duration;
+        }).collect::<rapidhash::fast::RapidHashSet<usize>>();
+    //
+    println!("Количество слов запасного словаря, которые отсутствуют в основном - |{}|", куча_указателей_на_словарь_запасной.len(),);
+    //
+    crate::output::write::вывод_запасного_словаря_почищенного(&запасной_словарь,&куча_указателей_на_словарь_запасной).unwrap();
 
-fn main() {
-    let владение = thread::spawn(|| {
-        for i in 1..10 {
-            println!("Число {i} вызвано из порожденного потока!");
-            thread::sleep(Duration::from_micros(1));
-        }
-    });
-
-    for i in 1..5 {
-        println!("Число {i} вызвано из основного потока!");
-        thread::sleep(Duration::from_micros(1));
-    }
-
-    владение.join().unwrap();
+    Ok(())
 }
-*/
