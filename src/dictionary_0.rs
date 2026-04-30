@@ -2,7 +2,12 @@ use convert_case::{Case, Casing};
 use std::collections::HashSet;
 use std::fmt::Write;
 //use std::default;
-use crate::lib::{self, Возможности_Сообщений, Имена_страниц, Куча_Слова_Замены, Куча_Словарь_Искомые, Полный_Словарь, Правописание_слова, Раздел_Словаря, Словарь, Словарь_Переносов, Словарь_разделителей, Сообщения, Сообщения_для_книги, Счётчик_разделителей, Счётчики_Словаря, Ячейка_словаря};
+use crate::lib::{
+    self, Возможности_Сообщений, Имена_страниц, Куча_Слова_Замены, Куча_Словарь_Искомые,
+    Полный_Словарь, Правописание_слова, Раздел_Словаря, Словарь, Словарь_Переносов,
+    Словарь_разделителей, Сообщения, Сообщения_для_книги, Счётчик_разделителей, Счётчики_Словаря,
+    Ячейка_словаря,
+};
 use crate::output::write;
 use crate::output::write::вывод_содержимого_строки_в_txt;
 use lazy_static::lazy_static;
@@ -473,11 +478,11 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
             "⌚\tВремя занятое на замену слов: {:.2?}",
             точка_отсчёта_по_времени.elapsed()
         ))
-            .true_color(154, 136, 252)
-            .blink()
+        .true_color(154, 136, 252)
+        .blink()
     );
     //
-    let сообщения2: Сообщения =crate::write::сохранить_книги(&книги).unwrap();
+    let сообщения2: Сообщения = crate::write::сохранить_книги(&книги).unwrap();
     //
     /*let книги_2 = книги.clone();
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
@@ -516,7 +521,7 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
         куча_словарь,
         &счётчики_словаря,
     )
-        .unwrap();
+    .unwrap();
     // Запускаем задачу в отдельном потоке Rayon
     /*let полный_словарь2 = полный_словарь.clone();
     use std::thread;
@@ -534,7 +539,7 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
         счётчики_замен,
         словарь_переносов,
     )
-        .unwrap();
+    .unwrap();
     /*let handle2 = thread::spawn(|| {
         write::вывод_словаря_переносов_всего(
             счётчики_замен,
@@ -560,7 +565,7 @@ pub async fn заменить_слова_в_книге_и_их_вывод(
         &счётчики_разделителей,
         &словарь_разделителей,
     )
-        .unwrap();
+    .unwrap();
     /*let handle3 = thread::spawn(move || {
         write::вывод_всех_счётчиков_разделителей_в_xls(
             &счётчики_разделителей,
@@ -1880,13 +1885,13 @@ pub fn проверить_совпадений_слова_замен_и_иско
     куча_словарь_замены: &[lib::Куча_Словарь_Замены; 3],
     раздел_словаря: lib::Раздел_Словаря,*/
 ) -> rapidhash::fast::RapidHashSet<String> {
+    use indicatif::{ProgressBar, ProgressState, ProgressStyle};
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::thread;
     use std::time::Duration;
-    use std::{cmp::min, fmt::Write};
-    use indicatif::{ProgressBar, ProgressStyle,ProgressState};
-    use std::sync::atomic::{AtomicU64, Ordering};
-    use std::sync::Arc;
     use std::time::Instant;
+    use std::{cmp::min, fmt::Write};
     let точка_отсчёта_по_времени_2: std::time::Instant = Instant::now();
     //
     //
@@ -1899,19 +1904,22 @@ pub fn проверить_совпадений_слова_замен_и_иско
         &полный_словарь.неизменное_длинное,
         &полный_словарь.простое,
     ];
-    let количество_шагов:u64= полный_словарь.простое.len() as u64;
+    let количество_шагов: u64 = полный_словарь.простое.len() as u64;
     //
-    let pb =ProgressBar::with_draw_target(Some(количество_шагов), ProgressDrawTarget::stderr_with_hz(1));
-   // let pb = ProgressBar::new(полный_словарь.простое.len() as u64);
+    let pb = ProgressBar::with_draw_target(
+        Some(количество_шагов),
+        ProgressDrawTarget::stderr_with_hz(1),
+    );
+    // let pb = ProgressBar::new(полный_словарь.простое.len() as u64);
     pb.set_style(ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] [{bar:.cyan/blue}] ({pos:>7}/{len:7}) |{percent:.yellow}% {msg} ({eta})")
         .unwrap()
         .with_key("eta", |state: &ProgressState, w: &mut dyn Write| write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap())
         .progress_chars("#>-"));
     //
-    let сообщение:String="Пересечения внутри себя".to_string();
+    let сообщение: String = "Пересечения внутри себя".to_string();
     pb.set_message(сообщение);
     // Обновляем экран реже
-   // pb.set_draw_target(ProgressDrawTarget::stderr_with_hz(1));
+    // pb.set_draw_target(ProgressDrawTarget::stderr_with_hz(1));
     /*
     //счётчик
     let spinner_style = ProgressStyle::with_template("{wide_msg}")
@@ -1981,7 +1989,7 @@ pub fn проверить_совпадений_слова_замен_и_иско
     );
     //
     pb.finish_and_clear();
-    println!("{}",сообщение_вывод);
+    println!("{}", сообщение_вывод);
 
     //указатель_раздела
     куча.iter().for_each(|слово| println!("{}", слово));
@@ -2043,7 +2051,6 @@ pub fn проверить_совпадений_слова_замен_и_иско
                          строка.chars().next());
         return true*/
     }
-
 }
 pub fn проверить_совпадений_слова_замен_и_искомых_слов_в_куче(
     куча_словарь_искомые: &[lib::Куча_Словарь_Искомые; 3],

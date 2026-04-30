@@ -58,7 +58,7 @@
   },
   {
     "label": "Запуск",
-    "command": "cargo run --release --target-dir Z:/Rust",
+    "command": "cargo run --release",
     //"args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
     "env": { "foo": "bar" },
@@ -112,7 +112,7 @@
   },
   {
     "label": "Проверка",
-    "command": "cargo check --target-dir Z:/Rust",
+    "command": "cargo check",
     //"args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
     "env": { "foo": "bar" },

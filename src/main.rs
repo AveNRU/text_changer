@@ -35,8 +35,8 @@ static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value(
 use std::thread;
 #[tokio::main] // или #[async_std::main]
 async fn main() {
-    use std::default::Default;
     use lib::Вид_Словаря;
+    use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
     unsafe { env::set_var("RUST_BACKTRACE", "full") };
@@ -68,11 +68,22 @@ async fn main() {
     //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких
     let mut полный_словарь: lib::Полный_Словарь =
-        xlsx::import_xlsx::загрузка_словарей(исходная_книга.1,Вид_Словаря::основной);
+        xlsx::import_xlsx::загрузка_словарей(
+            исходная_книга.1,
+            Вид_Словаря::основной,
+        );
     //
-    let запасной_словарь:lib::Полный_Словарь =xlsx::import_xlsx::загрузка_словарей(исходная_книга.1,Вид_Словаря::запасник);
+    let запасной_словарь: lib::Полный_Словарь =
+        xlsx::import_xlsx::загрузка_словарей(
+            исходная_книга.1,
+            Вид_Словаря::запасник,
+        );
     //
-    test_0::сравнить_основной_и_запасной_словари(&полный_словарь,&запасной_словарь).unwrap();
+    test_0::сравнить_основной_и_запасной_словари(
+        &полный_словарь,
+        &запасной_словарь,
+    )
+    .unwrap();
     //сохранение исходных книг - с разделениями
     let книги_вывод = исходная_книга.0.clone();
     //замена слов в книге
