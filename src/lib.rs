@@ -5,6 +5,12 @@
 use regex::Regex;
 use std::hash::{Hash, Hasher};
 use std::sync::atomic::AtomicUsize;
+#[derive(Debug, Clone)]
+pub enum Вид_Слова {
+    Исходное,
+    Замена,
+}
+#[derive(Debug, Clone)]
 pub enum Расширение {
     Fb2,
     Fb3,
@@ -652,7 +658,7 @@ pub struct Быстрый_Словарь {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct Куча_Слова_Замены {
+pub struct Слова_с_Вложениями {
     pub слово: String,
     pub вложения: String,
 }

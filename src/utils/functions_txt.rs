@@ -344,20 +344,38 @@ pub fn сравнение_двух_рядов_построчно(
     if ряд_1.len() != ряд_2.len() {
         return false;
     }
-    let счётчик_совпадений = AtomicUsize::new(0);
-    //перебор вспомогательного вектора
-    ряд_1
-        .par_iter()
-        .enumerate()
-        .for_each(|(указатель, _строка_искомая)| {
-            if ряд_1[указатель].as_str() == ряд_2[указатель].as_str() {
-                счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
-            }
-        });
-    if счётчик_совпадений.load(Ordering::Relaxed) == ряд_1.len() {
-        return true;
-    } else {
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<&str> =
+        ряд_1.iter().map(|строка| строка.as_str()).collect();
+    let куча_2: rapidhash::fast::RapidHashSet<&str> =
+        ряд_2.iter().map(|строка| строка.as_str()).collect();
+    //
+    //
+    if куча_1.len() != куча_2.len() {
         return false;
+    } else {
+        return true;
+    }
+}
+pub fn сравнение_двух_рядов_построчно_срез_строк(
+    ряд_1: &[&str],
+    ряд_2: &[String],
+    _путь: &String,
+) -> bool {
+    //если количество строк не равно
+    if ряд_1.len() != ряд_2.len() {
+        return false;
+    }
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<&str> = ряд_1.iter().map(|строка| *строка).collect();
+    let куча_2: rapidhash::fast::RapidHashSet<&str> =
+        ряд_2.iter().map(|строка| строка.as_str()).collect();
+    //
+    //
+    if куча_1.len() != куча_2.len() {
+        return false;
+    } else {
+        return true;
     }
 }
 
