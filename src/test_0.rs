@@ -1,11 +1,10 @@
-use crate::lib;
-use clap::builder::Str;
-use convert_case::{Case, Casing};
-use rapidhash::*;
+//use clap::builder::Str;
+//use convert_case::{Case, Casing};
+//use rapidhash::*;
 use rayon::prelude::*;
 pub fn сравнить_основной_и_запасной_словари(
-    основной_словарь: &lib::Полный_Словарь,
-    запасной_словарь: &lib::Полный_Словарь,
+    основной_словарь: &Text_Changer::Полный_Словарь,
+    запасной_словарь: &Text_Changer::Полный_Словарь,
 ) -> Result<(), ()> {
     println!(
         "Длина простых слов: Основной - |{}| Запасной - |{}|",

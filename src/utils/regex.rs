@@ -1,22 +1,23 @@
 use crate::utils::stringzilla::*;
+use std::sync::LazyLock;
 use stringzilla::stringzilla::bytesum;
 //use clap::error::ErrorKind::Format;
-use crate::import::functions::преобразовать_слово_с_чертой_в_начале;
-use console::{Emoji, style};
-use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, ProgressStyle};
-use lib::{
-    Словарь_Переносов, Счётчики_Словаря, Ячейка_замены, Ячейка_замены_с_исключением
+//use crate::import::functions::преобразовать_слово_с_чертой_в_начале;
+use Text_Changer::{
+    Словарь_Переносов, Счётчики_Словаря, Ячейка_замены_с_исключением
 };
-use rand::{Rng, prelude::*};
+//use console::{Emoji, style};
+//use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressState, ProgressStyle};
+//use rand::{Rng, prelude::*};
 use rayon::prelude::*;
-use std::borrow::Cow;
+//use std::borrow::Cow;
 use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicU64, AtomicUsize, Ordering},
+    Arc,
+    atomic::{AtomicUsize, Ordering},
 };
-use std::thread;
-use std::time::{Duration, Instant};
-use std::{cmp::min, fmt::Write};
+//use std::thread;
+//use std::time::{Duration, Instant};
+//use std::{cmp::min, fmt::Write};
 /*
 static PACKAGES: &[&str] = &[
     "fs-events",
@@ -38,30 +39,58 @@ static COMMANDS: &[&str] = &[
     "make test",
 ];
 */
+static RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ: LazyLock<[Regex; 14]> = LazyLock::new(|| {
+    [
+        /*Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
+        Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
+        Regex::new(r"(?i)\.png$").unwrap(),
+        Regex::new(r"(?i)\.bmp$").unwrap(),
+        Regex::new(r"(?i)\.wmf$").unwrap(),
+        Regex::new(r"(?i)\.wpg$").unwrap(),
+        Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
+        Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
+        Regex::new(r"(?i)\.svg$").unwrap(),
+        Regex::new(r"(?i)\.avif$").unwrap(),*/
+        //
+        Regex::new(r"(?i)\.jpe?g$").unwrap(), // Объединил jpg и jpeg
+        Regex::new(r"(?i)\.tiff?$").unwrap(), // Объединил tif и tiff
+        Regex::new(r"(?i)\.bmp$").unwrap(),
+        Regex::new(r"(?i)\.gif$").unwrap(),  // Добавил $ в конец
+        Regex::new(r"(?i)\.webp$").unwrap(), // Добавил современные форматы
+        Regex::new(r"(?i)\.svg$").unwrap(),
+        Regex::new(r"(?i)\.avif$").unwrap(),
+        Regex::new(r"(?i)\.jpeg$").unwrap(),
+        Regex::new(r"(?i)\.jpg$").unwrap(),
+        Regex::new(r"(?i)\.tiff$").unwrap(),
+        Regex::new(r"(?i)\.png$").unwrap(),
+        Regex::new(r"(?i)\.wmf$").unwrap(),
+        Regex::new(r"(?i)\.wpg$").unwrap(),
+        Regex::new(r"(?i)\.eps$").unwrap(),
+    ]
+});
 //static LOOKING_GLASS: &str = "🔍";
 //если это картинка
-use crate::lib::{
-    self, Быстрый_Словарь, Полный_Словарь, СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ, Словарь_разделителей,
-    Счётчик_замен, Счётчик_разделителей, Ячейка_словаря,
+use Text_Changer::{
+    self, Полный_Словарь, Словарь_разделителей, Счётчик_замен, Счётчик_разделителей, Ячейка_словаря,
 };
-use lazy_static::lazy_static;
+
 use rayon::iter::IntoParallelRefIterator;
-use regex::{Captures, Match, Regex};
+use regex::{Match, Regex};
 
 pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения_мусорные: [Regex;4] = [
+    static RE_РАСШИРЕНИЯ_МУСОРНЫЕ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
+        [
             Regex::new(r"(?i)\.css$").unwrap(),
-              Regex::new(r"(?i)\.rels$").unwrap(),
-              Regex::new(r"(?i)\.ttf$").unwrap(),
+            Regex::new(r"(?i)\.rels$").unwrap(),
+            Regex::new(r"(?i)\.ttf$").unwrap(),
             //Regex::new(r"(?i)\.xhtml$").unwrap(),
             //целиком имя
-             Regex::new(r"(?i)mimetype$").unwrap(),
+            Regex::new(r"(?i)mimetype$").unwrap(),
             //
+        ]
+    });
 
-        ];
-    }
-    return re_расширения_мусорные
+    return RE_РАСШИРЕНИЯ_МУСОРНЫЕ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
@@ -69,14 +98,14 @@ pub fn мусорное_содержимое_архивов(стог_сена: &
 pub fn изображение_расширение_с_точкой(
     стог_сена: &String
 ) -> bool {
-    lazy_static! {
-        static ref re_расширения_изображений: [Regex;15] = [
+    /*static RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ: LazyLock<[Regex; 15]> = LazyLock::new(|| {
+        [
             //
-               Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
-            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
+            Regex::new(r"(?i)\.jpe?g$").unwrap(), // Объединил jpg и jpeg
+            Regex::new(r"(?i)\.tiff?$").unwrap(), // Объединил tif и tiff
             Regex::new(r"(?i)\.bmp$").unwrap(),
-            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
-            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)\.gif$").unwrap(), // Добавил $ в конец
+            Regex::new(r"(?i)\.webp$").unwrap(), // Добавил современные форматы
             Regex::new(r"(?i)\.svg$").unwrap(),
             Regex::new(r"(?i)\.avif$").unwrap(),
             Regex::new(r"(?i)\.jpeg$").unwrap(),
@@ -86,10 +115,11 @@ pub fn изображение_расширение_с_точкой(
             Regex::new(r"(?i)\.wmf$").unwrap(),
             Regex::new(r"(?i)\.wpg$").unwrap(),
             Regex::new(r"(?i)\.eps$").unwrap(),
-             Regex::new(r"(?i)\.ttf").unwrap(),
-        ];
-    }
-    return re_расширения_изображений
+            Regex::new(r"(?i)\.ttf").unwrap(),
+        ]
+    });*/
+
+    return RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
@@ -97,48 +127,19 @@ pub fn изображение_расширение_с_точкой(
 pub fn изображение_расширение_без_точки(
     стог_сена: &String
 ) -> bool {
-    lazy_static! {
-        static ref re_расширения_изображений: [Regex;14] = [
-            /*Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
-            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
-            Regex::new(r"(?i)\.png$").unwrap(),
-            Regex::new(r"(?i)\.bmp$").unwrap(),
-            Regex::new(r"(?i)\.wmf$").unwrap(),
-            Regex::new(r"(?i)\.wpg$").unwrap(),
-            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
-            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
-            Regex::new(r"(?i)\.svg$").unwrap(),
-            Regex::new(r"(?i)\.avif$").unwrap(),*/
-            //
-            Regex::new(r"(?i)\.jpe?g$").unwrap(),  // Объединил jpg и jpeg
-            Regex::new(r"(?i)\.tiff?$").unwrap(),  // Объединил tif и tiff
-            Regex::new(r"(?i)\.bmp$").unwrap(),
-            Regex::new(r"(?i)\.gif$").unwrap(),    // Добавил $ в конец
-            Regex::new(r"(?i)\.webp$").unwrap(),   // Добавил современные форматы
-            Regex::new(r"(?i)\.svg$").unwrap(),
-            Regex::new(r"(?i)\.avif$").unwrap(),
-            Regex::new(r"(?i)\.jpeg$").unwrap(),
-            Regex::new(r"(?i)\.jpg$").unwrap(),
-            Regex::new(r"(?i)\.tiff$").unwrap(),
-            Regex::new(r"(?i)\.png$").unwrap(),
-            Regex::new(r"(?i)\.wmf$").unwrap(),
-            Regex::new(r"(?i)\.wpg$").unwrap(),
-            Regex::new(r"(?i)\.eps$").unwrap(),
-        ];
-    }
-    return re_расширения_изображений
+    return RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 
 pub fn не_является_изображением(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения_изображений: [Regex;14] = [
-            Regex::new(r"(?i)jpe?g$").unwrap(),  // Объединил jpg и jpeg
-            Regex::new(r"(?i)tiff?$").unwrap(),  // Объединил tif и tiff
+    /*static RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ: LazyLock<[Regex; 14]> = LazyLock::new(|| {
+        [
+            Regex::new(r"(?i)jpe?g$").unwrap(), // Объединил jpg и jpeg
+            Regex::new(r"(?i)tiff?$").unwrap(), // Объединил tif и tiff
             Regex::new(r"(?i)bmp$").unwrap(),
-            Regex::new(r"(?i)gif$").unwrap(),    // Добавил $ в конец
-            Regex::new(r"(?i)webp$").unwrap(),   // Добавил современные форматы
+            Regex::new(r"(?i)gif$").unwrap(),  // Добавил $ в конец
+            Regex::new(r"(?i)webp$").unwrap(), // Добавил современные форматы
             Regex::new(r"(?i)svg$").unwrap(),
             Regex::new(r"(?i)avif$").unwrap(),
             Regex::new(r"(?i)jpeg$").unwrap(),
@@ -148,129 +149,133 @@ pub fn не_является_изображением(стог_сена: &String
             Regex::new(r"(?i)wmf$").unwrap(),
             Regex::new(r"(?i)wpg$").unwrap(),
             Regex::new(r"(?i)eps$").unwrap(),
-        ];
-    }
-    return re_расширения_изображений
+        ]
+    });*/
+
+    return RE_РАСШИРЕНИЯ_ИЗОБРАЖЕНИЙ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 //если это архивный файл
 pub fn fb3_epub(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения_архивные:[Regex;2] = [
-        Regex::new(r"(?i)\.fb3$").unwrap(),
-        Regex::new(r"(?i)\.epub$").unwrap(),
+    static RE_РАСШИРЕНИЯ_АРХИВНЫЕ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+        [
+            Regex::new(r"(?i)\.fb3$").unwrap(),
+            Regex::new(r"(?i)\.epub$").unwrap(),
+            //Regex::new(r"(?i)\.docx$").unwrap(),
+            //Regex::new(r"(?i)\.doc$").unwrap(),
+        ]
+    });
 
-        //Regex::new(r"(?i)\.docx$").unwrap(),
-        //Regex::new(r"(?i)\.doc$").unwrap(),
-     ];
-    }
-    return re_расширения_архивные
+    return RE_РАСШИРЕНИЯ_АРХИВНЫЕ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 pub fn без_кодировки(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения:[Regex;1] = [
-        Regex::new(r"(?i)\.txt$").unwrap(),
+    static RE_РАСШИРЕНИЯ: LazyLock<[Regex; 1]> = LazyLock::new(|| {
+        [
+            Regex::new(r"(?i)\.txt$").unwrap(),
+            //Regex::new(r"(?i)\.docx$").unwrap(),
+            //Regex::new(r"(?i)\.doc$").unwrap(),
+        ]
+    });
 
-        //Regex::new(r"(?i)\.docx$").unwrap(),
-        //Regex::new(r"(?i)\.doc$").unwrap(),
-     ];
-    }
-    return re_расширения
+    return RE_РАСШИРЕНИЯ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 //если это архивный файл
 pub fn doc_docx(стог_сена: &String) -> bool {
-    lazy_static! {
-           static ref re_расширения_word:[Regex;2] = [
-        //Regex::new(r"(?i)\.fb3$").unwrap(),
-        //Regex::new(r"(?i)\.epub$").unwrap(),
-        Regex::new(r"(?i)\.docx$").unwrap(),
-        Regex::new(r"(?i)\.doc$").unwrap(),
-     ];
-    }
-    return re_расширения_word
+    static RE_РАСШИРЕНИЯ_WORD: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+        [
+            //Regex::new(r"(?i)\.fb3$").unwrap(),
+            //Regex::new(r"(?i)\.epub$").unwrap(),
+            Regex::new(r"(?i)\.docx$").unwrap(),
+            Regex::new(r"(?i)\.doc$").unwrap(),
+        ]
+    });
+
+    return RE_РАСШИРЕНИЯ_WORD
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 pub fn md_fs_yml(стог_сена: &String) -> bool {
-    lazy_static! {
-           static ref re_расширения_word:[Regex;3] = [
-        //Regex::new(r"(?i)\.fb3$").unwrap(),
-        //Regex::new(r"(?i)\.epub$").unwrap(),
-        Regex::new(r"(?i)\.md$").unwrap(),
+    static RE_РАСШИРЕНИЯ_MD_YML_FS: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+        [
+            //Regex::new(r"(?i)\.fb3$").unwrap(),
+            //Regex::new(r"(?i)\.epub$").unwrap(),
+            Regex::new(r"(?i)\.md$").unwrap(),
             Regex::new(r"(?i)\.yml$").unwrap(),
             Regex::new(r"(?i)\.fs$").unwrap(),
-     ];
-    }
-    return re_расширения_word
+        ]
+    });
+
+    return RE_РАСШИРЕНИЯ_MD_YML_FS
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
     //return false;
 }
 
 pub fn htm_html_xhtml(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения_word: [Regex; 3] = [
+    static RE_РАСШИРЕНИЯ_HTM_XHTM: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+        [
             Regex::new(r"(?i)\.htm$").unwrap(),
             Regex::new(r"(?i)\.html$").unwrap(),
             Regex::new(r"(?i)\.xhtml$").unwrap(),
-        ];
-    }
-    return re_расширения_word
+        ]
+    });
+
+    return RE_РАСШИРЕНИЯ_HTM_XHTM
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
     //return false;
 }
 //если это не архивный файл
 pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
-    lazy_static! {
-        static ref re_расширения_не_архивные: [Regex; 4] = [
+    static RE_РАСШИРЕНИЯ_НЕ_АРХИВНЫЕ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
+        [
             Regex::new(r"(?i)\.fb2$").unwrap(),
             Regex::new(r"(?i)\.rtf$").unwrap(),
             Regex::new(r"(?i)\.mhtml$").unwrap(),
             Regex::new(r"(?i)\.mht$").unwrap(),
-        ];
-    }
-    return re_расширения_не_архивные
+        ]
+    });
+
+    return RE_РАСШИРЕНИЯ_НЕ_АРХИВНЫЕ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
 }
 //захват слов
 //есть ли маты
 pub fn есть_ли_маты(стог_сена: &String) -> bool {
-    lazy_static! {
-            //маты
-     static ref re_матершина_слова:[Regex;1] = [
-        Regex::new(r"(?i)\s*([\w]…)\s*").unwrap(),
-     ];
-    }
-    return re_матершина_слова
+    //маты
+    static RE_МАТЕРШИНА_СЛОВА: LazyLock<[Regex; 1]> =
+        LazyLock::new(|| [Regex::new(r"(?i)\s*([\w]…)\s*").unwrap()]);
+
+    return RE_МАТЕРШИНА_СЛОВА
         .par_iter()
         .any(|образец| образец.is_match(стог_сена));
 }
 
 //выдел строки
 pub fn re_получить_имя_файла_без_пути(стог_сена: &String) -> String {
-    lazy_static! {
-        static ref без_пути: [Regex; 3] = [
+    static БЕЗ_ПУТИ: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+        [
             Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
             Regex::new(r"(?i)\\([\d\w\s_\-\=\(\)]+)$").unwrap(),
             Regex::new(r"(?i)/([\d\w\s_\-\=\(\)]+)$").unwrap(),
-        ];
-        static ref первая_палка: Regex = Regex::new(r"(?i)\\").unwrap();
-        static ref вторая_палка: Regex = Regex::new(r"(?i)/").unwrap();
-    }
-    if первая_палка.find_iter(стог_сена).count() == 0
-        && вторая_палка.find_iter(стог_сена).count() == 0
+        ]
+    });
+    static ПЕРВАЯ_ПАЛКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\\").unwrap());
+    static ВТОРАЯ_ПАЛКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)/").unwrap());
+
+    if ПЕРВАЯ_ПАЛКА.find_iter(стог_сена).count() == 0
+        && ВТОРАЯ_ПАЛКА.find_iter(стог_сена).count() == 0
     {
         return стог_сена.to_string();
     }
-    for указатель in 0..без_пути.len() {
-        if let Some(строка) = без_пути[указатель].captures(&стог_сена)
+    for указатель in 0..БЕЗ_ПУТИ.len() {
+        if let Some(строка) = БЕЗ_ПУТИ[указатель].captures(&стог_сена)
         {
             return строка[1].trim().to_string();
         }
@@ -288,11 +293,11 @@ pub fn re_получить_строку_с_описанием(
     образец: &Regex,
     ошибка: &str,
 ) -> Result<String, String> {
-    lazy_static! {
-        static ref нет_расширения: Regex = Regex::new(r"(?i)(?:\\)+([\d\w&&[^\.]]+)$").unwrap();
-    }
+    static НЕТ_РАСШИРЕНИЯ: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?i)(?:\\)+([\d\w&&[^\.]]+)$").unwrap());
+
     let Some(строка) = образец.captures(&стог_сена) else {
-        if let Some(строка) = нет_расширения.captures(&стог_сена) {
+        if let Some(_строка) = НЕТ_РАСШИРЕНИЯ.captures(&стог_сена) {
             return Err("Пусто".to_string());
         } else {
             //println!("{}", ошибка);
@@ -310,7 +315,7 @@ pub fn re_получить_строку_с_описанием(
 }
 //выдел строки
 /*
-pub fn получить_строку_из_ряда_re_с_описанием(стог_сена: &String, образец: &[Regex;5],ошибка:&str) -> String {
+pub fn получить_строку_из_ряда_re_с_описанием(стог_сена: &String, образец: &LazyLock<[Regex;5],ошибка:&str) -> String {
     let Some(строка) = образец.captures(&стог_сена) else {
         println!("{}",ошибка);
         panic!("ошибка при выдирания {}, сама строка : {}", &образец, &стог_сена);
@@ -321,20 +326,20 @@ pub fn получить_строку_из_ряда_re_с_описанием(ст
  */
 
 pub fn определить_имя_книги(стог_сена: &String) -> String {
-    lazy_static! {
-        static ref re_пути_до_книг: [Regex; 6] = [
+    static RE_ПУТИ_ДО_КНИГ: LazyLock<[Regex; 6]> = LazyLock::new(|| {
+        [
             Regex::new(r"(?i)книги/([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i)книги\\([\d\w_\-\s\.,]+)\.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i)книги/([\d\w_\-\s\.,]+)/.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i)книги\\([\d\w_\-\s\.,]+)/.(?:([\d\w]+))$").unwrap(),
             Regex::new(r"(?i).+/(.+)\.").unwrap(),
-             Regex::new(r"(?i)([\d\w\-_\s[^\\]]+)$").unwrap(),
+            Regex::new(r"(?i)([\d\w\-_\s[^\\]]+)$").unwrap(),
             //Regex::new(r"(?i)\\(.[^\\]+)$").unwrap(),
-           //  Regex::new(r"(?i)/(.[^\\/]+)$").unwrap(),
-        ];
-    }
+            //  Regex::new(r"(?i)/(.[^\\/]+)$").unwrap(),
+        ]
+    });
 
-    re_пути_до_книг
+    RE_ПУТИ_ДО_КНИГ
         .par_iter()
         .find_map_any(|образец| {
             образец.captures(стог_сена).and_then(|cap| {
@@ -365,7 +370,7 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
 }
 /*
 pub fn замена_слов_через_regex(
-    re_образцы: &[Regex;5],
+    re_образцы: &LazyLock<[Regex;5],
     содержимое: &mut Vec<String>,
     замены: &Vec<String>,
     счётчик_словаря: &mut Vec<usize>,
@@ -538,14 +543,14 @@ pub fn замена_слов_через_кучу(
     словарь: &[Ячейка_словаря],
     содержимое: &mut [String],
     счётчик_словаря: &[AtomicUsize],
-    сообщение: &str,
-    расширение: &str,
+    _сообщение: &str,
+    _расширение: &str,
     куча_пропусков: &rapidhash::fast::RapidHashSet<usize>,
     словарь_куча: &rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
-    этап: usize,
-    указатель_содержимого: usize,
-    количество_вложений: usize,
-    вложенный_ли_файл_к_html: bool,
+    _этап: usize,
+    _указатель_содержимого: usize,
+    _количество_вложений: usize,
+    _вложенный_ли_файл_к_html: bool,
 ) {
     /*let spinner_style = ProgressStyle::with_template("{wide_msg}")
             .unwrap()
@@ -586,7 +591,7 @@ pub fn замена_слов_через_кучу(
         .for_each(|(указатель, строка)| {
             if куча_пропусков.contains(&указатель) {
                 // Пропускаем строку, но все равно считаем прогресс
-                let шаги_для_этой_строки = словарь.len() as u64;
+                //let шаги_для_этой_строки = словарь.len() as u64;
                 //слшком жрёт дохрена - нахрен
                 //шаг_внутренний.fetch_add(шаги_для_этой_строки, Ordering::Relaxed);
                 //счетчик_внутренний.inc(шаги_для_этой_строки);
@@ -652,28 +657,28 @@ pub fn замена_слов_через_кучу(
     .for_each(|(указатель, число)| {
         счётчик_словаря[указатель].fetch_add(число.load(Ordering::Relaxed), Ordering::Relaxed); //
     });*/
-    fn условие_вывода_хода(этап: usize) -> bool {
+    /*fn условие_вывода_хода(этап: usize) -> bool {
         //пока отменил вывод с указанием текущего этапа прохода слов, слишком быстро всё делает и в итоге чисто кроме мусора ничего нет
         if этап == 99 { true } else { false }
-    }
+    }*/
 }
 
 //многопоточность
 pub fn добавить_разделители(
     словарь_разделителей: &Словарь_разделителей,
     содержимое: &mut [String],
-    сообщение: &str,
-    расширение: &str,
+    _сообщение: &str,
+    _расширение: &str,
     куча_пропусков: &rapidhash::fast::RapidHashSet<usize>,
-    указатель_захода: &mut usize,
+    _указатель_захода: &mut usize,
 
     счётчики_замен: &mut Arc<Счётчик_разделителей>,
-    указатель_словаря_переносов: usize,
+    _указатель_словаря_переносов: usize,
 ) {
-    let mut условие_вывода_1: bool = false;
-    let mut условие_вывода_2: bool = false;
+    //  let mut условие_вывода_1: bool = false;
+    // let mut условие_вывода_2: bool = false;
     // Общее количество шагов для прогресса (если нужен)
-    let общий_счёт_шагов = словарь_разделителей.ряд_1.len() * содержимое.len();
+    // let общий_счёт_шагов = словарь_разделителей.ряд_1.len() * содержимое.len();
     let шаг_внутренний = AtomicUsize::new(0); // для отслеживания прогресса (опционально)
 
     // Параллельная обработка каждой строки
@@ -888,10 +893,10 @@ pub fn убрать_переносы(
     //замены: &[String],
     //счётчик_словаря: &mut [usize],
     //искомое_слово: &[String],
-    сообщение: &str,
-    расширение: &str,
-    указатель_захода: &mut usize,
-    mut счётчики_замен: &mut Arc<Счётчик_замен>,
+    _сообщение: &str,
+    _расширение: &str,
+    _указатель_захода: &mut usize,
+    счётчики_замен: &mut Arc<Счётчик_замен>,
     //куча_пропусков: &rapidhash::fast::RapidHashSet<usize>,
     указатель_словаря_переносов: usize,
 ) {
@@ -902,17 +907,17 @@ pub fn убрать_переносы(
         2 => " - ".to_string(),
         _ => panic!(),
     };
-    use crate::dictionary_0::проверка_ряда_regex;
+    //use crate::dictionary_0::проверка_ряда_regex;
 
     //если первый раз заходит - то проверить
 
     //подсчёт для видимого счётчика в окне
-    let общий_счёт: usize = словарь_замен.целиковые.len()
-        + словарь_замен.многобуквенные.len()
-        + словарь_замен.трехбуквенные.len()
-        + словарь_замен.двубуквенные.len()
-        + словарь_замен.однобуквенные.len()
-        + словарь_замен.исключения.len();
+    /*let общий_счёт: usize = словарь_замен.целиковые.len()
+    + словарь_замен.многобуквенные.len()
+    + словарь_замен.трехбуквенные.len()
+    + словарь_замен.двубуквенные.len()
+    + словарь_замен.однобуквенные.len()
+    + словарь_замен.исключения.len();*/
 
     //общий счёт
     //let количество_шагов = общий_счёт * содержимое.len();
@@ -934,7 +939,7 @@ pub fn убрать_переносы(
     содержимое
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, строка)| {
+        .for_each(|(_указатель, строка)| {
             /* if куча_пропусков.contains(&указатель) {
                 // Пропускаем строку, но все равно считаем прогресс
                 let шаги_для_этой_строки = словарь_замен.len() as u64;
@@ -1123,8 +1128,8 @@ pub fn убрать_переносы(
 pub fn создать_словарь_разделителей() -> Словарь_разделителей {
     use std::default::Default;
 
-    use crate::dictionary_0::проверка_ряда_regex;
-    use crate::lib::Ячейка_замены_с_разделителями;
+    //use crate::dictionary_0::проверка_ряда_regex;
+    use Text_Changer::Ячейка_замены_с_разделителями;
     let mut ряд_1: Словарь_разделителей = Словарь_разделителей {
         ряд_1: [
             Ячейка_замены_с_разделителями {
@@ -1745,7 +1750,7 @@ pub fn создать_словарь_разделителей() -> Словар�
             },
         ],
     };
-    use crate::lib::Возможности_ячейки_замены_с_разделителями;
+    use Text_Changer::Возможности_ячейки_замены_с_разделителями;
 
     //
     //исключения с заглавной буквы
@@ -1778,7 +1783,7 @@ pub fn создать_словарь_разделителей() -> Словар�
     return ряд_1;
 }
 pub fn создать_словарь_замен() -> Словарь_Переносов {
-    use crate::dictionary_0::проверка_ряда_regex;
+    //use crate::dictionary_0::проверка_ряда_regex;
     let словарь_замен: Словарь_Переносов =
         создать_разделы_словаря_переносов();
     //
@@ -1829,17 +1834,17 @@ use crate::xlsx::import_xlsx::{
     найти_особые_знаки, обратно_убрать_особые_знаки
 };
 use convert_case::{Case, Casing};
-use xml::Encoding::Default;
+//use xml::Encoding::Default;
 
 pub fn создать_второй_словарь_разделителей(
     mut словарь_изначальный: Словарь_разделителей,
 ) -> Словарь_разделителей {
-    use crate::lib::Возможности_ячейки_замены_с_разделителями;
+    use Text_Changer::Возможности_ячейки_замены_с_разделителями;
     словарь_изначальный
         .ряд_1
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.to_case(Case::Sentence);
             let новый_образец: String = format!(r#"\b{{start}}{}\w"#, ячейка.искомое_слово);
             ячейка.re_образец_для_поиска = Regex::new(&новый_образец).unwrap();
@@ -1881,12 +1886,12 @@ pub fn создать_второй_словарь_разделителей(
 pub fn создать_третий_словарь_разделителей(
     mut словарь_изначальный: Словарь_разделителей,
 ) -> Словарь_разделителей {
-    use crate::lib::Возможности_ячейки_замены_с_разделителями;
+    use Text_Changer::Возможности_ячейки_замены_с_разделителями;
     словарь_изначальный
         .ряд_1
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.to_case(Case::Upper);
             let новый_образец: String = format!(r#"\b{{start}}{}\w"#, ячейка.искомое_слово);
             ячейка.re_образец_для_поиска = Regex::new(&новый_образец).unwrap();
@@ -1927,12 +1932,12 @@ pub fn создать_третий_словарь_разделителей(
 pub fn создать_второй_словарь_переносов(
     mut словарь_переносов: Словарь_Переносов,
 ) -> Словарь_Переносов {
-    let замена_тире: Regex = Regex::new("-").unwrap();
+    // let замена_тире: LazyLock<Regex> = LazyLock::new(|| Regex::new("-").unwrap();
     словарь_переносов
         .однобуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец.as_str().replace("-", "—");
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -1942,7 +1947,7 @@ pub fn создать_второй_словарь_переносов(
         .многобуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец.as_str().replace("-", "—");
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -1952,7 +1957,7 @@ pub fn создать_второй_словарь_переносов(
         .исключения
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец_для_поиска.as_str().replace("-", "—");
             ячейка.re_образец_для_поиска = Regex::new(&новый_образец).unwrap();
@@ -1967,7 +1972,7 @@ pub fn создать_второй_словарь_переносов(
         .двубуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец.as_str().replace("-", "—");
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -1977,7 +1982,7 @@ pub fn создать_второй_словарь_переносов(
         .трехбуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец.as_str().replace("-", "—");
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -1987,7 +1992,7 @@ pub fn создать_второй_словарь_переносов(
         .целиковые
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', "—");
             let новый_образец = ячейка.re_образец.as_str().replace("-", "—");
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -1999,13 +2004,13 @@ pub fn создать_второй_словарь_переносов(
 pub fn создать_третий_словарь_переносов(
     mut словарь_переносов: Словарь_Переносов,
 ) -> Словарь_Переносов {
-    let замена_тире: Regex = Regex::new("-").unwrap();
+    //let замена_тире: LazyLock<Regex> = LazyLock::new(|| Regex::new("-").unwrap();
     let на_что_заменять: String = " - ".to_string();
     словарь_переносов
         .однобуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка.re_образец.as_str().replace("-", &на_что_заменять);
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -2015,7 +2020,7 @@ pub fn создать_третий_словарь_переносов(
         .многобуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка.re_образец.as_str().replace("-", &на_что_заменять);
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -2025,7 +2030,7 @@ pub fn создать_третий_словарь_переносов(
         .исключения
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка
                 .re_образец_для_поиска
@@ -2043,7 +2048,7 @@ pub fn создать_третий_словарь_переносов(
         .двубуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка.re_образец.as_str().replace("-", &на_что_заменять);
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -2053,7 +2058,7 @@ pub fn создать_третий_словарь_переносов(
         .трехбуквенные
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка.re_образец.as_str().replace("-", &на_что_заменять);
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -2063,7 +2068,7 @@ pub fn создать_третий_словарь_переносов(
         .целиковые
         .par_iter_mut()
         .enumerate()
-        .for_each(|(указатель, ячейка)| {
+        .for_each(|(_указатель, ячейка)| {
             ячейка.искомое_слово = ячейка.искомое_слово.replace('-', &на_что_заменять);
             let новый_образец = ячейка.re_образец.as_str().replace("-", &на_что_заменять);
             ячейка.re_образец = Regex::new(&новый_образец).unwrap();
@@ -2241,14 +2246,14 @@ pub fn проверка_ряда_regex_разделителей(
         }
     }
 }
-
+/*/
 pub fn добавить_слова_с_окончаниями() {
     use std::default::Default;
 
-    pub struct окончания {
+    pub struct Окончания {
         pub щ: [String; 17],
     }
-    impl Default for окончания {
+    impl Default for Окончания {
         fn default() -> Self {
             Self {
                 щ: [
@@ -2274,7 +2279,7 @@ pub fn добавить_слова_с_окончаниями() {
             }
         }
     }
-}
+}*/
 
 pub fn есть_ли_исключение(
     ряд_re_исключений: &Vec<Regex>,
@@ -2292,7 +2297,7 @@ pub fn есть_ли_исключение(
 
 fn создать_разделы_словаря_переносов() -> Словарь_Переносов {
     let однобуквенные_ряд: [String;
-        lib::СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ] = [
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ] = [
         "-о".to_string(),
         "-а".to_string(),
         "-ь".to_string(),
@@ -2303,7 +2308,7 @@ fn создать_разделы_словаря_переносов() -> Слов
     ];
 
     let многобуквенные_ряд: [String;
-        lib::СЛОВАРЬ_ПЕРЕНОСОВ_МНОГОБУКВЕННЫЕ] = [
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_МНОГОБУКВЕННЫЕ] = [
         "-ройства ".to_string(),
         "-вязывающего ".to_string(),
         "-ближенный ".to_string(),
@@ -2368,7 +2373,7 @@ fn создать_разделы_словаря_переносов() -> Слов
         "-уете".to_string(),
     ];
     let трехбуквенные_ряд: [String;
-        lib::СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ] = [
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ] = [
         "-ков".to_string(),
         "-щий".to_string(),
         "-дят".to_string(),
@@ -2494,7 +2499,7 @@ fn создать_разделы_словаря_переносов() -> Слов
         "-кое".to_string(),
     ];
     let двубуквенные_ряд: [String;
-        lib::СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ] = [
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ] = [
         "-ца".to_string(),
         "-сы".to_string(),
         "-er".to_string(),
@@ -2567,7 +2572,8 @@ fn создать_разделы_словаря_переносов() -> Слов
         "-пи".to_string(),
         "-па".to_string(),
     ];
-    let целиковые_ряд: [String; lib::СЛОВАРЬ_ПЕРЕНОСОВ_ЦЕЛИКОВЫЕ] = [
+    let целиковые_ряд: [String;
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_ЦЕЛИКОВЫЕ] = [
         "-валентных".to_string(),
         "-поминающих".to_string(),
         "-зации".to_string(),
@@ -2821,7 +2827,7 @@ fn создать_разделы_словаря_переносов() -> Слов
     ];
     //
     let исключения: [Ячейка_замены_с_исключением;
-        lib::СЛОВАРЬ_ПЕРЕНОСОВ_ИСКЛЮЧЕНИЯ] = [
+        Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_ИСКЛЮЧЕНИЯ] = [
         Ячейка_замены_с_исключением {
             искомое_слово: "-я".to_string(),
             замена: "я".to_string(),
@@ -2956,10 +2962,11 @@ pub fn привести_ряд_сло_словаря_переносов_в_ст�
     const N: usize,
 >(
     ряд: [String; N],
-) -> [lib::Ячейка_замены; N] {
+) -> [Text_Changer::Ячейка_замены; N] {
     use std::default::Default;
     //Default
-    let mut ряд_итоговый: [lib::Ячейка_замены; N] = std::array::from_fn(|_| Default::default());
+    let mut ряд_итоговый: [Text_Changer::Ячейка_замены; N] =
+        std::array::from_fn(|_| Default::default());
     //
     for (указатель, слово) in ряд.into_iter().enumerate() {
         //
@@ -2975,7 +2982,7 @@ pub fn привести_ряд_сло_словаря_переносов_в_ст�
     return ряд_итоговый;
 }
 fn поиск_повторов_re_словаря_замен(
-    словарь_замен: &lib::Словарь_Переносов,
+    словарь_замен: &Text_Changer::Словарь_Переносов,
 ) {
     let исключения: Vec<&Regex> = словарь_замен
         .исключения

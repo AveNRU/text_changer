@@ -1,13 +1,19 @@
-use encoding_rs::WINDOWS_1251;
-use encoding_rs_io::DecodeReaderBytesBuilder;
+//use encoding_rs::WINDOWS_1251;
+//use encoding_rs_io::DecodeReaderBytesBuilder;
 //use foldhash::{rapidhash::fast::RapidHashMap, HashSet, HashSetExt, fast::RandomState};
 use regex::Regex;
-use std::fmt;
+//use std::fmt;
 //use std::fs::File;
 //use std::io::prelude::*;
-use std::io::{Cursor, Seek, SeekFrom, Write};
+//use std::io::{Cursor, Seek, SeekFrom, Write};
 //use crate::write;
-use console::{Emoji, style};
+use crate::utils::functions::вложить_строку_в_ряд_с_проверкой;
+use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
+use crate::utils::read::*;
+use crate::utils::zip::zip_архив_в_память;
+use crate::utils::zip::Архив_в_озу;
+use console::style;
+use std::sync::LazyLock;
 use std::time::{
     //Duration,
     Instant,
@@ -15,58 +21,52 @@ use std::time::{
 extern crate rayon;
 use rayon::prelude::*;
 
-//use std::fs::read_to_string;
-use crate::lib::{
+use Text_Changer::{
     self,
     //Dictionary
 };
-use crate::utils::functions_add::system_pause;
-use crate::utils::functions_txt::*;
+//use crate::utils::functions_add::system_pause;
+//use crate::utils::functions_txt::*;
 use crate::utils::regex::re_получить_строку_с_описанием;
-use lazy_static::lazy_static;
+
 //use std::path::Path;
-use clap::builder::Str;
-use std::fs::{self, File, read_to_string};
-use std::io::{
-    //self,
-    BufRead,
-    BufReader, // Error,
-    Read,      //Write
-};
+//use clap::builder::Str;
+use std::fs::File;
 use std::sync::{Arc, Mutex};
-use walkdir::{DirEntry, WalkDir};
+//use walkdir::{DirEntry, WalkDir};
 //use xml::Encoding::Default;
 use crate::ALLOCATOR;
-use crate::lib::Кодировка::utf8;
 use crate::utils::stringzilla::sz_найти;
-use cap::Cap;
-use std::alloc;
-use zip::{
-    //write::FileOptions, CompressionMethod,
-    ZipArchive,
-    ZipWriter,
-};
+//use Text_Changer::Кодировка;
+//use cap::Cap;
+//use std::alloc;
 
 //use std::collections::rapidhash::fast::RapidHashMap;
 
-lazy_static! {
-    static ref re_расширение_файла_c_точкой: Regex = Regex::new(r"(?i)(?:\.)+([\d\w\s&&[^\.]]+)$").unwrap();//расширение файла
-      static ref re_расширение_файла_без_точки: Regex = Regex::new(r"(?i)(?:\/.)+([\d\w]+)$").unwrap();//расширение файла
-    static ref re_расширение_файла_3_й_случай: Regex = Regex::new(r"(?i)(?:\\)+([\d\w_-]+)$").unwrap();//расширение файла
-    static ref re_имя_файла: Regex = Regex::new(r"\.\\*/*books\\*/*(.+)\.(?:[\d\w&&[^\.]]+)").unwrap();//расширение файла
-     //имя словаря вырезать
+// 1. Публичная регулярка
+pub static RE_РАСШИРЕНИЕ_ФАЙЛА_C_ТОЧКОЙ: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(?:\.)+([\d\w\s&&[^\.]]+)$").unwrap());
+/*
+// 2. Без точки
+static RE_РАСШИРЕНИЕ_ФАЙЛА_БЕЗ_ТОЧКИ: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(?:\/.)+([\d\w]+)$").unwrap());
 
+// 3. Третий случай
+static RE_РАСШИРЕНИЕ_ФАЙЛА_3_Й_СЛУЧАЙ: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(?:\\)+([\d\w_-]+)$").unwrap());
+*/
 
+// 4. Имя файла
+//static RE_ИМЯ_ФАЙЛА: LazyLock<Regex> =
+//  LazyLock::new(|| Regex::new(r"\.\*/*книги\\*/*(.+)\.(?:[\d\w&&[^\.]]+)").unwrap());*/
+//имя словаря вырезать
 
-
-}
-
+use crate::utils::read::получить_содержимое;
 //Чтение файлов
 //1 - книги, 2 - словари
 pub fn считать_словари() -> Vec<String> {
-    use crate::utils::read::получить_содержимое;
     //основной путь
-    let пути_общие: lib::Пути_Общие = Default::default();
+    let пути_общие: Text_Changer::Пути_Общие = Default::default();
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //получение словарей
     let пути_до_словарей: Vec<String> = получить_содержимое(&пути_общие.словари);
@@ -74,17 +74,16 @@ pub fn считать_словари() -> Vec<String> {
 }
 
 pub fn считать_книги(
-    сообщения_приход: &mut lib::Сообщения,
-) -> (Vec<lib::Книги>, usize) {
-    use crate::utils::functions::*;
+    сообщения_приход: &mut Text_Changer::Сообщения,
+) -> (Vec<Text_Changer::Книги>, usize) {
+    // use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
-    use crate::utils::read::*;
+    //use crate::utils::read::*;
     use crate::utils::regex::{
         doc_docx, fb2_rtf_mht_mhtml, fb3_epub, htm_html_xhtml, md_fs_yml,
-        re_получить_имя_файла_без_пути, изображение_расширение_с_точкой,
-        мусорное_содержимое_архивов, определить_имя_книги,
+        re_получить_имя_файла_без_пути, изображение_расширение_с_точкой, определить_имя_книги,
     };
-    use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
+    //use crate::utils::zip::{zip_архив_в_память, Архив_в_озу};
     use std::default::Default;
     //время, занятое на этот шаг
     let точка_отсчёта_по_времени: Instant = Instant::now();
@@ -93,24 +92,25 @@ pub fn считать_книги(
     // ...
     // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //основной путь
-    let пути_общие: lib::Пути_Общие = Default::default();
-    let mut содержимое_папки: Arc<Mutex<lib::Содержимое_папок>> =
-        Arc::new(Mutex::new(lib::Содержимое_папок::default()));
+    let пути_общие: Text_Changer::Пути_Общие = Default::default();
+    let содержимое_папки: Arc<Mutex<Text_Changer::Содержимое_папок>> =
+        Arc::new(Mutex::new(Text_Changer::Содержимое_папок::default()));
     //вывод этапа
     println!("{}", style(format!("\t[1/4]: Считывание книг")).yellow(),);
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //let полный_путь: String = полный_путь_до_файла().unwrap();
-    //let стопки_книг: Mutex<Vec<lib::Книги>> = Mutex::new(Vec::new());
+    //let стопки_книг: Mutex<Vec<Text_Changer::Книги>> = Mutex::new(Vec::new());
     //получение книг
     let пути_до_книг: Vec<String> = получить_содержимое(&пути_общие.книги);
     //получение словарей
     //чтение содержимого файлов в разделе книг
-    let сообщения: Arc<Mutex<lib::Сообщения>> = Arc::new(Mutex::new(lib::Сообщения::default()));
+    let сообщения: Arc<Mutex<Text_Changer::Сообщения>> =
+        Arc::new(Mutex::new(Text_Changer::Сообщения::default()));
     //получение книг
-    let стопки_книг: Vec<lib::Книги> = пути_до_книг
+    let стопки_книг: Vec<Text_Changer::Книги> = пути_до_книг
         .par_iter()
         .enumerate()
-        .filter_map(|(i, путь)| {
+        .filter_map(|(_i, путь)| {
             if sz_найти(&путь, r#"\"#) | sz_найти(&путь, r#"\\"#) {
                 println!("путь с палкой: {путь}");
             };
@@ -119,7 +119,7 @@ pub fn считать_книги(
             let mut расширение: String =
                 match re_получить_строку_с_описанием(
                     &путь,
-                    &re_расширение_файла_c_точкой,
+                    &RE_РАСШИРЕНИЕ_ФАЙЛА_C_ТОЧКОЙ,
                     "Не удалось выдрать расширение файла с точкой",
                 ) {
                     Ok(путь) => путь,
@@ -154,7 +154,7 @@ pub fn считать_книги(
             //если .rtf либо .fb2 (1 файл содержит)
             if fb2_rtf_mht_mhtml(&путь) {
                 // println!("вхождение: fb2_rtf_mht_mhtml");
-                let mut содержимое: Vec<String> = {
+                let содержимое: Vec<String> = {
                     if sz_найти(&расширение, "mhtlml") {
                         считать_в_utf8(&путь) //чтение файла в UTF-8
                     } else {
@@ -164,21 +164,21 @@ pub fn считать_книги(
                 };
 
                 //вложение
-                let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
+                let стопка: Vec<Text_Changer::Вложения> = vec![Text_Changer::Вложения {
                     содержимое: содержимое,
                     содержимое_в_байтах: Vec::new(),
                     имя: название_книги.clone(),
                     имя_без_пути: re_получить_имя_файла_без_пути(
                         &название_книги,
                     ),
-                    кодировка: utf8,
+                    кодировка: Text_Changer::Кодировка::Utf8,
                 }];
                 вложить_строку_в_ряд_с_проверкой(
                     &mut содержимое_папки.lock().unwrap().файлы,
                     &путь,
                 );
                 //вложение не архива в стопку
-                Some(lib::Книги {
+                Some(Text_Changer::Книги {
                     вложения: стопка,
                     //содержимое:содержимое,
                     путь: путь.clone(),             //путь полный
@@ -191,7 +191,7 @@ pub fn считать_книги(
             }
             //если архивный файл
             else if fb3_epub(&путь) {
-                let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
+                let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
                 let книга_в_озу: Архив_в_озу = match zip_архив_в_память(
                     &путь,
                     rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default()),
@@ -210,19 +210,19 @@ pub fn считать_книги(
                         }
                     }
                 };
-                let приложения_книги: Vec<lib::Вложения> =
+                let приложения_книги: Vec<Text_Changer::Вложения> =
             //перебор всех файлов архива
              книга_в_озу.into_par_iter().filter_map(|(имя, содержимое_архива)|  {
                 //картинки не загонять в utf8
                 if изображение_расширение_с_точкой(&имя)
                 {
-                    Some(lib::Вложения {
+                    Some(Text_Changer::Вложения {
                         содержимое: Vec::new(), //пустота - так это рисунок, нельзя читать
                         имя_без_пути:
                             re_получить_имя_файла_без_пути(&имя),
                         имя,
                         содержимое_в_байтах: содержимое_архива.clone(),
-                        кодировка:lib::Кодировка::не_определён,
+                        кодировка:Text_Changer::Кодировка::Не_определено,
                     })
                 }
                 //если это не изображение и  не шриафты
@@ -231,9 +231,9 @@ pub fn считать_книги(
                     let содержимое_файла: Vec<String> =read_utf8_из_ряда_u8(&содержимое_архива, &имя);
                     //если это htm страница
                     if htm_html_xhtml(&имя) {
-                        let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
+                        let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
                         let новое_содержимое_файла: Vec<String> =htm_utf8_без_переносов_строк(&содержимое_файла,&имя);
-                        let кодировка: lib::Кодировка=определить_кодировку(&новое_содержимое_файла,&имя,&путь,&mut сообщения_свои.кодировка);
+                        let кодировка: Text_Changer::Кодировка=определить_кодировку(&новое_содержимое_файла,&имя,&путь,&mut сообщения_свои.кодировка);
                        //
                         сообщения
                             .lock()
@@ -241,7 +241,7 @@ pub fn считать_книги(
                             .кодировка
                             .extend(сообщения_свои.кодировка);
                        // println!("содержимое xhtml: {}",re_получить_имя_файла_без_пути(&имя));
-                        Some(lib::Вложения {
+                        Some(Text_Changer::Вложения {
                             содержимое: новое_содержимое_файла,
                             имя_без_пути:
                             re_получить_имя_файла_без_пути(&имя),
@@ -249,11 +249,11 @@ pub fn считать_книги(
                             содержимое_в_байтах: содержимое_архива.clone(),
                             кодировка,
                         })
-                    } 
-                    //если это не htm содержимое 
+                    }
+                    //если это не htm содержимое
                     else {
-                        let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
-                        let кодировка: lib::Кодировка=определить_кодировку(&содержимое_файла,&имя,&путь,&mut сообщения_свои.кодировка);
+                        let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
+                        let кодировка: Text_Changer::Кодировка=определить_кодировку(&содержимое_файла,&имя,&путь,&mut сообщения_свои.кодировка);
                         //
                         сообщения
                             .lock()
@@ -261,7 +261,7 @@ pub fn считать_книги(
                             .кодировка
                             .extend(сообщения_свои.кодировка);
                         //
-                        Some(lib::Вложения {
+                        Some(Text_Changer::Вложения {
                             содержимое: содержимое_файла,
                             имя_без_пути:
                             re_получить_имя_файла_без_пути(&имя),
@@ -288,7 +288,7 @@ pub fn считать_книги(
                     .extend(сообщения_свои.кодировка);
                 let архив: rapidhash::fast::RapidHashMap<String, Vec<u8>> = rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
                 //вложение содержимого всего архива в стопку
-                Some(lib::Книги {
+                Some(Text_Changer::Книги {
                     вложения: приложения_книги,
                     архив,
                     путь: путь.clone(),             //путь полный
@@ -313,7 +313,7 @@ pub fn считать_книги(
                     &название_книги,
                 );
                 let архив: rapidhash::fast::RapidHashMap<String, Vec<u8>> = rapidhash::fast::RapidHashMap::with_hasher(rapidhash::fast::RandomState::default());
-                Some(lib::Книги {
+                Some(Text_Changer::Книги {
                     вложения: Vec::new(),
                     архив,
                     путь: путь.clone(),             //путь полный
@@ -322,12 +322,12 @@ pub fn считать_книги(
                     книга_ли: true,
                 })
             } else if md_fs_yml(&путь) {
-                let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
+                let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
                 //   println!("вхождение: md_fs_yml");
                 let содержимое: Vec<String> = считать_в_utf8(&путь); //чтение файла в UTF-8
-                let кодировка: lib::Кодировка =
+                let кодировка: Text_Changer::Кодировка =
                     определить_кодировку(&содержимое,&название_книги,&путь,&mut сообщения_свои.кодировка);
-                let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
+                let стопка: Vec<Text_Changer::Вложения> = vec![Text_Changer::Вложения {
                     содержимое: содержимое,
                     имя: название_книги.clone(),
                     имя_без_пути: re_получить_имя_файла_без_пути(
@@ -347,7 +347,7 @@ pub fn считать_книги(
                     .кодировка
                     .extend(сообщения_свои.кодировка);
                 //вложение не архива в стопку
-                Some(lib::Книги {
+                Some(Text_Changer::Книги {
                     вложения: стопка,
                     //содержимое:содержимое,
                     путь: путь.clone(),             //путь полный
@@ -358,13 +358,13 @@ pub fn считать_книги(
                 })
                 //стопки_книг.push(книга);
             } else if htm_html_xhtml(&путь) {
-                let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
+                let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
                 //      println!("вхождение: htm_html_xhtml");
                 let содержимое: Vec<String> =
                     считать_в_utf8_без_переносов_строк_htm_не_архив(&путь, &название_книги); //чтение файла в UTF-8
-                let кодировка: lib::Кодировка =
+                let кодировка: Text_Changer::Кодировка =
                     определить_кодировку(&содержимое,&название_книги,&путь,&mut сообщения_свои.кодировка);
-                let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
+                let стопка: Vec<Text_Changer::Вложения> = vec![Text_Changer::Вложения {
                     содержимое: содержимое,
                     имя: название_книги.clone(),
                     имя_без_пути: re_получить_имя_файла_без_пути(
@@ -384,7 +384,7 @@ pub fn считать_книги(
                     .кодировка
                     .extend(сообщения_свои.кодировка);
                 //вложение не архива в стопку
-                Some(lib::Книги {
+                Some(Text_Changer::Книги {
                     вложения: стопка,
                     //содержимое:содержимое,
                     путь: путь.clone(),             //путь полный
@@ -400,7 +400,7 @@ pub fn считать_книги(
                 //     println!("вхождение: если вложения - не книга");
                 let имя_файла_без_пути =
                     re_получить_имя_файла_без_пути(&название_книги);
-                use std::io::{self, Read};
+                use std::io::{ Read};
                 //если изображение
                 if изображение_расширение_с_точкой(&путь)
                     || !sz_найти(&имя_файла_без_пути, ".")
@@ -408,14 +408,14 @@ pub fn считать_книги(
                     let mut file = File::open(&путь).unwrap();
                     let mut содержимое: Vec<u8> = Vec::new();
                     file.read_to_end(&mut содержимое).unwrap();
-                    let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
+                    let стопка: Vec<Text_Changer::Вложения> = vec![Text_Changer::Вложения {
                         содержимое: Vec::new(), //пустота - так это рисунок, нельзя читать
                         имя: название_книги.clone(),
                         имя_без_пути: имя_файла_без_пути,
                         содержимое_в_байтах: содержимое,
-                        кодировка: lib::Кодировка::не_определён,
+                        кодировка: Text_Changer::Кодировка::Не_определено,
                     }];
-                    Some(lib::Книги {
+                    Some(Text_Changer::Книги {
                         вложения: стопка,
                         //содержимое:содержимое,
                         путь: путь.clone(),             //путь полный
@@ -426,13 +426,13 @@ pub fn считать_книги(
                         //..Default::default()
                     })
                 } else {
-                    let mut сообщения_свои: lib::Сообщения = lib::Сообщения::default();
+                    let mut сообщения_свои: Text_Changer::Сообщения = Text_Changer::Сообщения::default();
                     //         println!("вхождение: если не изображение");
                     //если не изображение
                     let содержимое: Vec<String> = считать_в_utf8(&путь); //чтение файла в UTF-8
-                    let кодировка: lib::Кодировка =
+                    let кодировка: Text_Changer::Кодировка =
                         определить_кодировку(&содержимое,&название_книги,&путь,&mut сообщения_свои.кодировка);
-                    let стопка: Vec<lib::Вложения> = vec![lib::Вложения {
+                    let стопка: Vec<Text_Changer::Вложения> = vec![Text_Changer::Вложения {
                         содержимое: содержимое,
                         имя: название_книги.clone(),
                         имя_без_пути: имя_файла_без_пути,
@@ -446,7 +446,7 @@ pub fn считать_книги(
                         .кодировка
                         .extend(сообщения_свои.кодировка);
                     //
-                    Some(lib::Книги {
+                    Some(Text_Changer::Книги {
                         вложения: стопка,
                         //содержимое:содержимое,
                         путь: путь.clone(),             //путь полный
@@ -496,7 +496,7 @@ pub fn считать_книги(
     // }
     //println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //вывод этапа
-    let количество_мегабайт: usize = ((ALLOCATOR.allocated() / 1024) / 1024);
+    let количество_мегабайт: usize = (ALLOCATOR.allocated() / 1024) / 1024;
     println!(
         "{}{}",
         style(format!(

@@ -1,88 +1,87 @@
-use crate::lib;
 use crate::utils::functions_txt::{
     есть_ли_повторно_строка_в_ряде, есть_ли_повторно_строка_в_ряде_regex,
 };
 use crate::utils::stringzilla::sz_найти;
-use console::{Emoji, style};
+use std::sync::LazyLock;
+//use console::{Emoji, style};
 //use foldhash::{HashMap, HashMapExt, rapidhash::fast::RapidHashSet};
-use lazy_static::lazy_static;
+
 use rayon::prelude::*;
 use regex::Regex;
-use std::sync::Mutex;
+//use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 //use time::Month::January;
 pub fn xml_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> rapidhash::fast::RapidHashSet<usize> {
-    lazy_static! {
+    const FB3_ИСКЛЮЧЕНИЯ_ПРОСТЫЕ: [&str; 5] = [
+        r#"<fb3-body xmlns="#,
+        r#"<rootfile"#,
+        "<rootfiles>",
+        "<container version",
+        r#"<?xml version="1.0"?>"#,
+    ];
 
-             static ref fb3_исключения_простые: [String;5] = [
-            r#"<fb3-body xmlns="#.to_string(),
-            r#"<rootfile"#.to_string(),
-            "<rootfiles>".to_string(),
-            "<container version".to_string(),
-            r#"<?xml version="1.0"?>"#.to_string(),
-        ];
-
-        static ref fb3_исключения: [String;48] = [
-            r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
-            //вложения
-            "</section></body><binary".to_string(),
-            //содержание
-            "<description>".to_string(),
-            "<title-info>".to_string(),
-            "</title-info>".to_string(),
-            "<author>".to_string(),
-            "</author>".to_string(),
-            "<annotation>".to_string(),
-            "</annotation>".to_string(),
-            "<coverpage>".to_string(),
-            "</coverpage>".to_string(),
-            "<history>".to_string(),
-            "</history>".to_string(),
-            "<publisher>".to_string(),
-            "</publisher>".to_string(),
-            "<document-info>".to_string(),
-            "</document-info>".to_string(),
-            "<publish-info>".to_string(),
-            "</publish-info>".to_string(),
-            "</description>".to_string(),
-            "<lang>".to_string(),
-            "<version>".to_string(),
-             "<book-name>".to_string(),
-              "<id>".to_string(),
-              "<src-url>".to_string(),
-             "<program-used>".to_string(),
-                "<date value=".to_string(),
-                "<city>".to_string(),
-             "<year>".to_string(),
-             "<isbn>".to_string(),
-             "<image".to_string(),
-             "<body>".to_string(),
-             "</body>".to_string(),
-            "<section>".to_string(),
-             "</section>".to_string(),
-                "<epigraph>".to_string(),
-             "</epigraph>".to_string(),
-              "<FictionBook>".to_string(),
-             "</FictionBook>".to_string(),
-            "<p>…</p>".to_string(),
-            "<date>".to_string(),
-                 "<nickname>".to_string(),
-             "<empty-line/>".to_string(),
-             "<title>".to_string(),
-                "</title>".to_string(),
-            "<section id=".to_string(),
-            "</container>".to_string(),
-                    "</rootfiles>".to_string(),
-        ];
-        static ref fb3_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
-        static ref fb3_re_исключения: [Regex;48] = [
+    const FB3_ИСКЛЮЧЕНИЯ: [&str; 48] = [
+        r#"<?xml version="1.0" encoding="UTF-8"?>"#,
+        //вложения
+        "</section></body><binary",
+        //содержание
+        "<description>",
+        "<title-info>",
+        "</title-info>",
+        "<author>",
+        "</author>",
+        "<annotation>",
+        "</annotation>",
+        "<coverpage>",
+        "</coverpage>",
+        "<history>",
+        "</history>",
+        "<publisher>",
+        "</publisher>",
+        "<document-info>",
+        "</document-info>",
+        "<publish-info>",
+        "</publish-info>",
+        "</description>",
+        "<lang>",
+        "<version>",
+        "<book-name>",
+        "<id>",
+        "<src-url>",
+        "<program-used>",
+        "<date value=",
+        "<city>",
+        "<year>",
+        "<isbn>",
+        "<image",
+        "<body>",
+        "</body>",
+        "<section>",
+        "</section>",
+        "<epigraph>",
+        "</epigraph>",
+        "<FictionBook>",
+        "</FictionBook>",
+        "<p>…</p>",
+        "<date>",
+        "<nickname>",
+        "<empty-line/>",
+        "<title>",
+        "</title>",
+        "<section id=",
+        "</container>",
+        "</rootfiles>",
+    ];
+    const FB3_ОБЯЗАЛОВО: [&str; 2] = ["<", ">"];
+    const FB3_RE_ИСКЛЮЧЕНИЯ: LazyLock<[Regex; 48]> = LazyLock::new(|| {
+        [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
-                //вложения
+            //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
-                      //содержание
+            //содержание
             Regex::new(r"(?i)^<description>$").unwrap(),
             Regex::new(r"(?i)^\s*<title-info>$").unwrap(),
             Regex::new(r"(?i)^\s*</title-info>$").unwrap(),
@@ -104,35 +103,37 @@ pub fn xml_получить_указатели_на_пропуски(
             Regex::new(r"(?i)^\s*<lang>.+</lang>$").unwrap(),
             Regex::new(r"(?i)^\s*<version>\</version>$").unwrap(),
             Regex::new(r"(?i)^\s*<book-name>.*</book-name>$").unwrap(),
-                  Regex::new(r"(?i)^\s*<id>.*</id>$").unwrap(),
-                     Regex::new(r"(?i)^\s*<src-url>.*</src-url>$").unwrap(),
+            Regex::new(r"(?i)^\s*<id>.*</id>$").unwrap(),
+            Regex::new(r"(?i)^\s*<src-url>.*</src-url>$").unwrap(),
             Regex::new(r"(?i)^\s*<program-used>.*</program-used>$").unwrap(),
             Regex::new(r"(?i)^\s*<date value=.*</date>$").unwrap(),
-             Regex::new(r"(?i)^\s*<city>.*</city>$").unwrap(),
-                Regex::new(r"(?i)^\s*<year>.*</year>$").unwrap(),
-              Regex::new(r"(?i)^\s*<isbn>.*</isbn>$").unwrap(),
-             Regex::new(r#"(?i)^\s*<image.*\.jpg"/>$"#).unwrap(),
+            Regex::new(r"(?i)^\s*<city>.*</city>$").unwrap(),
+            Regex::new(r"(?i)^\s*<year>.*</year>$").unwrap(),
+            Regex::new(r"(?i)^\s*<isbn>.*</isbn>$").unwrap(),
+            Regex::new(r#"(?i)^\s*<image.*\.jpg"/>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*<body>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</body>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<section>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</section>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*<epigraph>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</epigraph>$"#).unwrap(),
-                 Regex::new(r#"(?i)^\s*<FictionBook>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</FictionBook>$"#).unwrap(),
-                    Regex::new(r#"(?i)^\s*<p>…</p>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<date>.+</date>$"#).unwrap(),
-                       Regex::new(r#"(?i)^\s*<nickname>.+</nickname>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<empty-line/>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</body>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<section>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</section>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<epigraph>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</epigraph>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<FictionBook>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</FictionBook>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<p>…</p>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<date>.+</date>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<nickname>.+</nickname>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<empty-line/>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*<title>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*</title>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<section id=".+">$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*</container>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<section id=".+">$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</container>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*</rootfiles>$"#).unwrap(),
-        ];
-          static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
-         static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
-    }
+        ]
+    });
+    //static RE_ПЕРВАЯ_СКОБКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<").unwrap());
+
+    //static RE_ВТОРАЯ_СКОБКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r">").unwrap());
+
     let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
         rapidhash::fast::RapidHashSet::from_iter([0]);
     //проверка образцов
@@ -141,8 +142,8 @@ pub fn xml_получить_указатели_на_пропуски(
     //сама проверка
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
         if !проверка_образцов_re_и_слов_для_кучи(
-            &*fb3_исключения,
-            &*fb3_re_исключения,
+            &FB3_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*FB3_RE_ИСКЛЮЧЕНИЯ,
             &исключения_для_проверки,
             "fb3_исключения",
         ) {
@@ -175,7 +176,7 @@ pub fn xml_получить_указатели_на_пропуски(
             return true;
         }
         //сначала что есть скобки
-        return fb3_обязалово
+        return FB3_ОБЯЗАЛОВО
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, &образец));
     }
@@ -187,13 +188,13 @@ pub fn xml_получить_указатели_на_пропуски(
             return true;
         }
         //поиск
-        for образец in fb3_исключения_простые.iter() {
+        for образец in FB3_ИСКЛЮЧЕНИЯ_ПРОСТЫЕ.iter() {
             if sz_найти(&стог_сена, &образец) {
                 //  println!("b3_исключения_простые: {стог_сена}");
                 return true;
             }
         }
-        if fb3_исключения_простые
+        if FB3_ИСКЛЮЧЕНИЯ_ПРОСТЫЕ
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, &образец))
         {
@@ -203,8 +204,8 @@ pub fn xml_получить_указатели_на_пропуски(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &*fb3_исключения,
-            &*fb3_re_исключения,
+            &FB3_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*FB3_RE_ИСКЛЮЧЕНИЯ,
             &стог_сена,
         );
     }
@@ -212,63 +213,63 @@ pub fn xml_получить_указатели_на_пропуски(
 pub fn fb2_получить_указатели_на_пропуски(
     содержимое: &Vec<String>,
 ) -> rapidhash::fast::RapidHashSet<usize> {
-    lazy_static! {
-        static ref fb2_исключения: [String;46] = [
-            r#"<?xml version="1.0" encoding="UTF-8"?>"#.to_string(),
-            //вложения
-            "</section></body><binary".to_string(),
-            //содержание
-            "<description>".to_string(),
-            "<title-info>".to_string(),
-            "</title-info>".to_string(),
-            "<author>".to_string(),
-            "</author>".to_string(),
-            "<annotation>".to_string(),
-            "</annotation>".to_string(),
-            "<coverpage>".to_string(),
-            "</coverpage>".to_string(),
-            "<history>".to_string(),
-            "</history>".to_string(),
-            "<publisher>".to_string(),
-            "</publisher>".to_string(),
-            "<document-info>".to_string(),
-            "</document-info>".to_string(),
-            "<publish-info>".to_string(),
-            "</publish-info>".to_string(),
-            "</description>".to_string(),
-            "<lang>".to_string(),
-            "<version>".to_string(),
-             "<book-name>".to_string(),
-              "<id>".to_string(),
-              "<src-url>".to_string(),
-             "<program-used>".to_string(),
-                "<date value=".to_string(),
-                "<city>".to_string(),
-             "<year>".to_string(),
-             "<isbn>".to_string(),
-             "<image".to_string(),
-             "<body>".to_string(),
-             "</body>".to_string(),
-            "<section>".to_string(),
-             "</section>".to_string(),
-                "<epigraph>".to_string(),
-             "</epigraph>".to_string(),
-              "<FictionBook>".to_string(),
-             "</FictionBook>".to_string(),
-            "<p>…</p>".to_string(),
-            "<date>".to_string(),
-                 "<nickname>".to_string(),
-             "<empty-line/>".to_string(),
-             "<title>".to_string(),
-                "</title>".to_string(),
-            "<section id=".to_string(),
-        ];
-        static ref fb2_обязалово: [String;2] = ["<".to_string(), ">".to_string(),];
-        static ref fb2_re_исключения: [Regex;46] = [
+    const FB2_ИСКЛЮЧЕНИЯ: [&str; 46] = [
+        r#"<?xml version="1.0" encoding="UTF-8"?>"#,
+        //вложения
+        "</section></body><binary",
+        //содержание
+        "<description>",
+        "<title-info>",
+        "</title-info>",
+        "<author>",
+        "</author>",
+        "<annotation>",
+        "</annotation>",
+        "<coverpage>",
+        "</coverpage>",
+        "<history>",
+        "</history>",
+        "<publisher>",
+        "</publisher>",
+        "<document-info>",
+        "</document-info>",
+        "<publish-info>",
+        "</publish-info>",
+        "</description>",
+        "<lang>",
+        "<version>",
+        "<book-name>",
+        "<id>",
+        "<src-url>",
+        "<program-used>",
+        "<date value=",
+        "<city>",
+        "<year>",
+        "<isbn>",
+        "<image",
+        "<body>",
+        "</body>",
+        "<section>",
+        "</section>",
+        "<epigraph>",
+        "</epigraph>",
+        "<FictionBook>",
+        "</FictionBook>",
+        "<p>…</p>",
+        "<date>",
+        "<nickname>",
+        "<empty-line/>",
+        "<title>",
+        "</title>",
+        "<section id=",
+    ];
+    const FB2_ОБЯЗАЛОВО: [&str; 2] = ["<", ">"];
+    static FB2_RE_ИСКЛЮЧЕНИЯ: LazyLock<[Regex; 46]> = LazyLock::new(|| {
+        [
             Regex::new(r#"(?i)^<\?xml\s*version="\#1\.0"\s*encoding="UTF-8"\?>$"#).unwrap(),
-                //вложения
+            //вложения
             Regex::new(r"(?i)^</section></body><binary").unwrap(),
-                      //содержание
+            //содержание
             Regex::new(r"(?i)^<description>$").unwrap(),
             Regex::new(r"(?i)^\s*<title-info>$").unwrap(),
             Regex::new(r"(?i)^\s*</title-info>$").unwrap(),
@@ -290,33 +291,34 @@ pub fn fb2_получить_указатели_на_пропуски(
             Regex::new(r"(?i)^\s*<lang>.+</lang>$").unwrap(),
             Regex::new(r"(?i)^\s*<version>\</version>$").unwrap(),
             Regex::new(r"(?i)^\s*<book-name>.*</book-name>$").unwrap(),
-                  Regex::new(r"(?i)^\s*<id>.*</id>$").unwrap(),
-                     Regex::new(r"(?i)^\s*<src-url>.*</src-url>$").unwrap(),
+            Regex::new(r"(?i)^\s*<id>.*</id>$").unwrap(),
+            Regex::new(r"(?i)^\s*<src-url>.*</src-url>$").unwrap(),
             Regex::new(r"(?i)^\s*<program-used>.*</program-used>$").unwrap(),
             Regex::new(r"(?i)^\s*<date value=.*</date>$").unwrap(),
-             Regex::new(r"(?i)^\s*<city>.*</city>$").unwrap(),
-                Regex::new(r"(?i)^\s*<year>.*</year>$").unwrap(),
-              Regex::new(r"(?i)^\s*<isbn>.*</isbn>$").unwrap(),
-             Regex::new(r#"(?i)^\s*<image.*\.jpg"/>$"#).unwrap(),
+            Regex::new(r"(?i)^\s*<city>.*</city>$").unwrap(),
+            Regex::new(r"(?i)^\s*<year>.*</year>$").unwrap(),
+            Regex::new(r"(?i)^\s*<isbn>.*</isbn>$").unwrap(),
+            Regex::new(r#"(?i)^\s*<image.*\.jpg"/>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*<body>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</body>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<section>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</section>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*<epigraph>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</epigraph>$"#).unwrap(),
-                 Regex::new(r#"(?i)^\s*<FictionBook>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*</FictionBook>$"#).unwrap(),
-                    Regex::new(r#"(?i)^\s*<p>…</p>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<date>.+</date>$"#).unwrap(),
-                       Regex::new(r#"(?i)^\s*<nickname>.+</nickname>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<empty-line/>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</body>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<section>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</section>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<epigraph>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</epigraph>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<FictionBook>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</FictionBook>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<p>…</p>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<date>.+</date>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<nickname>.+</nickname>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<empty-line/>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*<title>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*</title>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<section id=".+">$"#).unwrap(),
-        ];
-          static ref  re_первая_скобка:Regex= Regex::new(r"<").unwrap();
-         static ref  re_вторая_скобка:Regex= Regex::new(r">").unwrap();
-    }
+            Regex::new(r#"(?i)^\s*<section id=".+">$"#).unwrap(),
+        ]
+    });
+    static RE_ПЕРВАЯ_СКОБКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<").unwrap());
+    static RE_ВТОРАЯ_СКОБКА: LazyLock<Regex> = LazyLock::new(|| Regex::new(r">").unwrap());
+
     let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
         rapidhash::fast::RapidHashSet::from_iter([0]);
     //переменная для хранения счётчика проверки
@@ -324,8 +326,8 @@ pub fn fb2_получить_указатели_на_пропуски(
     //
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
         if !проверка_образцов_re_и_слов_для_кучи(
-            &*fb2_исключения,
-            &*fb2_re_исключения,
+            &FB2_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*FB2_RE_ИСКЛЮЧЕНИЯ,
             &исключения_для_проверки,
             "fb2_исключения",
         ) {
@@ -354,7 +356,7 @@ pub fn fb2_получить_указатели_на_пропуски(
             return true;
         }
         //сначала что есть скобки
-        return fb2_обязалово
+        return FB2_ОБЯЗАЛОВО
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, &образец));
     }
@@ -368,8 +370,8 @@ pub fn fb2_получить_указатели_на_пропуски(
         }
         //поиск
         if sz_найти(стог_сена, &"</binary>".to_string()) {
-            let количество_открытий = re_первая_скобка.find_iter(&стог_сена).count(); // считывает кол {  } 
-            let количество_закрытий = re_вторая_скобка.find_iter(&стог_сена).count(); // считывает кол {  } 
+            let количество_открытий = RE_ПЕРВАЯ_СКОБКА.find_iter(&стог_сена).count(); // считывает кол {  }
+            let количество_закрытий = RE_ВТОРАЯ_СКОБКА.find_iter(&стог_сена).count(); // считывает кол {  }
             if количество_открытий == 1 && количество_закрытий == 1
             {
                 return true;
@@ -378,8 +380,8 @@ pub fn fb2_получить_указатели_на_пропуски(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &*fb2_исключения,
-            &*fb2_re_исключения,
+            &*FB2_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*FB2_RE_ИСКЛЮЧЕНИЯ,
             &стог_сена,
         );
     }
@@ -388,7 +390,7 @@ pub fn fb2_получить_указатели_на_пропуски(
 
 fn html_получить_указатели_на_пропуски(
     содержимое: &[String],
-    условие_архива: bool,
+    _условие_архива: bool,
 ) -> rapidhash::fast::RapidHashSet<usize> {
     let пропуски: rapidhash::fast::RapidHashSet<usize> = содержимое
         .par_iter()
@@ -408,58 +410,57 @@ fn html_получить_указатели_на_пропуски(
     fn html_проверка_содержимого_на_условия(
         стог_сена: &String,
     ) -> bool {
-        lazy_static! {
-            static ref html_исключения: [String; 1] = [r#"<!DOCTYPE html PUBLIC"#.to_string(),];
-            static ref html_исключения_с_проверкой: [String; 2] = [
-                "<blockquote><div>".to_string(),
-                "</div></body></html>".to_string(),
-            ];
-            static ref re_html_исключения_с_проверкой: [Regex; 2] = [
+        const HTML_ИСКЛЮЧЕНИЯ: [&str; 1] = [r#"<!DOCTYPE html PUBLIC"#];
+        const HTML_ИСКЛЮЧЕНИЯ_С_ПРОВЕРКОЙ: [&str; 2] =
+            ["<blockquote><div>", "</div></body></html>"];
+        static RE_HTML_ИСКЛЮЧЕНИЯ_С_ПРОВЕРКОЙ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+            [
                 Regex::new(r#"(?i)^\s*<blockquote><div>$"#).unwrap(),
                 Regex::new(r#"(?i)^\s*</div></body></html>$"#).unwrap(),
-            ];
-            static ref строки_исключния: [String; 12] = [
-                format!(r####"<link rel="icon" href="###"####),
-                format!(r##"<link rel="preload" href=""##),
-                format!(r####"<link rel="stylesheet" href=""####),
-                format!(r##"<img src=""##),
-                format!(r##"<img class="logo" src=""##),
-                format!(r##"<img class="mm-header-search-close" src=""##),
-                format!(r##"<script src=""##),
-                format!(r##"src="."##),
-                r#"<script async="" src="#.to_string(),
-                format!(r#"<link href="./"#),
-                format!(r#"href="./"#),
-                format!(r#"<a class="lightbox" href=""#),
-            ];
-        }
+            ]
+        });
+        const СТРОКИ_ИСКЛЮЧНИЯ: [&str; 12] = [
+            r####"<link rel="icon" href="###"####,
+            r##"<link rel="preload" href=""##,
+            r####"<link rel="stylesheet" href=""####,
+            r##"<img src=""##,
+            r##"<img class="logo" src=""##,
+            r##"<img class="mm-header-search-close" src=""##,
+            r##"<script src=""##,
+            r##"src="."##,
+            r#"<script async="" src="#,
+            r#"<link href="./"#,
+            r#"href="./"#,
+            r#"<a class="lightbox" href=""#,
+        ];
+
         static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
         //сама проверка
         if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
             есть_ли_повторно_строка_в_ряде(
-                &строки_исключния.as_ref(),
+                &СТРОКИ_ИСКЛЮЧНИЯ.as_parallel_slice(),
                 "исключения html",
-                lib::Раздел_Словаря::не_является_разделом,
+                Text_Changer::Раздел_Словаря::Не_является_разделом,
             );
         }
         //поиск
-        if html_исключения
+        if HTML_ИСКЛЮЧЕНИЯ
             .par_iter()
             .any(|образец| sz_найти(&стог_сена, образец))
         {
             return true;
         }
-        if строки_исключния
+        if СТРОКИ_ИСКЛЮЧНИЯ
             .par_iter()
             .enumerate()
-            .any(|(указатель, образец)| sz_найти(&стог_сена, образец))
+            .any(|(_указатель, образец)| sz_найти(&стог_сена, образец))
         {
             //println!("Найдено исключение: {}",стог_сена);
             return true;
         }
         return проверка_исключений_в_стоге_сена(
-            &*html_исключения_с_проверкой,
-            &*re_html_исключения_с_проверкой,
+            &HTML_ИСКЛЮЧЕНИЯ_С_ПРОВЕРКОЙ.as_parallel_slice(),
+            &*RE_HTML_ИСКЛЮЧЕНИЯ_С_ПРОВЕРКОЙ,
             &стог_сена,
         );
         //проверка концов и окончаний строк
@@ -510,67 +511,67 @@ pub fn получить_пропуски_для_содержимого(
 pub fn md_получить_указатели_на_пропуки(
     содержимое: &Vec<String>,
 ) -> rapidhash::fast::RapidHashSet<usize> {
-    lazy_static! {
-        static ref md_исключения: [String;25] = [
-            r#"---"#.to_string(),
-              r#"***"#.to_string(),
-               r#"___"#.to_string(),
-              r#"```"#.to_string(),
-            //содержимое
-             r#"<table>"#.to_string(),
-               r#"</table>"#.to_string(),
-            r#"<tr>"#.to_string(),
-                    r#"</tr>"#.to_string(),
-            r#"<td>"#.to_string(),
-             r#"</td>"#.to_string(),
-            r#"[comment]:"#.to_string(),
-              r#"[!"#.to_string(),
-            r#":::"#.to_string(),
-              r#"<!"#.to_string(),
-                   r#""resource""#.to_string(),
-                r#"{"#.to_string(),
-               r#"}"#.to_string(),
-              r#"],"#.to_string(),
-                    r#""**/"#.to_string(),
-                r#"//"#.to_string(),
-              r#"("#.to_string(),
-              r#")"#.to_string(),
-                r#"<tr><td>"#.to_string(),
-              r#"/<tr><td>"#.to_string(),
-            r#"ms.date"#.to_string(),
-
-        ];
-        static ref md_re_исключения: [Regex;25] = [
+    const MD_ИСКЛЮЧЕНИЯ: [&str; 25] = [
+        r#"---"#,
+        r#"***"#,
+        r#"___"#,
+        r#"```"#,
+        //содержимое
+        r#"<table>"#,
+        r#"</table>"#,
+        r#"<tr>"#,
+        r#"</tr>"#,
+        r#"<td>"#,
+        r#"</td>"#,
+        r#"[comment]:"#,
+        r#"[!"#,
+        r#":::"#,
+        r#"<!"#,
+        r#""resource""#,
+        r#"{"#,
+        r#"}"#,
+        r#"],"#,
+        r#""**/"#,
+        r#"//"#,
+        r#"("#,
+        r#")"#,
+        r#"<tr><td>"#,
+        r#"/<tr><td>"#,
+        r#"ms.date"#,
+    ];
+    static MD_RE_ИСКЛЮЧЕНИЯ: LazyLock<[Regex; 25]> = LazyLock::new(|| {
+        [
             Regex::new(r#"(?i)^\s*(-+)$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*(\*+)$"#).unwrap(),
-               Regex::new(r#"(?i)^\s*(_+)$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*(`+).+$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*(\*+)$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*(_+)$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*(`+).+$"#).unwrap(),
             //содержимое
             Regex::new(r#"(?i)^\s*<table>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*</table>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*<tr>$"#).unwrap(),
-                Regex::new(r#"(?i)^\s*</tr>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*<tr>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</tr>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*<td>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*</td>$"#).unwrap(),
-              Regex::new(r#"(?i)^\s*[comment]:"#).unwrap(),
-                   Regex::new(r#"(?i)^\s*\[\!"#).unwrap(),
-                Regex::new(r#"(?i)^\s*(:+)"#).unwrap(),
+            Regex::new(r#"(?i)^\s*</td>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*[comment]:"#).unwrap(),
+            Regex::new(r#"(?i)^\s*\[\!"#).unwrap(),
+            Regex::new(r#"(?i)^\s*(:+)"#).unwrap(),
             Regex::new(r#"(?i)^\s*<!"#).unwrap(),
-             Regex::new(r#"(?i)^\s*"resource""#).unwrap(),
-                     Regex::new(r#"(?i)^\s*\{"#).unwrap(),
-                  Regex::new(r#"(?i)^\s*\}"#).unwrap(),
+            Regex::new(r#"(?i)^\s*"resource""#).unwrap(),
+            Regex::new(r#"(?i)^\s*\{"#).unwrap(),
+            Regex::new(r#"(?i)^\s*\}"#).unwrap(),
             Regex::new(r#"(?i)^\s*\]\,"#).unwrap(),
-               Regex::new(r#"(?i)^\s*"(\*+)"#).unwrap(),
+            Regex::new(r#"(?i)^\s*"(\*+)"#).unwrap(),
             Regex::new(r#"(?i)^\s*(/+)"#).unwrap(),
             Regex::new(r#"(?i)^\s*\("#).unwrap(),
             Regex::new(r#"(?i)^\s*\)"#).unwrap(),
             Regex::new(r#"(?i)^\s*<tr><td>$"#).unwrap(),
-             Regex::new(r#"(?i)^\s*/<tr><td>$"#).unwrap(),
+            Regex::new(r#"(?i)^\s*/<tr><td>$"#).unwrap(),
             Regex::new(r#"(?i)^\s*ms\.date:"#).unwrap(),
-                //вложения
-        ];
-        static ref md_примечание:Regex= Regex::new(r#"(?i)^#"#).unwrap();
-    }
+            //вложения
+        ]
+    });
+    //static MD_ПРИМЕЧАНИЕ: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"(?i)^#"#).unwrap());
+
     let исключения_для_проверки: rapidhash::fast::RapidHashSet<usize> =
         rapidhash::fast::RapidHashSet::from_iter([0, 1, 2, 3, 11, 12, 17, 18, 19, 24]);
     //переменная для хранения счётчика проверки
@@ -578,8 +579,8 @@ pub fn md_получить_указатели_на_пропуки(
     //
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
         if !проверка_образцов_re_и_слов_для_кучи(
-            &*md_исключения,
-            &*md_re_исключения,
+            &*MD_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*MD_RE_ИСКЛЮЧЕНИЯ,
             &исключения_для_проверки,
             "md_исключения",
         ) {
@@ -592,7 +593,7 @@ pub fn md_получить_указатели_на_пропуки(
     let пропуски: rapidhash::fast::RapidHashSet<usize> = содержимое
         .into_par_iter()
         .enumerate()
-        .filter_map(|(указатель, строка_внутри)| {
+        .filter_map(|(указатель, _строка_внутри)| {
             if !есть_ли_кириллица(&содержимое[указатель])
                 || md_проверка_содержимого_на_условия(
                     &содержимое[указатель],
@@ -627,15 +628,15 @@ pub fn md_получить_указатели_на_пропуки(
         //проверка концов и окончаний строк
         //сначала что есть скобки
         return проверка_исключений_в_стоге_сена(
-            &*md_исключения,
-            &*md_re_исключения,
+            &MD_ИСКЛЮЧЕНИЯ.as_parallel_slice(),
+            &*MD_RE_ИСКЛЮЧЕНИЯ,
             &стог_сена,
         );
     }
     //если истина-то переход к следующей строке
 }
 pub fn проверка_исключений_в_стоге_сена(
-    исключения: &[String],
+    исключения: &[&str],
     re_исключения: &[Regex],
     стог_сена: &String,
 ) -> bool {
@@ -648,7 +649,7 @@ pub fn проверка_исключений_в_стоге_сена(
     })
 }
 fn проверка_образцов_re_и_слов_для_кучи(
-    исключения: &[String],
+    исключения: &[&str],
     исключения_re: &[Regex],
     исключения_проверки: &rapidhash::fast::RapidHashSet<usize>,
     сообщение: &str,
@@ -683,7 +684,7 @@ fn проверка_образцов_re_и_слов_для_кучи(
     есть_ли_повторно_строка_в_ряде(
         &исключения,
         сообщение,
-        lib::Раздел_Словаря::не_является_разделом,
+        Text_Changer::Раздел_Словаря::Не_является_разделом,
     );
     //перебор RE
     есть_ли_повторно_строка_в_ряде_regex(&исключения_re, сообщение);
@@ -693,39 +694,37 @@ fn проверка_образцов_re_и_слов_для_кучи(
 
 pub fn есть_ли_кириллица(стог_сена: &String) -> bool {
     use crate::utils::functions_txt::есть_ли_повторно_знак_в_ряде_строк;
-    lazy_static! {
-        static ref малые_буквы: [char; 33] = [
-            'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п',
-            'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
-        ];
-        static ref большие_буквы: [char; 33] = [
-            'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П',
-            'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
-        ];
-    }
+    const МАЛЫЕ_БУКВЫ: [char; 33] = [
+        'а', 'б', 'в', 'г', 'д', 'ж', 'з', 'е', 'ё', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р',
+        'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я',
+    ];
+    const БОЛЬШИЕ_БУКВЫ: [char; 33] = [
+        'А', 'Б', 'В', 'Г', 'Д', 'Ж', 'З', 'Е', 'Ё', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р',
+        'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
+    ];
     static СЧЁТЧИК_ПРОВЕРКИ: AtomicBool = AtomicBool::new(false);
     //сама проверка
     if !СЧЁТЧИК_ПРОВЕРКИ.swap(true, Ordering::SeqCst) {
         есть_ли_повторно_знак_в_ряде_строк(
-            &малые_буквы.as_ref(),
+            &МАЛЫЕ_БУКВЫ.as_ref(),
             "малые буквы",
         );
         есть_ли_повторно_знак_в_ряде_строк(
-            &большие_буквы.as_ref(),
+            &БОЛЬШИЕ_БУКВЫ.as_ref(),
             "большие буквы",
         );
     }
     //малые буквы
-    if малые_буквы
+    if МАЛЫЕ_БУКВЫ
         .par_iter()
         .enumerate()
-        .any(|(указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()))
+        .any(|(_указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()))
     {
         return true;
     }
     //
-    return большие_буквы
+    return БОЛЬШИЕ_БУКВЫ
         .par_iter()
         .enumerate()
-        .any(|(указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()));
+        .any(|(_указатель, строка_внутри)| sz_найти(&стог_сена, &строка_внутри.to_string()));
 }

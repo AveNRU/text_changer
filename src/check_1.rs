@@ -1,20 +1,11 @@
-use crate::lib;
-use rayon::prelude::*;
-use std::sync::{
-    Mutex,
-    atomic::{AtomicU64, AtomicUsize, Ordering},
-};
+//use rayon::prelude::*;
 pub fn проверка_содержимого_папок() {
     println!();
     use crate::output::functions::проверка_наличия_папок_в_случае_их_отсутствия_создать_папки;
-    use crate::utils::read::попытка_открыть_файл;
-    use std::fs::{
-        self,
-        //metadata, File
-    };
-    use std::path::Path;
-    let пути_общие: lib::Пути_Общие = Default::default();
-    //let пути_вывода: lib::Пути_Вывода = Default::default();
+    // use crate::utils::read::попытка_открыть_файл;
+    // use std::path::Path;
+    let пути_общие: Text_Changer::Пути_Общие = Default::default();
+    //let пути_вывода: Text_Changer::Пути_Вывода = Default::default();
     //двумерный вектор. 1-й для хранения прямых путей, 2 - после пути добавляется косая черта / (linux)
     let пути: [String; 8] = [
         //test

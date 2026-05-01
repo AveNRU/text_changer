@@ -1,14 +1,20 @@
-use crate::lib::{self, Полный_Словарь, Ячейка_словаря};
+use Text_Changer::{self, Полный_Словарь, Ячейка_словаря};
 use rayon::prelude::*;
-use regex::Regex;
-use std::sync::{
+//use regex::Regex;
+/*use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
-};
+};*/
 use stringzilla::sz;
 
 pub fn sz_найти(строка: &String, образец: &str) -> bool {
-    if let Some(указатель) = sz::find(&строка, образец) {
+    if let Some(_указатель) = sz::find(&строка, образец) {
+        return true;
+    }
+    return false;
+}
+pub fn sz_найти_в_str(срез: &str, образец: &str) -> bool {
+    if let Some(_указатель) = sz::find(срез, образец) {
         return true;
     }
     return false;
@@ -18,7 +24,7 @@ pub fn sz_найти_в_ряде(ряд: &Vec<String>, образец: &str) -> 
     ряд
         .into_par_iter()
         .enumerate()
-        .find_map_any(|(указатель, строка)| {
+        .find_map_any(|(_указатель, строка)| {
             if sz_найти(строка, образец) {
                 Some(true) // возвращаем Some с любым значением, важно что не None
             } else {
@@ -29,7 +35,7 @@ pub fn sz_найти_в_ряде(ряд: &Vec<String>, образец: &str) -> 
 }
 
 pub fn sz_пусто(строка: &String) -> bool {
-    if let Some(указатель) = sz::find(&строка, "Пусто") {
+    if let Some(_указатель) = sz::find(&строка, "Пусто") {
         return true;
     }
     return false;
@@ -46,8 +52,8 @@ pub fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<S
 }
 
 pub fn sz_упорядочить_кучу_словарь_замены(
-    ряд_исходный: Vec<lib::Куча_Слова_Замены>,
-) -> Vec<lib::Куча_Слова_Замены> {
+    ряд_исходный: Vec<Text_Changer::Куча_Слова_Замены>,
+) -> Vec<Text_Changer::Куча_Слова_Замены> {
     //определить длину словаря-кучи
     let mut порядок: Vec<usize> = vec![0; ряд_исходный.len()];
     //вложение всех исходных слов
@@ -56,7 +62,7 @@ pub fn sz_упорядочить_кучу_словарь_замены(
         .map(|строка| строка.слово.to_string())
         .collect();
     sz::argsort_permutation(&ряд, &mut порядок).unwrap();
-    let mut новый_ряд: Vec<lib::Куча_Слова_Замены> = Vec::new();
+    let mut новый_ряд: Vec<Text_Changer::Куча_Слова_Замены> = Vec::new();
     for число in порядок.into_iter() {
         новый_ряд.push(ряд_исходный[число].clone());
     }

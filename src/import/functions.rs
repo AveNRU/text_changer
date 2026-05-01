@@ -1,18 +1,17 @@
-use crate::utils::stringzilla::sz_найти;
+//use crate::utils::stringzilla::sz_найти;
 use crate::xlsx::import_xlsx::{
     найти_особые_знаки, обратно_убрать_особые_знаки
 };
 use convert_case::{Case, Casing};
 //use foldhash::{HashMap, HashMapExt, HashSet};
-use lazy_static::lazy_static;
 
 pub fn два_слова_из_одного_для_словаря(
     иходное_слово: &String,
 ) -> (String, String) {
-    lazy_static! {
-        static ref куча: rapidhash::fast::RapidHashSet<char> =
+    /* {
+        static куча: rapidhash::fast::RapidHashSet<char> =
             rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
-    }
+    }*/
     let временный_составной_ряд: (String, Vec<char>) =
         найти_особые_знаки(&иходное_слово);
     //
@@ -73,10 +72,10 @@ pub fn преобразовать_слово_с_чертой_в_конце(
 pub fn три_слова_из_одного_для_словаря(
     иходное_слово: &String,
 ) -> (String, String, String) {
-    lazy_static! {
-        static ref куча: rapidhash::fast::RapidHashSet<char> =
+    /*{
+        static куча: rapidhash::fast::RapidHashSet<char> =
             rapidhash::fast::RapidHashSet::from_iter(['∵', '∴', '∷']);
-    }
+    }*/
     let временный_составной_ряд: (String, Vec<char>) =
         найти_особые_знаки(&иходное_слово);
     //

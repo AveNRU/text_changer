@@ -44,7 +44,7 @@ impl<'i> MyReader<'i> {
 
         // Capture "name" and "content" from such string:
         // <!ENTITY name "content" >
-        let entity_re = Regex::new(r#"<!ENTITY\s+([^ \t\r\n]+)\s+"([^"]*)"\s*>"#)?;
+        let entity_re = LazyLock::new(|| Regex::new(r#"<!ENTITY\s+([^ \t\r\n]+)\s+"([^"]*)"\s*>"#)?;
         Ok(Self {
             readers,
             entities: HashMap::new(),
@@ -127,5 +127,3 @@ impl<'i> MyReader<'i> {
         self.readers.back().unwrap().decoder()
     }
 }
-
-

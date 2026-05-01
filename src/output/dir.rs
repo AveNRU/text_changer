@@ -1,11 +1,10 @@
-use crate::lib;
 use rayon::prelude::*;
 use std::fs;
 use std::path::Path;
-use std::sync::{
+/*use std::sync::{
     Mutex,
     atomic::{AtomicU64, AtomicUsize, Ordering},
-};
+};*/
 
 pub fn проверка_наличия_папки(путь: &String) {
     match создать_вложенные_папки(путь.as_str()) {
@@ -30,11 +29,13 @@ pub fn создать_вложенные_папки(
     Ok(())
 }
 
-pub fn заменить_путь_выходным_книгам(ряд: &Vec<String>, доп: &str) {
+pub fn заменить_путь_выходным_книгам(
+    ряд: &Vec<String>, _доп: &str
+) {
     //начало
-    let пути_общие: lib::Пути_Общие = Default::default();
+    let пути_общие: Text_Changer::Пути_Общие = Default::default();
     //
-    let mut выводной_ряд: Vec<String> = ряд
+    let выводной_ряд: Vec<String> = ряд
         .par_iter()
         .map(|строка| строка.replace(&пути_общие.книги, &пути_общие.вывод_книги))
         .collect();
@@ -47,7 +48,7 @@ pub fn заменить_путь_выходным_книгам(ряд: &Vec<Stri
 pub fn создать_папку_книги(
     имя_книги_полное: &String, расширение: &String
 ) {
-    let пути_общие: lib::Пути_Общие = Default::default();
+    let пути_общие: Text_Changer::Пути_Общие = Default::default();
     let путь_папки_вывода_пропусков =
         format!("{}{}/", &пути_общие.вывод_книги_пропуски, &имя_книги_полное);
     let удалить: String = format!(".{}", расширение);

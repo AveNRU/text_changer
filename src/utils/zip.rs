@@ -1,4 +1,6 @@
-use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+//use crate::utils::functions::вывод_сообщения_на_экран_и_вложение_в_ряд;
 use std::io::{Cursor, SeekFrom};
 use std::time::Instant;
 use std::{fmt, fs};
@@ -80,7 +82,7 @@ pub fn zip_архив_в_память(
     //rapidhash::fast::RapidHashMap<String, Vec<u8>>{
     let mut zips = Zips::new(путь).unwrap();
     match zips.распаковать_архив_в_озу() {
-        Ok(zip) => (),
+        Ok(_zip) => (),
         Err(ZipsError::Пустойфайл) => return Err(format!("Пустой файл").into()),
         Err(ошибка) => {
             panic!("Ошибка при распаковке файла в архив: {путь}. Ошибка: {ошибка}")

@@ -1,17 +1,17 @@
 use std::fs::{
     self,
     //metadata,
-    File,
+    //   File,
 };
-use std::io::{
+/*use std::io::{
     //self,
     BufRead,
     BufReader,
     Error,
     Read, //Write
-};
+};*/
 use std::path::Path;
-use std::{str, time::Instant};
+//use std::{str, time::Instant};
 
 pub fn проверка_наличия_папок_в_случае_их_отсутствия_создать_папки(
     путь: &String,
@@ -32,6 +32,6 @@ pub fn проверка_наличия_папок_в_случае_их_отсу�
         //если ошибка - вывод почему
         Err(причина) => println!("! {:?}", причина.kind()),
         //если успех - получение списка содержимого
-        Ok(пути) => for путь2 in пути {},
+        Ok(_пути) => (), //for путь2 in пути {},
     }
 }

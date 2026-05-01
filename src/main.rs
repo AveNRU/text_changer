@@ -2,7 +2,7 @@
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
-use crate::sync::mpsc;
+//use crate::sync::mpsc;
 use chrono::*;
 //use unirust::*;
 //use std::collections::HashMap;
@@ -13,13 +13,13 @@ use std::time::{
     //Duration,
     Instant,
 };
-use tokio::*;
-use xml::Encoding::Default;
+//use tokio::*;
+//use xml::Encoding::Default;
 
 pub mod check_1;
 pub mod dictionary_0;
 pub mod import;
-pub mod lib;
+//pub mod lib;
 pub mod output;
 pub mod test_0;
 pub mod utils;
@@ -27,15 +27,15 @@ pub mod xlsx;
 //use time::*; //{self,OffsetDateTime};
 use crate::output::write;
 use crate::utils::functions_add::system_pause;
-use console::{Emoji, style};
-use rayon::scope;
+use console::style;
+//use rayon::scope;
 
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
-use std::thread;
+//use std::thread;
 #[tokio::main] // или #[async_std::main]
 async fn main() {
-    use lib::Вид_Словаря;
+    use Text_Changer::Вид_Словаря;
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
@@ -46,14 +46,14 @@ async fn main() {
     let текущая_время_дата: DateTime<Local> = Local::now();
     let исполнение = env!("CARGO_PKG_VERSION");
     let название = env!("CARGO_PKG_DESCRIPTION");
-    let разработчики = env!("CARGO_PKG_DESCRIPTION");
+    let _разработчики = env!("CARGO_PKG_DESCRIPTION");
     println!(
         "|{}| Исполнение # {} от {}",
         название,
         исполнение,
         текущая_время_дата.format("%d-%m-%Y время: %H:%M:%S")
     );
-    let mut сообщения: lib::Сообщения = Default::default();
+    let mut сообщения: Text_Changer::Сообщения = Default::default();
     //подсчёт начала запуска времени
     //начало нового
     let время_отсчёта: Instant = Instant::now();
@@ -62,21 +62,21 @@ async fn main() {
     check_1::проверка_содержимого_папок();
     //книги
     //println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let исходная_книга: (Vec<lib::Книги>, usize) =
+    let исходная_книга: (Vec<Text_Changer::Книги>, usize) =
         import::read::считать_книги(&mut сообщения);
     //словари
     //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких
-    let mut полный_словарь: lib::Полный_Словарь =
+    let полный_словарь: Text_Changer::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей(
             исходная_книга.1,
-            Вид_Словаря::основной,
+            Вид_Словаря::Основной_Словарь,
         );
     //
-    let запасной_словарь: lib::Полный_Словарь =
+    let запасной_словарь: Text_Changer::Полный_Словарь =
         xlsx::import_xlsx::загрузка_словарей(
             исходная_книга.1,
-            Вид_Словаря::запасник,
+            Вид_Словаря::Запасной_Словарь,
         );
     //
     test_0::сравнить_основной_и_запасной_словари(
@@ -89,15 +89,15 @@ async fn main() {
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let итог_замены_слов_в_книгах: (Vec<lib::Книги>, lib::Сообщения) =
+    let итог_замены_слов_в_книгах: (Vec<Text_Changer::Книги>, Text_Changer::Сообщения) =
         dictionary_0::заменить_слова_в_книге_и_их_вывод(
             полный_словарь,
             исходная_книга.0,
             сообщения,
         )
         .await;
-    let выходные_книги: Vec<lib::Книги> = итог_замены_слов_в_книгах.0;
-    let mut сообщения: lib::Сообщения = итог_замены_слов_в_книгах.1;
+    //let выходные_книги: Vec<Text_Changer::Книги> = итог_замены_слов_в_книгах.0;
+    let mut сообщения: Text_Changer::Сообщения = итог_замены_слов_в_книгах.1;
     //
     /*let (tx,mut rx) = mpsc::unbounded_channel();
         let handle = thread::spawn(move|| {

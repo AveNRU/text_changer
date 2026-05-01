@@ -1,15 +1,15 @@
-use crate::lib::{Раздел_Словаря, Ячейка_словаря};
+//use crate::utils::functions_add::system_pause;
 use crate::utils::stringzilla::*;
-use crate::{lib, utils::functions_add::system_pause};
+use Text_Changer::Раздел_Словаря;
 use convert_case::{Case, Casing};
 //use foldhash::{HashMap, HashMapExt, rapidhash::fast::RapidHashSet, rapidhash::fast::RapidHashSetExt};
-use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
-use std::str::FromStr;
+//use std::sync::LazyLock;
+//use std::str::FromStr;
 use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicU64, AtomicUsize, Ordering},
+    //Arc, Mutex,
+    atomic::{AtomicUsize, Ordering},
 };
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
@@ -33,27 +33,27 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     }
 }
 pub fn есть_ли_повторно_строка_в_ряде(
-    ряд: &[String],
+    ряд: &[&str],
     сообщение: &str,
-    вид_раздела: lib::Раздел_Словаря,
+    вид_раздела: Text_Changer::Раздел_Словаря,
     //условие_вложенности: bool,
 ) {
     let условие_понижения_букв: bool = match вид_раздела {
-        Раздел_Словаря::простые => true,
-        Раздел_Словаря::составные => true,
-        Раздел_Словаря::составные_важные => true,
-        Раздел_Словаря::огласовки => true,
+        Раздел_Словаря::Простые => true,
+        Раздел_Словаря::Составные => true,
+        Раздел_Словаря::Составные_важные => true,
+        Раздел_Словаря::Огласовки => true,
         _ => false,
     };
     //куча для всех повторов - куда все слова вносятся
-    let куча_повторов:rapidhash::fast::RapidHashSet<String> = 
+    let куча_повторов:rapidhash::fast::RapidHashSet<String> =
     //поиск уже добавленных слов
     (0..ряд.len()).into_par_iter().flat_map(|i| {
         //если само себя нашло - то далее
         ((0..ряд.len())).into_par_iter().filter(move |j|*j!=i).filter_map(move|j| {//
             //сравнение
-            if ряд[i].as_str() == ряд[j].as_str() {
-                let слово_для_вывода:String=if условие_понижения_букв{ряд[i].to_case(Case::Lower)} else {ряд[i].clone()};
+            if ряд[i] == ряд[j] {
+                let слово_для_вывода:String=if условие_понижения_букв{ряд[i].to_case(Case::Lower)} else {ряд[i].to_string()};
                 Some(
                 format!(
                     "Повторы: слово в словаре: |{}| {сообщение}",
@@ -82,10 +82,10 @@ pub fn есть_ли_повторно_строка_в_срезе_строк(
     вид_раздела: Раздел_Словаря,
 ) {
     let условие_понижения_букв: bool = match вид_раздела {
-        Раздел_Словаря::простые => true,
-        Раздел_Словаря::составные => true,
-        Раздел_Словаря::составные_важные => true,
-        Раздел_Словаря::огласовки => true,
+        Раздел_Словаря::Простые => true,
+        Раздел_Словаря::Составные => true,
+        Раздел_Словаря::Составные_важные => true,
+        Раздел_Словаря::Огласовки => true,
         _ => false,
     };
     //куча для всех повторов - куда все слова вносятся
@@ -153,17 +153,17 @@ pub fn есть_ли_повторно_знак_в_ряде_строк(
 }
 
 pub fn есть_ли_повторно_слова_в_ряде_с_regex(
-    ряд: &[String],
+    ряд: &[&str],
     ряд_regex: &Vec<Regex>,
     сообщение: &str,
     условие_вложенности: bool,
     раздел_словаря: Раздел_Словаря,
 ) {
     let условие_понижения_букв: bool = match раздел_словаря {
-        Раздел_Словаря::простые => true,
-        Раздел_Словаря::составные => true,
-        Раздел_Словаря::составные_важные => true,
-        Раздел_Словаря::огласовки => true,
+        Раздел_Словаря::Простые => true,
+        Раздел_Словаря::Составные => true,
+        Раздел_Словаря::Составные_важные => true,
+        Раздел_Словаря::Огласовки => true,
         _ => false,
     };
     //слова без првоерки regex
@@ -178,10 +178,10 @@ pub fn есть_ли_повторно_слова_в_ряде_с_regex(
                 ((0..ряд.len())).into_par_iter().filter(move |j| *j != i).filter_map(move |j| { //
                     if условие_вложенности {
                         //если есть тире - не учитывать, разные случаи так как бывают
-                        if !sz_найти(&ряд[j], "-") && sz_найти(&ряд[j], &ряд[i]) {
+                        if !sz_найти_в_str(ряд[j], "-") && sz_найти_в_str(&ряд[j], &ряд[i]) {
                             //let строка = format!(r#"\<({})\>"#, ряд[i]);
                             let образец_re = &ряд_regex[i];
-                            //let образец_re: Regex = Regex::new(&строка).unwrap();
+                            //let образец_re: LazyLock<Regex> = LazyLock::new(|| Regex::new(&строка).unwrap();
                             if образец_re.is_match(&ряд[j]) {
                                 let слово_для_вывода:String=if условие_понижения_букв{ряд[i].to_case(Case::Lower)} else {ряд[i].to_string()};
                                 Some(
@@ -314,7 +314,7 @@ pub fn содержит_ли_ряд_строку(
     }
     return false;
 }
-pub fn ряд_в_строку(ряд: &Vec<String>, ошибка: &str) -> String {
+pub fn ряд_в_строку(ряд: &Vec<String>, _ошибка: &str) -> String {
     let mut итог: String = String::new();
     for i in 0..ряд.len() {
         итог = format!("{}|{}|", итог, ряд[i]);
@@ -338,18 +338,18 @@ pub fn вложить_строки_ряд_в_ряд(
 pub fn сравнение_двух_рядов_построчно(
     ряд_1: &[String],
     ряд_2: &[String],
-    путь: &String,
+    _путь: &String,
 ) -> bool {
     //если количество строк не равно
     if ряд_1.len() != ряд_2.len() {
         return false;
     }
-    let mut счётчик_совпадений = AtomicUsize::new(0);
+    let счётчик_совпадений = AtomicUsize::new(0);
     //перебор вспомогательного вектора
     ряд_1
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка_искомая)| {
+        .for_each(|(указатель, _строка_искомая)| {
             if ряд_1[указатель].as_str() == ряд_2[указатель].as_str() {
                 счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
             }
@@ -364,18 +364,18 @@ pub fn сравнение_двух_рядов_построчно(
 pub fn сравнение_двух_рядов_побайтово(
     ряд_1: &[u8],
     ряд_2: &[u8],
-    путь: &String,
+    _путь: &String,
 ) -> bool {
     //если количество строк не равно
     if ряд_1.len() != ряд_2.len() {
         return false;
     }
-    let mut счётчик_совпадений = AtomicUsize::new(0);
+    let счётчик_совпадений = AtomicUsize::new(0);
     //перебор вспомогательного вектора
     ряд_1
         .par_iter()
         .enumerate()
-        .for_each(|(указатель, строка_искомая)| {
+        .for_each(|(указатель, _строка_искомая)| {
             if ряд_1[указатель] == ряд_2[указатель] {
                 счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
             }

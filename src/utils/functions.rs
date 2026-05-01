@@ -1,21 +1,20 @@
 use crate::utils::functions_add::system_pause;
-use crate::utils::regex::*;
+//use crate::utils::regex::*;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_io::DecodeReaderBytesBuilder;
-use lazy_static::lazy_static;
 use rayon::prelude::*;
 use regex::Regex;
-use std::fs::File;
-use std::thread;
-use std::time::Duration;
+use std::sync::LazyLock;
+//use std::fs::File;
+//use std::thread;
+//use std::time::Duration;
 pub fn заменить_все_палки(строка: String) -> String {
-    lazy_static! {
-        static ref re: Regex = Regex::new(r"\\").unwrap();
-    }
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\\").unwrap());
+
     //  let mut  итог=строка.replace("\\", "/").to_string();
     let mut итог = строка.replace(r"\\", "/").to_string();
     итог = итог.replace(r"\", r"/");
-    итог = re.replace_all(&итог, "/").to_string();
+    итог = RE.replace_all(&итог, "/").to_string();
     return итог;
 }
 
@@ -42,7 +41,8 @@ pub fn строка_удалить_utf8_концы_строк(
                 .build(ряд_байтов.as_slice());
 
             let mut содержимое = String::new();
-            let ряд_в_байтах = match data.read_to_string(&mut содержимое) {
+            //let ряд_в_байтах =
+            match data.read_to_string(&mut содержимое) {
                 Ok(число) => число,
                 Err(почему) => {
                     eprintln!("Сбой при чтении данных из файла в ОЗУ!");
@@ -66,7 +66,7 @@ pub fn строка_utf8_без_удаления_концов_строк(
     ряд_байтов: &Vec<u8>,
 ) -> Vec<String> {
     use std::io::Read;
-    let mut ряд_строк: Vec<String> = Vec::new();
+    // let mut ряд_строк: Vec<String> = Vec::new();
     let строка_utf8: String = match std::str::from_utf8(&ряд_байтов) {
         Ok(строка) => строка.to_string(),
         Err(_) => {
@@ -75,7 +75,8 @@ pub fn строка_utf8_без_удаления_концов_строк(
                 .build(ряд_байтов.as_slice());
 
             let mut содержимое = String::new();
-            let ряд_в_байтах = match data.read_to_string(&mut содержимое) {
+            //let ряд_в_байтах =
+            match data.read_to_string(&mut содержимое) {
                 Ok(число) => число,
                 Err(почему) => {
                     eprintln!("Сбой при чтении данных из файла в ОЗУ!");
@@ -131,7 +132,7 @@ pub fn вывод_сообщения_на_экран_и_вложение_в_ря
 
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд_в_ячейку(
     строка: String,
-    mut ряд_сообщений: &mut Vec<String>,
+    ряд_сообщений: &mut Vec<String>,
     указатель: usize,
 ) {
     println!("{}", строка);
