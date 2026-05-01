@@ -2150,7 +2150,7 @@ pub fn сравнение_xlsx_файлов_2_путь_и_озу<P: AsRef<Path>>
 }
 
  */
-/*/
+
 pub fn main2() -> Result<(), Box<dyn std::error::Error>> {
     let первый = "./запас словарей/Главный словарь1.xlsx".to_string();
     let второй = "./запас словарей/Главный словарь2.xlsx".to_string();
@@ -2165,7 +2165,7 @@ pub fn main2() -> Result<(), Box<dyn std::error::Error>> {
     open_workbook_auto(второй).unwrap();
 
     Ok(())
-}*/
+}
 
 pub fn вывод_всей_стопки_сообщений_в_txt(
     mut сообщения: Сообщения,
