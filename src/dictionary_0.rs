@@ -821,7 +821,7 @@ pub fn создать_быстрый_словарь(
     слова_из_словаря: &Vec<String>,
     вид_слов: &str,
     mut счётчик_входа: &mut AtomicUsize,
-) -> rapidhash::fast::RapidHashMap<&str, rapidhash::fast::RapidHashSet<usize>> {
+) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
     use Text_Changer::Слова_с_Вложениями;
 
     //let ряд_вывод2: Arc<Mutex<Vec<Куча_Слова_Замены>>> = Arc::new(Mutex::new(Vec::new()));
@@ -1495,12 +1495,12 @@ fn получить_кучи_из_словарей(
     полный_словарь: &Полный_Словарь,
 ) -> Text_Changer::Куча_Словарь {
     let mut счётчик_входа: AtomicUsize = AtomicUsize::new(0);
-    let простое: rapidhash::fast::RapidHashMap<&str, rapidhash::fast::RapidHashSet<usize>> =
+    let простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =
         создать_быстрый_словарь(
             &полный_словарь
                 .простое
                 .par_iter()
-                .map(|ячейка| ячейка.искомое_слово.as_str())
+                .map(|ячейка| ячейка.искомое_слово.to_string())
                 .collect(),
             "простые",
             &mut счётчик_входа,
