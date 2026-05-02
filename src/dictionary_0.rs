@@ -6,6 +6,7 @@ use std::sync::LazyLock;
 //use std::default;
 use crate::output::write::вывод_ряда_среза_строк_в_txt;
 use crate::output::write::вывод_содержимого_строки_в_txt;
+use crate::utils::stringzilla::sz_найти_в_str;
 use crate::write;
 use Text_Changer::{
     self, Имена_страниц, Куча_Словарь_Искомые, Полный_Словарь, Правописание_слова, Раздел_Словаря,
@@ -827,7 +828,7 @@ pub fn создать_быстрый_словарь(
     //let ряд_вывод2: Arc<Mutex<Vec<Куча_Слова_Замены>>> = Arc::new(Mutex::new(Vec::new()));
     use crate::utils::stringzilla::sz_упорядочить_слова_с_вложениями;
     //let ряд_вывод: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
-    let условие: bool = if sz_найти(&вид_слов.to_string(), "оглас") {
+    let условие: bool = if sz_найти_в_str(&вид_слов, "оглас") {
         true
     } else {
         false
@@ -1391,14 +1392,14 @@ pub fn прогон_и_замена_окончания_в_слове_через_
         return Err(());
     }
 
-    let результат = re_ряд
+    let итог = re_ряд
         .par_iter()
         .enumerate()
         .find_map_any(|(_указатель, re_образец)| {
             if re_образец.is_match(&слово) {
                 // regex замена
                 let замененная_строка = re_образец.replace(&слово, "");
-                let замененная_строка = замененная_строка.to_string();
+                //let замененная_строка = замененная_строка.to_string();
                 // проверка на пустую строку после замены
                 if замененная_строка.is_empty() {
                     // Если результат пустой - это ошибка, но нужно вернуть Option с ошибкой
@@ -1410,7 +1411,7 @@ pub fn прогон_и_замена_окончания_в_слове_через_
                     }
                     //иначе вернуть вырезанное слово без окончания
                     else {
-                        Some(Ok(замененная_строка))
+                        Some(Ok(замененная_строка.to_string()))
                     }
                 }
             } else {
@@ -1418,7 +1419,7 @@ pub fn прогон_и_замена_окончания_в_слове_через_
             }
         });
 
-    match результат {
+    match итог {
         Some(Ok(строка)) => Ok(строка),
         Some(Err(())) => Err(()),
         None => Err(()),
@@ -1460,7 +1461,7 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сооб�
 
             // Проверка на отсутствие $
             // if !ряд[i].as_str().contains('$') {
-            if !sz_найти(&ряд[i].to_string(), "$") {
+            if !sz_найти_в_str(&ряд[i].as_str(), "$") {
                 куча_2.insert(format!("Regex нет знака окончания слова $: {}", ряд[i]));
             }
 

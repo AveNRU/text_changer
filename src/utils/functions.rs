@@ -143,7 +143,10 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if !ряд.par_iter().any(|n| n.as_str() == строка.as_str()) {
+    let куча: rapidhash::fast::RapidHashSet<&str> =
+        rapidhash::fast::RapidHashSet::from_par_iter(ряд.par_iter().map(|n| n.as_str()));
+
+    if !куча.contains(строка.as_str()) {
         ряд.push(строка.clone());
     }
 }

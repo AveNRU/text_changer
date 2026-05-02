@@ -1,4 +1,5 @@
 //use crate::utils::functions_add::system_pause;
+use crate::utils::functions::вложить_строку_в_ряд_с_проверкой;
 use crate::utils::stringzilla::*;
 use Text_Changer::Раздел_Словаря;
 use convert_case::{Case, Casing};
@@ -24,14 +25,14 @@ pub fn вывод_сообщения_на_экран_и_вложение_в_ря
     }
     вложить_строку_в_ряд_с_проверкой(&mut ряд_сообщений, &строка)
 }
-pub fn вложить_строку_в_ряд_с_проверкой(
+/*pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
     if !ряд.par_iter().any(|i| i.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
-}
+}*/
 pub fn есть_ли_повторно_строка_в_ряде(
     ряд: &[&str],
     сообщение: &str,

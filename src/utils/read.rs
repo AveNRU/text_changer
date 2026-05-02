@@ -129,7 +129,7 @@ pub fn определить_кодировку(
     путь: &String,
     mut ошибки: &mut Vec<String>,
 ) -> Text_Changer::Кодировка {
-    use crate::utils::functions_txt::вложить_строку_в_ряд_с_проверкой;
+    use crate::utils::functions::вложить_строку_в_ряд_с_проверкой;
     use crate::utils::regex::{fb3_epub, без_кодировки};
     // Если вы используете Rayon для параллельной обработки (into_par_iter),
     // нужно убедиться, что он подключен в Cargo.toml и импортирован

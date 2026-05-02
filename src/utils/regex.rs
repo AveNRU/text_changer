@@ -340,8 +340,8 @@ pub fn определить_имя_книги(стог_сена: &String) -> Str
     });
 
     RE_ПУТИ_ДО_КНИГ
-        .par_iter()
-        .find_map_any(|образец| {
+        .iter()
+        .find_map(|образец| {
             образец.captures(стог_сена).and_then(|cap| {
                 let строка = cap[1].trim().to_string();
                 if строка.is_empty() {
