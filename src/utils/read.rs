@@ -2252,7 +2252,7 @@ pub fn read_utf8_из_ряда_u8(
     let mut итог: Vec<String> = Vec::new();
 
     // Создаем BufRead из Vec<u8>
-    let курсор = Cursor::new(ряд_байтов.clone());
+    let курсор = Cursor::new(&ряд_байтов);
 
     // Читаем построчно
     for (указатель, строка_результат) in курсор.clone().lines().enumerate()
