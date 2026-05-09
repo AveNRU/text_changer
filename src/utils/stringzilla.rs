@@ -130,3 +130,27 @@ pub fn sz_упорядочить_словарь(
         return упорядоченная_стопка;
     }
 }
+pub fn sz_упорядочить_кучу_строк_rapid_в_ряд_строк(
+    куча: rapidhash::fast::RapidHashSet<String>,
+) -> Vec<String> {
+    let mut порядок: Vec<usize> = vec![0; куча.len()];
+    let ряд: Vec<String> = куча.into_iter().collect();
+    sz::argsort_permutation(&ряд, &mut порядок).unwrap();
+    let mut новый_ряд: Vec<String> = Vec::new();
+    for число in порядок.into_iter() {
+        новый_ряд.push(ряд[число].clone());
+    }
+    return новый_ряд;
+}
+pub fn sz_упорядочить_кучу_строк_rapid_в_ряд_строк_без_заимствования(
+    куча: &rapidhash::fast::RapidHashSet<String>,
+) -> Vec<String> {
+    let mut порядок: Vec<usize> = vec![0; куча.len()];
+    let ряд: Vec<String> = куча.iter().map(|строка| строка.to_string()).collect();
+    sz::argsort_permutation(&ряд, &mut порядок).unwrap();
+    let mut новый_ряд: Vec<String> = Vec::new();
+    for число in порядок.into_iter() {
+        новый_ряд.push(ряд[число].clone());
+    }
+    return новый_ряд;
+}

@@ -112,14 +112,22 @@ pub fn шкала_проход() {
     println!();
 }
 
-pub fn вывод_кучи_сообщения_на_экран(
+pub fn вывод_кучи_с_ключом_сообщения_на_экран(
     строка: &str,
-    ряд_сообщений: &rapidhash::fast::RapidHashSet<String>,
+    куча: &rapidhash::fast::RapidHashMap<String, usize>,
 ) {
     println!("{}", строка);
-    ряд_сообщений
+    куча
         .iter()
-        .for_each(|сообщение| println!("{}", сообщение));
+        .for_each(|(сообщение, значение)| println!("{}: {}", сообщение, значение));
+}
+
+pub fn вывод_кучи_сообщения_на_экран(
+    строка: &str,
+    куча: &rapidhash::fast::RapidHashSet<String>,
+) {
+    println!("{}", строка);
+    куча.iter().for_each(|сообщение| println!("{}", сообщение));
 }
 
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
