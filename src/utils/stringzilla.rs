@@ -19,7 +19,22 @@ pub fn sz_найти_в_str(срез: &str, образец: &str) -> bool {
     }
     return false;
 }
-
+pub fn sz_количество_слов_в_строке_больше_1(срез: &str) -> bool {
+    use regex::Regex;
+    use std::sync::LazyLock;
+    //
+    static РЯД_RE: LazyLock<[Regex; 2]> =
+        LazyLock::new(|| [Regex::new(r"_").unwrap(), Regex::new(r" ").unwrap()]);
+    //
+    let количество_пробелов: usize = РЯД_RE[1].find_iter(срез).count();
+    let количество_нижних_подчёркиваний: usize = РЯД_RE[0].find_iter(срез).count();
+    if количество_пробелов > 0 || количество_нижних_подчёркиваний > 0
+    {
+        return true;
+    } else {
+        return false;
+    }
+}
 pub fn sz_найти_в_ряде(ряд: &Vec<String>, образец: &str) -> bool {
     ряд
         .into_par_iter()
