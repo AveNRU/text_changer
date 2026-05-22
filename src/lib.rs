@@ -5,23 +5,149 @@
 use regex::Regex;
 use std::hash::{Hash, Hasher};
 use std::sync::atomic::AtomicUsize;
+use vergen::DefaultConfig;
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
     Исходное,
     Замена,
 }
 #[derive(Debug, Clone)]
-pub enum Расширение {
-    Fb2,
-    Fb3,
-    Epub,
+pub enum Вид_Видео {
+    Avi,
+    Mkv,
+    Mp4,
+    WebM,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Звук {
+    Wav,
+    Mp3,
+    Ogg,
+    Aac,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Изображения {
+    Jpeg,
+    Png,
+    Bmp,
+    Gif,
+    Tif,
+    Jpg,
+    Svg,
+    Avif,
+    Webp,
+    Wmf,
+    Wpg,
+    Eps,
+    Emf,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Архива {
+    Zip,
+    Rar,
+    Gz,
+    Gzip,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Мусорные_Разметки_Паутины {
+    Css,
+    Thmx,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_XML {
+    Rels,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Word {
+    Doc,
+    Docx,
+    Rtf,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Excel {
+    Xls,
+    Xlsx,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Шрифтов {
+    Tif,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Разметки_Паутины {
+    Php,
     Html,
     Htm,
-    Xhtml,
+    Md,
+    Yml,
+    Fs,
+    XHTML,
     Mhtml,
+    Mht,
+    Не_определено,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Архивной_Книги {
+    Epub,
+    Fb3,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_одичноной_книги {
+    Fb2,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Книги {
+    Архивная(Вид_Архивной_Книги),
+    Одиночная(Вид_одичноной_книги),
+}
+#[derive(Debug, Clone)]
+pub enum Вид_JS {
     Js,
-    Css,
-    Jpeg,
+    Mjs,
+    Cjs,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_Справи {
+    Cnt,
+    Hlp,
+    Chm,
+}
+#[derive(Debug, Clone)]
+pub enum Вид_приказов {
+    Tcl,
+    Fcg,
+    Cgi,
+}
+#[derive(Debug, Clone)]
+pub enum Основной_Вид_Расширения {
+    Книга(Вид_Книги),
+    Архив(Вид_Архива),
+    Изображение(Вид_Изображения),
+    Видео(Вид_Видео),
+    Разметка_Паутины(Вид_Разметки_Паутины),
+    Мусорные_Разметка(Вид_Мусорные_Разметки_Паутины),
+    Word(Вид_Word),
+    Excel(Вид_Excel),
+    XML,
+    JS(Вид_JS),
+    Pdf,
+    Прочее,
+    Шрифты(Вид_Шрифтов),
+    MIME,
+    Простая_письменность(Вид_простой_письменности),
+    Приказы(Вид_приказов),
+    Пусто,
+    Без_Названия,
+    Справка(Вид_Справи),
+    Не_определено,
+}
+impl Default for Основной_Вид_Расширения {
+    fn default() -> Self {
+        Основной_Вид_Расширения::Не_определено
+    }
+}
+#[derive(Debug, Clone)]
+pub enum Вид_простой_письменности {
+    Txt,
 }
 //пути
 #[derive(Debug, Clone)]
@@ -156,10 +282,11 @@ pub struct Содержимое_папок {
 //Стопка с путём до книги и содержимым виде вектора строк
 #[derive(Debug, Default, Clone)]
 pub struct Книги {
-    pub путь: String,                                          //путь до книги
-    pub название_книги: String,                                //имя книги
-    pub вложения: Vec<Вложения>,                               //содержимое
-    pub расширение: String,                                    //формат
+    pub путь: String,            //путь до книги
+    pub название_книги: String,  //имя книги
+    pub вложения: Vec<Вложения>, //содержимое
+    pub расширение: String,
+    pub расширение_подробно: Основной_Вид_Расширения, //формат
     pub архив: rapidhash::fast::RapidHashMap<String, Vec<u8>>, //для zip
     pub книга_ли: bool,
     //pub содержимое:Vec<String>,//сами строки
@@ -405,7 +532,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 179;
+pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 181;
 
 //
 
