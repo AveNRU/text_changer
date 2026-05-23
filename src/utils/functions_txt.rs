@@ -1,4 +1,5 @@
 //use crate::utils::functions_add::system_pause;
+use crate::utils::functions::вложить_строку_в_ряд_с_проверкой;
 use crate::utils::stringzilla::*;
 use Text_Changer::Раздел_Словаря;
 use convert_case::{Case, Casing};
@@ -24,14 +25,14 @@ pub fn вывод_сообщения_на_экран_и_вложение_в_ря
     }
     вложить_строку_в_ряд_с_проверкой(&mut ряд_сообщений, &строка)
 }
-pub fn вложить_строку_в_ряд_с_проверкой(
+/*pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
     if !ряд.par_iter().any(|i| i.as_str() == строка.as_str()) {
         ряд.push(строка.clone());
     }
-}
+}*/
 pub fn есть_ли_повторно_строка_в_ряде(
     ряд: &[&str],
     сообщение: &str,
@@ -341,23 +342,47 @@ pub fn сравнение_двух_рядов_построчно(
     _путь: &String,
 ) -> bool {
     //если количество строк не равно
-    if ряд_1.len() != ряд_2.len() {
+    /*if ряд_1.len() != ряд_2.len() {
         return false;
-    }
-    let счётчик_совпадений = AtomicUsize::new(0);
-    //перебор вспомогательного вектора
-    ряд_1
-        .par_iter()
-        .enumerate()
-        .for_each(|(указатель, _строка_искомая)| {
-            if ряд_1[указатель].as_str() == ряд_2[указатель].as_str() {
-                счётчик_совпадений.fetch_add(1, Ordering::Relaxed);
-            }
-        });
-    if счётчик_совпадений.load(Ordering::Relaxed) == ряд_1.len() {
+    }*/
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<&str> =
+        ряд_1.iter().map(|строка| строка.as_str()).collect();
+    let куча_2: rapidhash::fast::RapidHashSet<&str> =
+        ряд_2.iter().map(|строка| строка.as_str()).collect();
+    //
+    //сравнение двух куч - равны они или нет
+    if куча_1 == куча_2 {
         return true;
     } else {
+        false
+    }
+    /*if куча_1.len() != куча_2.len() {
         return false;
+    } else {
+        if
+        return true;
+    }*/
+}
+pub fn сравнение_двух_рядов_построчно_срез_строк(
+    ряд_1: &[&str],
+    ряд_2: &[String],
+    _путь: &String,
+) -> bool {
+    //если количество строк не равно
+    /*if ряд_1.len() != ряд_2.len() {
+        return false;
+    }*/
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<&str> = ряд_1.iter().map(|строка| *строка).collect();
+    let куча_2: rapidhash::fast::RapidHashSet<&str> =
+        ряд_2.iter().map(|строка| строка.as_str()).collect();
+    //
+    //
+    if куча_1 == куча_2 {
+        return true;
+    } else {
+        false
     }
 }
 
@@ -370,7 +395,16 @@ pub fn сравнение_двух_рядов_побайтово(
     if ряд_1.len() != ряд_2.len() {
         return false;
     }
-    let счётчик_совпадений = AtomicUsize::new(0);
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<&u8> = ряд_1.iter().map(|строка| строка).collect();
+    let куча_2: rapidhash::fast::RapidHashSet<&u8> = ряд_2.iter().map(|строка| строка).collect();
+    //
+    if куча_1 == куча_2 {
+        return true;
+    } else {
+        false
+    }
+    /* let счётчик_совпадений = AtomicUsize::new(0);
     //перебор вспомогательного вектора
     ряд_1
         .par_iter()
@@ -384,5 +418,5 @@ pub fn сравнение_двух_рядов_побайтово(
         return true;
     } else {
         return false;
-    }
+    }*/
 }

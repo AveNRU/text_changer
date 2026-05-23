@@ -112,14 +112,22 @@ pub fn шкала_проход() {
     println!();
 }
 
-pub fn вывод_кучи_сообщения_на_экран(
+pub fn вывод_кучи_с_ключом_сообщения_на_экран(
     строка: &str,
-    ряд_сообщений: &rapidhash::fast::RapidHashSet<String>,
+    куча: &rapidhash::fast::RapidHashMap<String, usize>,
 ) {
     println!("{}", строка);
-    ряд_сообщений
+    куча
         .iter()
-        .for_each(|сообщение| println!("{}", сообщение));
+        .for_each(|(сообщение, значение)| println!("{}: {}", сообщение, значение));
+}
+
+pub fn вывод_кучи_сообщения_на_экран(
+    строка: &str,
+    куча: &rapidhash::fast::RapidHashSet<String>,
+) {
+    println!("{}", строка);
+    куча.iter().for_each(|сообщение| println!("{}", сообщение));
 }
 
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
@@ -143,7 +151,10 @@ pub fn вложить_строку_в_ряд_с_проверкой(
     ряд: &mut Vec<String>,
     строка: &String,
 ) {
-    if !ряд.par_iter().any(|n| n.as_str() == строка.as_str()) {
+    let куча: rapidhash::fast::RapidHashSet<&str> =
+        rapidhash::fast::RapidHashSet::from_par_iter(ряд.par_iter().map(|n| n.as_str()));
+
+    if !куча.contains(строка.as_str()) {
         ряд.push(строка.clone());
     }
 }

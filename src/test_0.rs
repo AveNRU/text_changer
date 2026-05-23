@@ -12,11 +12,11 @@ pub fn сравнить_основной_и_запасной_словари(
         запасной_словарь.простое.len(),
     );
     //
-    let куча_простых_слов: rapidhash::fast::RapidHashSet<&String> = основной_словарь
+    let куча_простых_слов: rapidhash::fast::RapidHashSet<&str> = основной_словарь
         .простое
         .par_iter()
-        .filter_map(|ячейка| Some(&ячейка.искомое_слово))
-        .collect::<rapidhash::fast::RapidHashSet<&String>>();
+        .filter_map(|ячейка| Some(ячейка.искомое_слово.as_str()))
+        .collect::<rapidhash::fast::RapidHashSet<&str>>();
     //
     println!("Длина кучи простых слов - |{}|", куча_простых_слов.len());
     //
@@ -32,7 +32,7 @@ pub fn сравнить_основной_и_запасной_словари(
                     return None;
                 }
                 //
-                if !куча_простых_слов.contains(&ячейка.искомое_слово)
+                if !куча_простых_слов.contains(ячейка.искомое_слово.as_str())
                 {
                     Some(указатель)
                 } else {

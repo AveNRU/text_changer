@@ -19,7 +19,22 @@ pub fn sz_найти_в_str(срез: &str, образец: &str) -> bool {
     }
     return false;
 }
-
+pub fn sz_количество_слов_в_строке_больше_1(срез: &str) -> bool {
+    use regex::Regex;
+    use std::sync::LazyLock;
+    //
+    static РЯД_RE: LazyLock<[Regex; 2]> =
+        LazyLock::new(|| [Regex::new(r"_").unwrap(), Regex::new(r" ").unwrap()]);
+    //
+    let количество_пробелов: usize = РЯД_RE[1].find_iter(срез).count();
+    let количество_нижних_подчёркиваний: usize = РЯД_RE[0].find_iter(срез).count();
+    if количество_пробелов > 0 || количество_нижних_подчёркиваний > 0
+    {
+        return true;
+    } else {
+        return false;
+    }
+}
 pub fn sz_найти_в_ряде(ряд: &Vec<String>, образец: &str) -> bool {
     ряд
         .into_par_iter()
@@ -51,9 +66,9 @@ pub fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<S
     return новый_ряд;
 }
 
-pub fn sz_упорядочить_кучу_словарь_замены(
-    ряд_исходный: Vec<Text_Changer::Куча_Слова_Замены>,
-) -> Vec<Text_Changer::Куча_Слова_Замены> {
+pub fn sz_упорядочить_слова_с_вложениями(
+    ряд_исходный: Vec<Text_Changer::Слова_с_Вложениями>,
+) -> Vec<Text_Changer::Слова_с_Вложениями> {
     //определить длину словаря-кучи
     let mut порядок: Vec<usize> = vec![0; ряд_исходный.len()];
     //вложение всех исходных слов
@@ -62,7 +77,7 @@ pub fn sz_упорядочить_кучу_словарь_замены(
         .map(|строка| строка.слово.to_string())
         .collect();
     sz::argsort_permutation(&ряд, &mut порядок).unwrap();
-    let mut новый_ряд: Vec<Text_Changer::Куча_Слова_Замены> = Vec::new();
+    let mut новый_ряд: Vec<Text_Changer::Слова_с_Вложениями> = Vec::new();
     for число in порядок.into_iter() {
         новый_ряд.push(ряд_исходный[число].clone());
     }
@@ -129,4 +144,28 @@ pub fn sz_упорядочить_словарь(
         }
         return упорядоченная_стопка;
     }
+}
+pub fn sz_упорядочить_кучу_строк_rapid_в_ряд_строк(
+    куча: rapidhash::fast::RapidHashSet<String>,
+) -> Vec<String> {
+    let mut порядок: Vec<usize> = vec![0; куча.len()];
+    let ряд: Vec<String> = куча.into_iter().collect();
+    sz::argsort_permutation(&ряд, &mut порядок).unwrap();
+    let mut новый_ряд: Vec<String> = Vec::new();
+    for число in порядок.into_iter() {
+        новый_ряд.push(ряд[число].clone());
+    }
+    return новый_ряд;
+}
+pub fn sz_упорядочить_кучу_строк_rapid_в_ряд_строк_без_заимствования(
+    куча: &rapidhash::fast::RapidHashSet<String>,
+) -> Vec<String> {
+    let mut порядок: Vec<usize> = vec![0; куча.len()];
+    let ряд: Vec<String> = куча.iter().map(|строка| строка.to_string()).collect();
+    sz::argsort_permutation(&ряд, &mut порядок).unwrap();
+    let mut новый_ряд: Vec<String> = Vec::new();
+    for число in порядок.into_iter() {
+        новый_ряд.push(ряд[число].clone());
+    }
+    return новый_ряд;
 }

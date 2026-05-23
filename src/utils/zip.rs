@@ -95,7 +95,7 @@ pub fn zip_архив_в_память(
 }
 
 /// Запаковывает виртуальную файловую систему в Vec<u8>
-pub fn pack_zip_from_memory(
+pub fn вложить_в_zip_из_озу(
     virtual_fs: &Архив_в_озу,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     use std::io::Write;
