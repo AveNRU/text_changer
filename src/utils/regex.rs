@@ -1,6 +1,6 @@
 use crate::utils::stringzilla::*;
 use std::sync::LazyLock;
-use stringzilla::stringzilla::bytesum;
+use stringzilla::{stringzilla::bytesum, sz};
 //use clap::error::ErrorKind::Format;
 //use crate::import::functions::преобразовать_слово_с_чертой_в_начале;
 use Text_Changer::{
@@ -1754,10 +1754,6 @@ pub fn создать_словарь_разделителей() -> Словар�
             },
             Ячейка_замены_с_разделителями {
                 искомое_слово: "милли".to_string(),
-                ..Default::default()
-            },
-            Ячейка_замены_с_разделителями {
-                искомое_слово: "микро".to_string(),
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
