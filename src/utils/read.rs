@@ -1795,7 +1795,12 @@ pub fn если_пустая_строка_с_отделителями(
 fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
-    const ИСКЛЮЧЕНИЯ: [&str; 1] = [r#"<div class="code-explainer">"#];
+    const ИСКЛЮЧЕНИЯ: [&str; 4] = [
+        r#"<div class="code-explainer">"#,
+        r#"class="meta-container""#,
+        r#"class="article-snippet tm-article-presenter__snippet""#,
+        r#"class="tm-article-presenter__body""#,
+    ];
     const РЯД: [&str; 60] = [
         // r#"noopener noreferrer"#,
         // r#"<a href="https://ad.adriver"#,
