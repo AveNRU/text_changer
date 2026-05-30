@@ -157,7 +157,7 @@ pub fn не_является_изображением(стог_сена: &String
         .any(|строка| строка.is_match(стог_сена));
 }
 //если это архивный файл
-pub fn fb3_epub(стог_сена: &String) -> bool {
+/*pub fn fb3_epub(стог_сена: &String) -> bool {
     static RE_РАСШИРЕНИЯ_АРХИВНЫЕ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
         [
             Regex::new(r"(?i)\.fb3$").unwrap(),
@@ -170,7 +170,7 @@ pub fn fb3_epub(стог_сена: &String) -> bool {
     return RE_РАСШИРЕНИЯ_АРХИВНЫЕ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
-}
+}*/
 pub fn без_кодировки(стог_сена: &String) -> bool {
     static RE_РАСШИРЕНИЯ: LazyLock<[Regex; 1]> = LazyLock::new(|| {
         [
@@ -216,7 +216,7 @@ pub fn md_fs_yml(стог_сена: &String) -> bool {
     //return false;
 }
 
-pub fn htm_html_xhtml(стог_сена: &String) -> bool {
+/*pub fn htm_html_xhtml(стог_сена: &String) -> bool {
     static RE_РАСШИРЕНИЯ_HTM_XHTM: LazyLock<[Regex; 3]> = LazyLock::new(|| {
         [
             Regex::new(r"(?i)\.htm$").unwrap(),
@@ -229,9 +229,9 @@ pub fn htm_html_xhtml(стог_сена: &String) -> bool {
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
     //return false;
-}
+}*/
 //если это не архивный файл
-pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
+/*pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
     static RE_РАСШИРЕНИЯ_НЕ_АРХИВНЫЕ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
         [
             Regex::new(r"(?i)\.fb2$").unwrap(),
@@ -244,7 +244,7 @@ pub fn fb2_rtf_mht_mhtml(стог_сена: &String) -> bool {
     return RE_РАСШИРЕНИЯ_НЕ_АРХИВНЫЕ
         .par_iter()
         .any(|строка| строка.is_match(стог_сена));
-}
+}*/
 //захват слов
 //есть ли маты
 pub fn есть_ли_маты(стог_сена: &String) -> bool {

@@ -3,9 +3,7 @@
 #![allow(non_camel_case_types)]
 //use std::any::Any;
 //use std::fs::read_to_string;
-use crate::utils::regex::{
-    fb2_rtf_mht_mhtml, fb3_epub, htm_html_xhtml, md_fs_yml, изображение_расширение_с_точкой,
-};
+use crate::utils::regex::{md_fs_yml, изображение_расширение_с_точкой};
 use crate::utils::zip::{
     zip_архив_в_память, Архив_в_озу, вложить_в_zip_из_озу
 };
@@ -122,9 +120,10 @@ pub fn сохранить_книги(
                 //println!("Путь сохранения: {}",путь_сохранения);
                 //вывод книги
                 //если это не архивная книга
-                if fb2_rtf_mht_mhtml(&книга.путь)
+               if  книга.расширение_подробно.fb2_mht()|| книга.расширение_подробно.md_yml_fs()|| книга.расширение_подробно.htm_html_xhtml()
+                /*fb2_rtf_mht_mhtml(&книга.путь)
                     || md_fs_yml(&книга.путь)
-                    || htm_html_xhtml(&книга.путь)
+                    || htm_html_xhtml(&книга.путь)*/
                 {
                     //перебор книг
                     'главный_указатель: for вложение in книга.вложения.iter() {
@@ -201,7 +200,8 @@ pub fn сохранить_книги(
                                 вывод.write_all(b"\r\n").unwrap();
                             }
                                 //html
-                                else if htm_html_xhtml(&книга.путь){
+                                else if книга.расширение_подробно.htm_html_xhtml(){
+                                    // else if htm_html_xhtml(&книга.путь){
                                     //в зависимости от кодировки сохранить
                                     match вложение.кодировка {
                                         Text_Changer::Кодировка::Utf8 => {
@@ -284,7 +284,8 @@ pub fn сохранить_книги(
                     }
                 }
                 //если это архивное разрешение
-                else if fb3_epub(&книга.путь) {
+                else if книга.расширение_подробно.архив_книга(){
+                    // else if fb3_epub(&книга.путь) {
                     //вторая FS virtual чтобы собрать в файл .zip в виде Vec<u8>
                     let вторичная_fs_в_озу: rapidhash::fast::RapidHashMap<String, Vec<u8>> = книга
                         .вложения
@@ -561,7 +562,8 @@ pub fn сохранить_книги_с_разделениями(
                 //вывод книги
                 //если это не архивная книга
                 //только htm
-                if htm_html_xhtml(&стопки_книг[i].путь)
+                if _книга.расширение_подробно.htm_html_xhtml()
+                //if htm_html_xhtml(&стопки_книг[i].путь)
                 {
                     //перебор книг
                     'главный_указатель: for гл_указатель in
@@ -638,7 +640,8 @@ pub fn сохранить_книги_с_разделениями(
                                 вывод.write_all(b"\r\n").unwrap();
                             }
                             //html
-                            else if htm_html_xhtml(&стопки_книг[i].путь){
+                            else if  _книга.расширение_подробно.htm_html_xhtml(){
+                          //  else if htm_html_xhtml(&стопки_книг[i].путь){
                                 //в зависимости от кодировки сохранить
                                 match стопки_книг[i].вложения[гл_указатель].кодировка {
                                     Text_Changer::Кодировка::Windows_1252 => {
@@ -2608,7 +2611,7 @@ pub fn вывод_всей_стопки_сообщений_в_txt(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     use crate::output::dir::создать_вложенные_папки;
     use crate::utils::functions::заменить_все_палки;
-    use crate::utils::regex::fb3_epub;
+
     let пути_вывода: Пути_Вывода = Default::default();
     let пути_общие: Пути_Общие = Default::default();
     let сообщения_общего_выполнения: Mutex<Vec<String>> = Mutex::new(Vec::new());
@@ -2644,7 +2647,8 @@ pub fn вывод_всей_стопки_сообщений_в_txt(
             //замена всех косых палов
             //разобраться
             let путь_вывода: String = {
-                if !fb3_epub(&вложение.расширение) {
+                if !вложение.расширение_подробно.архив_книга() {
+                    // if !fb3_epub(&вложение.расширение) {
                     //  println!("пусто (до), а путь: {}",вложение.путь_откудаво);
                     let mut путь_до_папки: String =
                         вложение.путь_откудаво.replace(&пути_общие.книги, "");
