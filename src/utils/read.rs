@@ -1801,10 +1801,11 @@ fn есть_ли_реклама_после_разбиения_строк(
         r#"class="article-snippet tm-article-presenter__snippet""#,
         r#"class="tm-article-presenter__body""#,
     ];
-    const РЯД: [&str; 60] = [
+    const РЯД: [&str; 61] = [
         // r#"noopener noreferrer"#,
         // r#"<a href="https://ad.adriver"#,
         //radio prog
+        r#"header class="header header--fixed js-header-fixed is-visible"#,
         r#"Присоединяйтесь к нам во ВК"#,
         r#"<a href="https://metrika.yandex.ru"#,
         r#"<a class="wcommunity_avatar""#,
