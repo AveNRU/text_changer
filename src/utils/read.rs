@@ -1795,11 +1795,12 @@ pub fn если_пустая_строка_с_отделителями(
 fn есть_ли_реклама_после_разбиения_строк(
     строка: &String
 ) -> bool {
-    const ИСКЛЮЧЕНИЯ: [&str; 4] = [
+    const ИСКЛЮЧЕНИЯ: [&str; 5] = [
         r#"<div class="code-explainer">"#,
         r#"class="meta-container""#,
         r#"class="article-snippet tm-article-presenter__snippet""#,
         r#"class="tm-article-presenter__body""#,
+        r#"tm-article-presenter__origin"#,
     ];
     const РЯД: [&str; 61] = [
         // r#"noopener noreferrer"#,
