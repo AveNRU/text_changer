@@ -1802,7 +1802,9 @@ fn есть_ли_реклама_после_разбиения_строк(
         r#"class="tm-article-presenter__body""#,
         r#"tm-article-presenter__origin"#,
     ];
-    const РЯД: [&str; 61] = [
+    const РЯД: [&str; 63] = [
+        r##""fixed-informer"##,
+        r#"cookie-agreement"#,
         // r#"noopener noreferrer"#,
         // r#"<a href="https://ad.adriver"#,
         //radio prog
