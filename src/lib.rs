@@ -603,7 +603,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 214;
+pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 213;
 
 //
 
