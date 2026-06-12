@@ -1942,7 +1942,8 @@ pub fn добавить_переносы_строк_html(
         r#"charset=windows-1252">"#,
     ];
     // r#"content="text/html; charset=UTF-8">"#,
-    const ОБРАЗЦЫ: [&str; 101] = [
+    const ОБРАЗЦЫ: [&str; 102] = [
+        r#"<br />"#,
         r#"</pre>"#,
         r##"<script type="text/javascript">"##,
         "<blockquote>",
