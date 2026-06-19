@@ -629,6 +629,13 @@ pub struct Ячейка_замены_объявления<'a> {
     pub примечания: Примечания,
     // pub счёчтки:usize,
 }
+//замена объявления
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_примечания {
+    pub начало: &'static str,
+    pub замена: &'static str,
+    // pub счёчтки:usize,
+}
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены {
