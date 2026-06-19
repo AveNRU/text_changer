@@ -5,7 +5,6 @@
 use regex::Regex;
 use std::hash::{Hash, Hasher};
 use std::sync::atomic::AtomicUsize;
-use vergen::DefaultConfig;
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
     Исходное,
@@ -603,7 +602,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 233;
+pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 234;
 
 //
 

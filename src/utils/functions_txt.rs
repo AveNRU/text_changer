@@ -8,10 +8,7 @@ use rayon::prelude::*;
 use regex::Regex;
 //use std::sync::LazyLock;
 //use std::str::FromStr;
-use std::sync::{
-    //Arc, Mutex,
-    atomic::{AtomicUsize, Ordering},
-};
+
 //вывод сообщения на экран и вложение его в ряд строк
 pub fn вывод_сообщения_на_экран_и_вложение_в_ряд(
     строка: String,
