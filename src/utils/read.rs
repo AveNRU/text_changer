@@ -851,7 +851,7 @@ fn удаление_script_мусора_после_разбиения_строк
             re_образец_начала: Regex::new(r#"(^|[^'])<nav"#).unwrap(),
             начало_простое: r"<nav",
         });
-    static РАЗДЕЛИТЕЛЬ_SCRIPT: LazyLock<Ячейка_замены_переносов> =
+    /*static РАЗДЕЛИТЕЛЬ_SCRIPT: LazyLock<Ячейка_замены_переносов> =
         LazyLock::new(|| Ячейка_замены_переносов {
             конец: "</script>",
             re_образец_конца: Regex::new(r"</script>").unwrap(),
@@ -864,7 +864,7 @@ fn удаление_script_мусора_после_разбиения_строк
             re_образец_конца: Regex::new(r"</noscript>").unwrap(),
             re_образец_начала: Regex::new(r#"(^|[^'])<noscript"#).unwrap(),
             начало_простое: r"<noscript",
-        });
+        });*/
     static РАЗДЕЛИТЕЛЬ_INS: LazyLock<Ячейка_замены_переносов> =
         LazyLock::new(|| Ячейка_замены_переносов {
             конец: "</ins>",
@@ -974,7 +974,7 @@ fn удаление_script_мусора_после_разбиения_строк
             }]
         });
     //
-    static ЗАГОТОВЛЕННЫЙ_РЯД_JS: LazyLock<[Ячейка_замены_примечания; 5]> = LazyLock::new(|| {
+    static ЗАГОТОВЛЕННЫЙ_РЯД_JS: LazyLock<[Ячейка_замены_примечания; 6]> = LazyLock::new(|| {
         [
             Ячейка_замены_примечания {
                 начало: r##"<script>"##,
@@ -988,6 +988,13 @@ fn удаление_script_мусора_после_разбиения_строк
                 // начало_re: Regex::new(r##"([^'\"])<script"##).unwrap(),
                 //вложение: &РАЗДЕЛИТЕЛЬ_SCRIPT,
                 замена: r##"<script type="text/javascript">/*"##,
+                //примечания: Примечания::js,
+            },
+            Ячейка_замены_примечания {
+                начало: r##"<script type="application/ld+json">"##,
+                // начало_re: Regex::new(r##"([^'\"])<script"##).unwrap(),
+                //вложение: &РАЗДЕЛИТЕЛЬ_SCRIPT,
+                замена: r##"<script type="application/ld+json">/*"##,
                 //примечания: Примечания::js,
             },
             Ячейка_замены_примечания {
@@ -1799,7 +1806,10 @@ fn есть_ли_реклама_после_разбиения_строк(
         r#"class="tm-article-presenter__body""#,
         r#"tm-article-presenter__origin"#,
     ];
-    const РЯД: [&str; 63] = [
+    const РЯД: [&str; 65] = [
+        r##"<a class="mni-overlay""##,
+        r##"<script type="text/javascript" src="."##,
+        // r##"с"##,
         r##""fixed-informer"##,
         r#"cookie-agreement"#,
         // r#"noopener noreferrer"#,

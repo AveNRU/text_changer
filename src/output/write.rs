@@ -291,7 +291,7 @@ pub fn сохранить_книги(
                         .вложения
                         .par_iter()
                         .enumerate()
-                        .flat_map(|(k, _вложение)| {
+                        .flat_map(|(_, _вложение)| {
                             //1 -имя, 2 - содержимое в rapidhash::fast::RapidHashMap
                             let mut содержимое_байты: Vec<u8> = Vec::new();
                             //перебор содержимого книги из String в UTF8
