@@ -1966,6 +1966,7 @@ pub fn создать_словарь_разделителей() -> Словар�
                     "противо".to_string(),
                     "прост".to_string(),
                     "прось".to_string(),
+                    "проси".to_string(),
                     "прощ".to_string(),
                 ],
                 ..Default::default()
