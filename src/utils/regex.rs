@@ -1384,6 +1384,7 @@ pub fn создать_словарь_разделителей() -> Словар�
                     //"поло".to_string(),
                     "поль".to_string(),
                     "полезн".to_string(),
+                    "пой".to_string(),
                 ],
                 ..Default::default()
             },
