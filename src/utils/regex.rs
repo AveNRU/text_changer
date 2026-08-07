@@ -77,6 +77,14 @@ use Text_Changer::{
 use rayon::iter::IntoParallelRefIterator;
 use regex::{Match, Regex};
 
+pub fn нет_разрешения(стог_сена: &String) -> bool {
+    static RE_РАСШИРЕНИЯ_ПУСТЫЕ: LazyLock<[Regex; 1]> =
+        LazyLock::new(|| [Regex::new(r"(?i)\\([\d\w_-]+)$").unwrap()]);
+
+    return RE_РАСШИРЕНИЯ_ПУСТЫЕ
+        .par_iter()
+        .any(|строка| строка.is_match(стог_сена));
+}
 pub fn мусорное_содержимое_архивов(стог_сена: &String) -> bool {
     static RE_РАСШИРЕНИЯ_МУСОРНЫЕ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
         [
@@ -1874,6 +1882,7 @@ pub fn создать_словарь_разделителей() -> Словар�
                     "предан".to_string(),
                     "предат".to_string(),
                     "предел".to_string(),
+                    "предм".to_string(),
                     "преж".to_string(),
                 ],
                 ..Default::default()
@@ -1893,6 +1902,7 @@ pub fn создать_словарь_разделителей() -> Словар�
             },
             Ячейка_замены_с_разделителями {
                 искомое_слово: "тепло".to_string(),
+                ряд_исключений: vec!["теплов".to_string()],
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
@@ -2289,6 +2299,10 @@ pub fn создать_словарь_разделителей() -> Словар�
             },
             Ячейка_замены_с_разделителями {
                 искомое_слово: "идоло".to_string(),
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово: "счето".to_string(),
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
