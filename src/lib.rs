@@ -140,6 +140,16 @@ pub enum Основной_Вид_Расширения {
     Не_определено,
 }
 impl Основной_Вид_Расширения {
+    pub fn пусто(&self) -> bool {
+        match self {
+            Основной_Вид_Расширения::Пусто => true,
+            _ => false,
+        }
+    }
+    pub fn не_архивная(&self) -> bool {
+        self.fb2_mht() || self.md_yml_fs() || self.htm_html_xhtml()
+    }
+    //
     pub fn fb2_mht(&self) -> bool {
         match self {
             Основной_Вид_Расширения::Книга(содержимое) => {
@@ -367,6 +377,7 @@ pub struct Вложения {
     pub имя: String,
     pub имя_без_пути: String,
     pub кодировка: Кодировка,
+    pub расширение: String,
     pub расширение_подробно: Основной_Вид_Расширения,
     //pub изображение: Vec<u8>, //если это картинки, нельзя в utf8 переводить
 }
@@ -375,6 +386,7 @@ impl Default for Вложения {
     fn default() -> Self {
         Self {
             содержимое: Vec::new(),
+            расширение: "".to_string(),
             содержимое_в_байтах: Vec::new(),
             имя: "".to_string(),
             имя_без_пути: "".to_string(),
@@ -602,7 +614,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 257;
+pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 263;
 
 //
 
