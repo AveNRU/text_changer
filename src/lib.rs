@@ -614,14 +614,22 @@ pub enum Примечания {
     html,
     js,
 }
-pub static РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 265;
+pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 264;
 
 //
-
+use std::ops::Index;
 #[derive(Debug, Clone)]
 pub struct Словарь_разделителей {
     pub ряд_1: [Ячейка_замены_с_разделителями; РАЗМЕР_РАЗДЕЛИТЕЛЕЙ], //одиночные слова
                                                                      //
+}
+// Реализация Index для доступа по индексу
+impl Index<usize> for Словарь_разделителей {
+    type Output = Ячейка_замены_с_разделителями;
+
+    fn index(&self, индекс: usize) -> &Self::Output {
+        &self.ряд_1[индекс]
+    }
 }
 //замена объявления
 #[derive(Debug, Clone)]
