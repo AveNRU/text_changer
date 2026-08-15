@@ -1635,7 +1635,7 @@ pub fn создать_словарь_разделителей() -> Словар�
                     "уровн".to_string(),
                     "узко".to_string(),
                     "уравно".to_string(),
-                    "умо".to_string(),
+                    //"умо".to_string(),
                     "уч".to_string(), //учён
                     "умет".to_string(),
                     "удоч".to_string(),
@@ -1653,7 +1653,7 @@ pub fn создать_словарь_разделителей() -> Словар�
                     "пода".to_string(),
                     //"подоб".to_string(),
                     "подробн".to_string(),
-                    "подор".to_string(),
+                    //"подор".to_string(),
                     //"подав".to_string(),
                     //"подар".to_string(),
                     //"подан".to_string(),
