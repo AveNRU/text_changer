@@ -614,7 +614,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 294;
+pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 297;
 
 //
 use std::ops::Index;
@@ -711,7 +711,7 @@ impl Возможности_ячейки_замены_с_разделителя�
             .iter()
             .map(|ячейка| {
                 //let исключение: Regex = LazyLock::new(|| Regex::new(исключение).unwrap();
-                let исключение_2: String = format!(r#"({})"#, ячейка);
+                let исключение_2: String = format!(r#"(\b{{start}}{})"#, ячейка);
                 Regex::new(&исключение_2).unwrap()
             })
             .collect()
