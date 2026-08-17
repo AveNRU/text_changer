@@ -57,8 +57,15 @@ pub fn sz_пусто(строка: &String) -> bool {
 }
 
 pub fn sz_упорядочить_ряд_строк(ряд: Vec<String>) -> Vec<String> {
+    match ряд.len() {
+        0 => return ряд,
+        _ => (),
+    }
     let mut порядок: Vec<usize> = vec![0; ряд.len()];
-    sz::argsort(&ряд, &mut порядок, Default::default()).unwrap();
+    match sz::argsort(&ряд, &mut порядок, Default::default()) {
+        Ok(успех) => успех,
+        Err(ошибка) => panic!("Ошибка |{:?}|", ошибка),
+    };
     let mut новый_ряд: Vec<String> = Vec::new();
     for число in порядок.into_iter() {
         новый_ряд.push(ряд[число].clone());
