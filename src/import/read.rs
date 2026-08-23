@@ -577,6 +577,7 @@ pub fn определить_расширение_подробно(
     куча: &mut rapidhash::fast::RapidHashSet<String>,
 ) -> Text_Changer::Основной_Вид_Расширения {
     match расширение {
+        "ttf"=> Text_Changer::Основной_Вид_Расширения::Шрифты(Text_Changer::Вид_Шрифтов::Ttf),
         "txt" => Text_Changer::Основной_Вид_Расширения::Простая_письменность(Text_Changer::Вид_простой_письменности::Txt),
         "docx" => Text_Changer::Основной_Вид_Расширения::Word(Text_Changer::Вид_Word::Docx),
         "xlsx" => Text_Changer::Основной_Вид_Расширения::Excel(Text_Changer::Вид_Excel::Xlsx),

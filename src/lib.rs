@@ -70,6 +70,7 @@ pub enum Вид_Excel {
 #[derive(Debug, Clone)]
 pub enum Вид_Шрифтов {
     Tif,
+    Ttf,
 }
 #[derive(Debug, Clone)]
 pub enum Вид_Разметки_Паутины {
@@ -614,7 +615,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 304;
+pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 313;
 
 //
 use std::ops::Index;
