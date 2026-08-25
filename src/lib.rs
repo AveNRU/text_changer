@@ -461,6 +461,20 @@ pub enum Кодировка {
     Windows_1252,
     Не_определено,
 }
+impl fmt::Display for Кодировка {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Кодировка::Windows_1251 => write!(f, "Windows_1251"),
+            Кодировка::Utf8 => write!(f, "Utf8"),
+            Кодировка::Windows_1252 => {
+                write!(f, "Windows_1252")
+            }
+            Кодировка::Не_определено => {
+                write!(f, "Не_определено")
+            }
+        }
+    }
+}
 
 /*impl Clone for Кодировка {
     fn clone() -> Self { { SomeStruct
@@ -651,10 +665,11 @@ pub struct Ячейка_замены_объявления<'a> {
     // pub счёчтки:usize,
 }
 //замена объявления
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Ячейка_замены_примечания {
     pub начало: &'static str,
     pub замена: &'static str,
+    pub исключение: Vec<&'static str>,
     // pub счёчтки:usize,
 }
 //словарь
