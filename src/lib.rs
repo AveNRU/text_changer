@@ -93,6 +93,7 @@ pub enum Вид_Архивной_Книги {
 #[derive(Debug, Clone)]
 pub enum Вид_одичноной_книги {
     Fb2,
+    Pdf,
 }
 #[derive(Debug, Clone)]
 pub enum Вид_Книги {
