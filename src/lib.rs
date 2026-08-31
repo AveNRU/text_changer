@@ -630,7 +630,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 323;
+pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 325;
 
 //
 use std::ops::Index;
