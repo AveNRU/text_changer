@@ -7,6 +7,39 @@ use rayon::prelude::*;
 };*/
 use stringzilla::sz;
 
+pub fn sz_найти_в_умном_ряде(
+    ряд: &Vec<Text_Changer::Умная_Строка>,
+    образец: &str,
+) -> bool {
+    ряд
+        .par_iter()
+        .filter(|строка| строка.не_пусто())
+        .any(|строка| sz_найти_str(&строка.as_str(), &образец))
+}
+pub fn sz_найти_str(срез: &str, образец: &str) -> bool {
+    if let Some(_указатель) = sz::find(срез, образец) {
+        return true;
+    }
+    return false;
+}
+pub fn sz_найти_в_умной_строке(
+    строка: &Text_Changer::Умная_Строка,
+    образец: &str,
+) -> bool {
+    if let Some(_указатель) = sz::find(&строка.as_str(), образец) {
+        return true;
+    }
+    return false;
+}
+pub fn sz_найти_в_умной_строке_себя(
+    строка: &Text_Changer::Умная_Строка,
+    образец: &Text_Changer::Умная_Строка,
+) -> bool {
+    if let Some(_указатель) = sz::find(&строка.as_str(), образец.as_str()) {
+        return true;
+    }
+    return false;
+}
 pub fn sz_найти(строка: &String, образец: &str) -> bool {
     if let Some(_указатель) = sz::find(&строка, образец) {
         return true;

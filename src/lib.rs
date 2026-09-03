@@ -3,7 +3,10 @@
 //use foldhash::{rapidhash::fast::RapidHashMap,  fast::RandomState,*};
 //use rapidhash::*;
 use regex::Regex;
+use rust_xlsxwriter::{ColNum, Format, IntoExcelData, RowNum, Worksheet, XlsxError};
+use std::fmt::{self};
 use std::hash::{Hash, Hasher};
+use std::sync::LazyLock;
 use std::sync::atomic::AtomicUsize;
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
@@ -140,6 +143,377 @@ pub enum Основной_Вид_Расширения {
     Без_Названия,
     Справка(Вид_Справи),
     Не_определено,
+}
+#[derive(Debug, Clone)]
+pub enum Умная_Строка {
+    Пусто,
+    Значение(String),
+}
+impl PartialEq for Умная_Строка {
+    fn eq(&self, вторая: &Self) -> bool {
+        match (self, вторая) {
+            (Умная_Строка::Пусто, Умная_Строка::Пусто) => true,
+            (Умная_Строка::Значение(s1), Умная_Строка::Значение(s2)) =>
+            {
+                // Можно добавить свою логику, например:
+                // - сравнение без учёта регистра
+                // - игнорирование пробелов
+                // - семантическое сравнение
+                s1.as_str() == s2.as_str()
+            }
+            _ => false,
+        }
+    }
+}
+//
+impl PartialEq<String> for Умная_Строка {
+    fn eq(&self, вторая: &String) -> bool {
+        match self {
+            Умная_Строка::Пусто => вторая.is_empty(),
+            Умная_Строка::Значение(s) => s.as_str() == вторая.as_str(),
+        }
+    }
+}
+
+impl PartialEq<Умная_Строка> for String {
+    fn eq(&self, вторая: &Умная_Строка) -> bool {
+        вторая.as_str() == self.as_str()
+    }
+}
+
+impl From<Умная_Строка> for String {
+    fn from(значение: Умная_Строка) -> Self {
+        значение.to_string() // или любое преобразование
+    }
+}
+impl IntoExcelData for Умная_Строка {
+    //
+    /* fn write(self, worksheet: &mut Worksheet, row: RowNum, col: ColNum) -> Result<&mut Worksheet, XlsxError> {
+        worksheet.write_string(row, col, self.as_str()) // без to_string()
+    }*/
+    fn write(
+        self,
+        страница: &mut Worksheet,
+        строка: RowNum,
+        столбец: ColNum,
+    ) -> Result<&mut Worksheet, XlsxError> {
+        // Предполагаем, что у вашей структуры есть метод .as_str(), или вы просто хотите записать её отладочное представление.
+        // Если структура напрямую не является строкой, используйте format!("{:?}", self) или другой метод сериализации.
+        //let string_data = self.to_string(); // Или self.as_str()
+        let string_data: &str = self.as_str(); // или self.to_string().as_str(), но лучше без выделения памяти
+        страница.write_string(строка, столбец, string_data)
+    }
+
+    fn write_with_format<'a>(
+        self,
+        страница: &'a mut Worksheet,
+        строка: RowNum,
+        столбец: ColNum,
+        format: &Format,
+    ) -> Result<&'a mut Worksheet, XlsxError> {
+        //let string_data = self.to_string();
+        let string_data: &str = self.as_str(); // или self.to_string().as_str(), но лучше без выделения памяти
+        страница.write_string_with_format(строка, столбец, string_data, format)
+    }
+}
+impl Default for Умная_Строка {
+    fn default() -> Self {
+        Умная_Строка::Пусто
+    }
+}
+// Реализация преобразования из Vec<String> в Vec<Умная_Строка>
+// Добавляем методы напрямую для Vec<Умная_Строка>
+// Определяем свой трейт
+// Определяем трейт
+pub trait Умные_Строки_Ряд {
+    fn в_умные(self) -> Vec<Умная_Строка>;
+}
+
+// impl для Vec<String>
+impl Умные_Строки_Ряд for Vec<String> {
+    fn в_умные(self) -> Vec<Умная_Строка> {
+        self.into_iter()
+            .map(Умная_Строка::создать_значение)
+            .collect()
+    }
+}
+pub fn в_умные_строки<S: Into<String>>(
+    строки: Vec<S>
+) -> Vec<Умная_Строка> {
+    строки
+        .into_iter()
+        .map(|s| Умная_Строка::создать_значение(s.into()))
+        .collect()
+}
+use convert_case::{Case, Casing};
+impl Умная_Строка {
+    // Замена всех вхождений подстроки
+    pub fn replace(&self, from: &str, to: &str) -> Self {
+        match self {
+            Умная_Строка::Значение(s) => {
+                Умная_Строка::создать_значение(s.replace(from, to))
+            }
+            Умная_Строка::Пусто => Умная_Строка::Пусто,
+        }
+    }
+    pub fn to_case(&self, case: Case) -> Self {
+        match self {
+            Умная_Строка::Значение(s) => {
+                Умная_Строка::создать_значение(s.to_case(case))
+            }
+            Умная_Строка::Пусто => Умная_Строка::Пусто,
+        }
+    }
+    //
+    pub fn получить_значение_f32(&self) -> Result<f32, String> {
+        match self {
+            Умная_Строка::Пусто => {
+                Err(format!("Нельзя извлечь f32 из пустой Умной строки"))
+            }
+            Умная_Строка::Значение(значение) => {
+                match значение.parse::<f32>() {
+                    Ok(успех) => return Ok(успех),
+                    Err(ошибка) => {
+                        return Err(format!(
+                            "Не удалось извлечь f32 из Умной строки |{}| Ошибка: |{:?}|",
+                            значение, ошибка
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    pub fn вложить_значение_либо_ошибка(&self) -> Result<String, ()> {
+        match self {
+            Умная_Строка::Пусто => Err(()),
+            Умная_Строка::Значение(содержимое) => {
+                Ok(содержимое.to_string())
+            }
+        }
+    }
+    //
+    pub fn вложить_значение_XLSX_либо_ошибка(
+        &mut self,
+        ячейка: impl Into<Значение_Ячейки_XLSX>,
+    ) -> Result<(), ()> {
+        let ячейка = ячейка.into();
+        //если не пусто - не вкладывать
+        if self.не_пусто() {
+            return Ok(());
+        }
+        //
+        match ячейка {
+            Значение_Ячейки_XLSX::Пустое_значение => {
+                *self = Умная_Строка::Пусто;
+                Ok(())
+            }
+            Значение_Ячейки_XLSX::Строка(содержимое) => {
+                *self = Умная_Строка::создать_значение(содержимое);
+                Ok(())
+            }
+            Значение_Ячейки_XLSX::Ошибка(содержимое) => {
+                *self = Умная_Строка::создать_значение(содержимое);
+                Ok(())
+            }
+            Значение_Ячейки_XLSX::Разумное(содержимое) => {
+                *self = Умная_Строка::создать_значение(
+                    &содержимое.to_string(),
+                );
+                Ok(())
+            }
+            Значение_Ячейки_XLSX::Целое(содержимое) => {
+                *self = Умная_Строка::создать_значение(
+                    &содержимое.to_string(),
+                );
+                Ok(())
+            }
+            Значение_Ячейки_XLSX::Вещественное(содержимое) => {
+                *self = Умная_Строка::создать_значение(
+                    &содержимое.to_string(),
+                );
+                Ok(())
+            } // _ => Err(()),
+        }
+    }
+    //
+    pub fn as_str(&self) -> &str {
+        match self {
+            Умная_Строка::Пусто => "",
+            Умная_Строка::Значение(значение) => значение.as_str(),
+        }
+    }
+    pub fn создать_значение_из_XLSX(
+        ячейка: impl Into<Значение_Ячейки_XLSX>,
+    ) -> Self {
+        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
+            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
+        let ячейка = ячейка.into(); // получаем Значение_Ячейки_XLSX
+        match ячейка {
+            Значение_Ячейки_XLSX::Пустое_значение => {
+                Умная_Строка::Пусто
+            }
+            Значение_Ячейки_XLSX::Строка(содержимое) => {
+                Умная_Строка::создать_значение(содержимое)
+            }
+            Значение_Ячейки_XLSX::Ошибка(содержимое) => {
+                Умная_Строка::создать_значение(содержимое)
+            }
+            Значение_Ячейки_XLSX::Разумное(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+            Значение_Ячейки_XLSX::Целое(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+            Значение_Ячейки_XLSX::Вещественное(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+        }
+    }
+
+    pub fn создать_значение_из_XLSX_заменить_точки_на_нижние_подчёркивания(
+        ячейка: impl Into<Значение_Ячейки_XLSX>,
+    ) -> Self {
+        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
+            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
+        let ячейка = ячейка.into(); // получаем Значение_Ячейки_XLSX
+        match ячейка {
+            Значение_Ячейки_XLSX::Пустое_значение => {
+                Умная_Строка::Пусто
+            }
+            Значение_Ячейки_XLSX::Строка(содержимое) => {
+                Умная_Строка::создать_значение(
+                    содержимое.to_uppercase().replace(".", "_"),
+                )
+            }
+            Значение_Ячейки_XLSX::Ошибка(содержимое) => {
+                Умная_Строка::создать_значение(
+                    содержимое.to_uppercase().replace(".", "_"),
+                )
+            }
+            Значение_Ячейки_XLSX::Разумное(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+            Значение_Ячейки_XLSX::Целое(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+            Значение_Ячейки_XLSX::Вещественное(содержимое) => {
+                Умная_Строка::создать_значение(&содержимое.to_string())
+            }
+        }
+    }
+
+    pub fn создать_значение(строка: impl Into<String>) -> Self {
+        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
+            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
+        let строка = строка.into();
+        if строка.is_empty() {
+            return Умная_Строка::Пусто;
+        }
+        for образец in ОБРАЗЦЫ_RE.iter() {
+            if образец.is_match(строка.as_str()) {
+                return Умная_Строка::Пусто;
+            }
+        }
+        return Умная_Строка::Значение(строка.to_string());
+    }
+
+    pub fn создать_значение_из_str(строка: &str) -> Self {
+        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
+            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
+
+        if строка.is_empty() {
+            return Умная_Строка::Пусто;
+        }
+        for образец in ОБРАЗЦЫ_RE.iter() {
+            if образец.is_match(строка) {
+                return Умная_Строка::Пусто;
+            }
+        }
+        return Умная_Строка::Значение(строка.to_string());
+    }
+    pub fn получить_значение(&self) -> String {
+        match self {
+            Умная_Строка::Пусто => "Пусто".to_string(),
+            Умная_Строка::Значение(содержимое) => {
+                содержимое.to_string()
+            }
+        }
+    }
+
+    pub fn есть_ли_значение(&self) -> bool {
+        match self {
+            Умная_Строка::Пусто => false,
+            Умная_Строка::Значение(_) => true,
+        }
+    }
+    pub fn не_пусто(&self) -> bool {
+        match self {
+            Умная_Строка::Пусто => false,
+            Умная_Строка::Значение(_) => true,
+        }
+    }
+    pub fn не_примечание(&self) -> bool {
+        match self {
+            Умная_Строка::Пусто => false,
+            Умная_Строка::Значение(содердимое) => {
+                match содердимое.as_str() {
+                    "#" => false,
+                    "# " => false,
+                    _ => true,
+                }
+            }
+        }
+    }
+    pub fn примечание(&self) -> bool {
+        match self {
+            Умная_Строка::Пусто => false,
+            Умная_Строка::Значение(содердимое) => {
+                match содердимое.as_str() {
+                    "#" => true,
+                    "# " => true,
+                    _ => false,
+                }
+            }
+        }
+    }
+
+    pub fn пусто(&self) -> bool {
+        match self {
+            Умная_Строка::Пусто => true,
+            Умная_Строка::Значение(значение) => {
+                //
+                match значение.as_str() {
+                    "Пусто" => true,
+                    "" => true,
+                    _ => false,
+                }
+            }
+        }
+    }
+    pub fn is_some(&self) -> bool {
+        matches!(self, Умная_Строка::Значение(_))
+    }
+
+    pub fn is_none(&self) -> bool {
+        matches!(self, Умная_Строка::Пусто)
+    }
+}
+
+impl From<&Значение_Ячейки_XLSX> for Значение_Ячейки_XLSX {
+    fn from(ячейка: &Значение_Ячейки_XLSX) -> Self {
+        ячейка.clone() // так как у вас уже есть #[derive(Clone)]
+    }
+}
+
+impl fmt::Display for Умная_Строка {
+    fn fmt(&self, образ: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Умная_Строка::Пусто => write!(образ, "Пусто"),
+            Умная_Строка::Значение(содержимое) => {
+                write!(образ, "{}", содержимое)
+            }
+        }
+    }
 }
 impl Основной_Вид_Расширения {
     pub fn пусто(&self) -> bool {
@@ -428,7 +802,7 @@ pub enum Имена_страниц {
     //
 }
 
-use std::fmt;
+//use std::fmt;
 use std::fmt::Display;
 
 //
@@ -633,18 +1007,62 @@ pub enum Примечания {
 pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 352;
 
 //
-use std::ops::Index;
+//
+use std::ops::{Index, IndexMut};
 #[derive(Debug, Clone)]
 pub struct Словарь_разделителей {
-    pub ряд_1: [Ячейка_замены_с_разделителями; РАЗМЕР_РАЗДЕЛИТЕЛЕЙ], //одиночные слова
-                                                                     //
+    //pub содержимое: [Ячейка_замены_с_разделителями; РАЗМЕР_РАЗДЕЛИТЕЛЕЙ], //одиночные слова
+    pub содержимое: Vec<Ячейка_замены_с_разделителями>, //одиночные слова
+                                                        //
 }
 // Реализация Index для доступа по индексу
 impl Index<usize> for Словарь_разделителей {
     type Output = Ячейка_замены_с_разделителями;
 
     fn index(&self, индекс: usize) -> &Self::Output {
-        &self.ряд_1[индекс]
+        &self.содержимое[индекс]
+    }
+}
+impl Словарь_разделителей {
+    // Получить длину словаря
+    pub fn len(&self) -> usize {
+        self.содержимое.len()
+    }
+
+    // Проверить, пуст ли словарь (всегда false, т.к. размер фиксирован)
+    pub fn is_empty(&self) -> bool {
+        false
+    }
+
+    // Получить ссылку на ячейку с проверкой границ
+    pub fn get(
+        &self,
+        индекс: usize,
+    ) -> Option<&Ячейка_замены_с_разделителями> {
+        self.содержимое.get(индекс)
+    }
+
+    // Итератор по ячейкам
+    pub fn iter(
+        &self,
+    ) -> std::slice::Iter<'_, Ячейка_замены_с_разделителями> {
+        self.содержимое.iter()
+    }
+}
+
+// Реализация IndexMut для изменения ячеек
+impl IndexMut<usize> for Словарь_разделителей {
+    fn index_mut(&mut self, индекс: usize) -> &mut Self::Output {
+        &mut self.содержимое[индекс]
+    }
+}
+
+impl Default for Словарь_разделителей {
+    fn default() -> Self {
+        Self {
+            //содержимое: std::array::from_fn(|_| Default::default()),
+            содержимое: Vec::default(),
+        }
     }
 }
 //замена объявления
@@ -676,49 +1094,50 @@ pub struct Ячейка_замены_примечания {
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены {
-    pub искомое_слово: String,
+    pub искомое_слово: Умная_Строка,
     pub re_образец: Regex,
-    pub замена: String,
+    pub замена: Умная_Строка,
     // pub счёчтки:usize,
 }
 impl Default for Ячейка_замены {
     fn default() -> Self {
         Self {
-            искомое_слово: "".to_string(),
+            искомое_слово: Умная_Строка::default(),
             re_образец: Regex::new(r"(?i)").unwrap(),
-            замена: "".to_string(),
+            замена: Умная_Строка::default(),
         }
     }
 }
 //словарь
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_с_разделителями {
-    pub искомое_слово: String,
+    pub искомое_слово: Умная_Строка,
     pub ряд_re_пропуски: Vec<Regex>,
     pub re_образец_для_поиска: Regex,
-    pub замена: String,
-    pub ряд_пропусков: Vec<String>,
+    pub замена: Умная_Строка,
+    pub ряд_пропусков: Vec<Умная_Строка>,
     //
-    pub ряд_обязательств: Vec<String>,
+    pub ряд_обязательств: Vec<Умная_Строка>,
     pub ряд_re_обязательства: Vec<Regex>,
     // pub счёчтки:usize,
     pub re_образец_для_замены: Regex,
 }
+static ПУСТОЙ_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)").unwrap());
 impl Default for Ячейка_замены_с_разделителями {
     fn default() -> Self {
         Self {
-            искомое_слово: "".to_string(),
+            искомое_слово: Умная_Строка::default(),
 
-            re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
+            re_образец_для_поиска: ПУСТОЙ_REGEX.clone(),
             //
-            замена: "".to_string(),
-            re_образец_для_замены: Regex::new(r"(?i)").unwrap(),
+            замена: Умная_Строка::default(),
+            re_образец_для_замены: ПУСТОЙ_REGEX.clone(),
             //
-            ряд_пропусков: Vec::new(),
-            ряд_re_пропуски: Vec::new(), //Regex::new(r"(?i)").unwrap(),
+            ряд_пропусков: Vec::default(),
+            ряд_re_пропуски: Vec::default(), //Regex::new(r"(?i)").unwrap(),
             //
-            ряд_обязательств: Vec::new(),
-            ряд_re_обязательства: Vec::new(),
+            ряд_обязательств: Vec::default(),
+            ряд_re_обязательства: Vec::default(),
         }
     }
 }
@@ -738,8 +1157,8 @@ impl Возможности_ячейки_замены_с_разделителя�
             .iter()
             .map(|ячейка| {
                 //let исключение: Regex = LazyLock::new(|| Regex::new(исключение).unwrap();
-                let исключение_2: String = format!(r#"(\b{{start}}{})"#, ячейка);
-                Regex::new(&исключение_2).unwrap()
+                let пропуск: String = format!(r#"(\b{{start}}{})"#, ячейка);
+                Regex::new(&пропуск).unwrap()
             })
             .collect()
     }
@@ -748,14 +1167,16 @@ impl Возможности_ячейки_замены_с_разделителя�
             .iter()
             .map(|ячейка| {
                 //let исключение: Regex = LazyLock::new(|| Regex::new(исключение).unwrap();
-                let исключение_2: String = format!(r#"(\b{{start}}{})"#, ячейка);
-                Regex::new(&исключение_2).unwrap()
+                let обязательство: String = format!(r#"(\b{{start}}{})"#, ячейка);
+                Regex::new(&обязательство).unwrap()
             })
             .collect()
     }
     //
     fn добавить_оставшиеся_поля(&mut self) {
-        self.замена = format!("{}-", self.искомое_слово);
+        self.замена = Умная_Строка::создать_значение(
+            format!("{}-", self.искомое_слово),
+        );
         self.re_образец_для_поиска =
             Regex::new(&format!(r#"\b{{start}}{}\w"#, self.искомое_слово)).unwrap();
         self.re_образец_для_замены = {
