@@ -630,7 +630,7 @@ pub enum Примечания {
     html,
     js,
 }
-pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 346;
+pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 352;
 
 //
 use std::ops::Index;
@@ -694,10 +694,13 @@ impl Default for Ячейка_замены {
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_с_разделителями {
     pub искомое_слово: String,
-    pub ряд_re_исключений: Vec<Regex>,
+    pub ряд_re_пропуски: Vec<Regex>,
     pub re_образец_для_поиска: Regex,
     pub замена: String,
-    pub ряд_исключений: Vec<String>,
+    pub ряд_пропусков: Vec<String>,
+    //
+    pub ряд_обязательств: Vec<String>,
+    pub ряд_re_обязательства: Vec<Regex>,
     // pub счёчтки:usize,
     pub re_образец_для_замены: Regex,
 }
@@ -705,11 +708,17 @@ impl Default for Ячейка_замены_с_разделителями {
     fn default() -> Self {
         Self {
             искомое_слово: "".to_string(),
-            ряд_re_исключений: Vec::new(), //Regex::new(r"(?i)").unwrap(),
+
             re_образец_для_поиска: Regex::new(r"(?i)").unwrap(),
+            //
             замена: "".to_string(),
             re_образец_для_замены: Regex::new(r"(?i)").unwrap(),
-            ряд_исключений: Vec::new(),
+            //
+            ряд_пропусков: Vec::new(),
+            ряд_re_пропуски: Vec::new(), //Regex::new(r"(?i)").unwrap(),
+            //
+            ряд_обязательств: Vec::new(),
+            ряд_re_обязательства: Vec::new(),
         }
     }
 }
@@ -717,14 +726,25 @@ impl Default for Ячейка_замены_с_разделителями {
 //
 pub const КОЛИЧЕСТВО_БУКВ_ПОСЛЕ_РАЗДЕЛИТЕЛЯ: usize = 3;
 pub trait Возможности_ячейки_замены_с_разделителями {
-    fn добавить_re_исключения_изнутри(&self) -> Vec<Regex>;
+    fn добавить_re_пропуски_изнутри(&self) -> Vec<Regex>;
+    fn добавить_re_обязательства_изнутри(&self) -> Vec<Regex>;
     fn добавить_оставшиеся_поля(&mut self);
 }
 impl Возможности_ячейки_замены_с_разделителями
     for Ячейка_замены_с_разделителями
 {
-    fn добавить_re_исключения_изнутри(&self) -> Vec<Regex> {
-        self.ряд_исключений
+    fn добавить_re_пропуски_изнутри(&self) -> Vec<Regex> {
+        self.ряд_пропусков
+            .iter()
+            .map(|ячейка| {
+                //let исключение: Regex = LazyLock::new(|| Regex::new(исключение).unwrap();
+                let исключение_2: String = format!(r#"(\b{{start}}{})"#, ячейка);
+                Regex::new(&исключение_2).unwrap()
+            })
+            .collect()
+    }
+    fn добавить_re_обязательства_изнутри(&self) -> Vec<Regex> {
+        self.ряд_обязательств
             .iter()
             .map(|ячейка| {
                 //let исключение: Regex = LazyLock::new(|| Regex::new(исключение).unwrap();
