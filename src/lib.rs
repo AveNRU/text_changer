@@ -1008,8 +1008,10 @@ pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 352;
 
 //
 //
+use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)] //Serialize, Deserialize,
+//#[serde(default)] // Добавляем это для всей структуры
 pub struct Словарь_разделителей {
     //pub содержимое: [Ячейка_замены_с_разделителями; РАЗМЕР_РАЗДЕЛИТЕЛЕЙ], //одиночные слова
     pub содержимое: Vec<Ячейка_замены_с_разделителями>, //одиночные слова
@@ -1109,17 +1111,22 @@ impl Default for Ячейка_замены {
     }
 }
 //словарь
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
+//#[serde(default)] // Добавляем это для всей структуры
 pub struct Ячейка_замены_с_разделителями {
     pub искомое_слово: Умная_Строка,
+    // #[serde(skip)]
     pub ряд_re_пропуски: Vec<Regex>,
+    //  #[serde(skip)]
     pub re_образец_для_поиска: Regex,
     pub замена: Умная_Строка,
     pub ряд_пропусков: Vec<Умная_Строка>,
     //
     pub ряд_обязательств: Vec<Умная_Строка>,
+    //  #[serde(skip)]
     pub ряд_re_обязательства: Vec<Regex>,
     // pub счёчтки:usize,
+    //   #[serde(skip)]
     pub re_образец_для_замены: Regex,
 }
 static ПУСТОЙ_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)").unwrap());

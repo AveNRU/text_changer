@@ -4,10 +4,12 @@ authors = ["AveN RU"]
 version = "0.1.2"
 description = "Заменитель слов по словарю"
 edition = "2024"
+build = "build.rs"
 
 [dependencies]
 #для замера ОЗУ
 cap = "*"
+rmp-serde = "*"
 #смешные лица
 indicatif = {version = "*", features = ["rayon"]}
 #постоянные данные
@@ -67,3 +69,14 @@ dhat-ad-hoc = []  # if you are doing ad hoc profiling
 
 [rust]
 debuginfo-level = 1
+
+[build-dependencies]
+# Зависимости для сборки
+rmp-serde = "*"
+serde = { version = "*", features = ["derive"] }
+rayon = "*"  # если нужно в build.rs
+rapidhash = "*"  # если нужно в build.rs
+regex = "*"
+convert_case = "*"
+rust_xlsxwriter = "*"
+stringzilla = "*"
