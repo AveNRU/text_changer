@@ -83,9 +83,10 @@ pub enum Вид_Разметки_Паутины {
     Md,
     Yml,
     Fs,
-    XHTML,
+    Xhtml,
     Mhtml,
     Mht,
+    Opf,
     Не_определено,
 }
 #[derive(Debug, Clone)]
@@ -162,6 +163,262 @@ impl PartialEq for Умная_Строка {
                 s1.as_str() == s2.as_str()
             }
             _ => false,
+        }
+    }
+}
+
+// Вид_Слова
+impl fmt::Display for Вид_Слова {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Слова::Исходное => write!(f, "исходное"),
+            Вид_Слова::Замена => write!(f, "замена"),
+        }
+    }
+}
+
+// Вид_Видео
+impl fmt::Display for Вид_Видео {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Видео::Avi => write!(f, "avi"),
+            Вид_Видео::Mkv => write!(f, "mkv"),
+            Вид_Видео::Mp4 => write!(f, "mp4"),
+            Вид_Видео::WebM => write!(f, "webm"),
+        }
+    }
+}
+
+// Вид_Звук
+impl fmt::Display for Вид_Звук {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Звук::Wav => write!(f, "wav"),
+            Вид_Звук::Mp3 => write!(f, "mp3"),
+            Вид_Звук::Ogg => write!(f, "ogg"),
+            Вид_Звук::Aac => write!(f, "aac"),
+        }
+    }
+}
+
+// Вид_Изображения
+impl fmt::Display for Вид_Изображения {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Изображения::Jpeg => write!(f, "jpeg"),
+            Вид_Изображения::Png => write!(f, "png"),
+            Вид_Изображения::Bmp => write!(f, "bmp"),
+            Вид_Изображения::Gif => write!(f, "gif"),
+            Вид_Изображения::Tif => write!(f, "tif"),
+            Вид_Изображения::Jpg => write!(f, "jpg"),
+            Вид_Изображения::Svg => write!(f, "svg"),
+            Вид_Изображения::Avif => write!(f, "avif"),
+            Вид_Изображения::Webp => write!(f, "webp"),
+            Вид_Изображения::Wmf => write!(f, "wmf"),
+            Вид_Изображения::Wpg => write!(f, "wpg"),
+            Вид_Изображения::Eps => write!(f, "eps"),
+            Вид_Изображения::Emf => write!(f, "emf"),
+        }
+    }
+}
+
+// Вид_Архива
+impl fmt::Display for Вид_Архива {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Архива::Zip => write!(f, "zip"),
+            Вид_Архива::Rar => write!(f, "rar"),
+            Вид_Архива::Gz => write!(f, "gz"),
+            Вид_Архива::Gzip => write!(f, "gzip"),
+        }
+    }
+}
+
+// Вид_Мусорные_Разметки_Паутины
+impl fmt::Display for Вид_Мусорные_Разметки_Паутины {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Мусорные_Разметки_Паутины::Css => write!(f, "css"),
+            Вид_Мусорные_Разметки_Паутины::Thmx => write!(f, "thmx"),
+        }
+    }
+}
+
+// Вид_XML
+impl fmt::Display for Вид_XML {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_XML::Rels => write!(f, "rels"),
+        }
+    }
+}
+
+// Вид_Word
+impl fmt::Display for Вид_Word {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Word::Doc => write!(f, "doc"),
+            Вид_Word::Docx => write!(f, "docx"),
+            Вид_Word::Rtf => write!(f, "rtf"),
+        }
+    }
+}
+
+// Вид_Excel
+impl fmt::Display for Вид_Excel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Excel::Xls => write!(f, "xls"),
+            Вид_Excel::Xlsx => write!(f, "xlsx"),
+        }
+    }
+}
+
+// Вид_Шрифтов
+impl fmt::Display for Вид_Шрифтов {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Шрифтов::Tif => write!(f, "tif"),
+            Вид_Шрифтов::Ttf => write!(f, "ttf"),
+        }
+    }
+}
+
+// Вид_Разметки_Паутины
+impl fmt::Display for Вид_Разметки_Паутины {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Разметки_Паутины::Opf => write!(f, "opf"),
+            Вид_Разметки_Паутины::Php => write!(f, "php"),
+            Вид_Разметки_Паутины::Html => write!(f, "html"),
+            Вид_Разметки_Паутины::Htm => write!(f, "htm"),
+            Вид_Разметки_Паутины::Md => write!(f, "md"),
+            Вид_Разметки_Паутины::Yml => write!(f, "yml"),
+            Вид_Разметки_Паутины::Fs => write!(f, "fs"),
+            Вид_Разметки_Паутины::Xhtml => write!(f, "xhtml"),
+            Вид_Разметки_Паутины::Mhtml => write!(f, "mhtml"),
+            Вид_Разметки_Паутины::Mht => write!(f, "mht"),
+            Вид_Разметки_Паутины::Не_определено => {
+                write!(f, "не_определено")
+            }
+        }
+    }
+}
+
+// Вид_Архивной_Книги
+impl fmt::Display for Вид_Архивной_Книги {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Архивной_Книги::Epub => write!(f, "epub"),
+            Вид_Архивной_Книги::Fb3 => write!(f, "fb3"),
+        }
+    }
+}
+
+// Вид_одичноной_книги
+impl fmt::Display for Вид_одичноной_книги {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_одичноной_книги::Fb2 => write!(f, "fb2"),
+            Вид_одичноной_книги::Pdf => write!(f, "pdf"),
+        }
+    }
+}
+
+// Вид_Книги
+impl fmt::Display for Вид_Книги {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Книги::Архивная(вид) => write!(f, "архивная_книга({})", вид),
+            Вид_Книги::Одиночная(вид) => write!(f, "одиночная_книга({})", вид),
+        }
+    }
+}
+
+// Вид_JS
+impl fmt::Display for Вид_JS {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_JS::Js => write!(f, "js"),
+            Вид_JS::Mjs => write!(f, "mjs"),
+            Вид_JS::Cjs => write!(f, "cjs"),
+        }
+    }
+}
+
+// Вид_Справи
+impl fmt::Display for Вид_Справи {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_Справи::Cnt => write!(f, "cnt"),
+            Вид_Справи::Hlp => write!(f, "hlp"),
+            Вид_Справи::Chm => write!(f, "chm"),
+        }
+    }
+}
+
+// Вид_приказов
+impl fmt::Display for Вид_приказов {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_приказов::Tcl => write!(f, "tcl"),
+            Вид_приказов::Fcg => write!(f, "fcg"),
+            Вид_приказов::Cgi => write!(f, "cgi"),
+        }
+    }
+}
+
+// Основной_Вид_Расширения
+impl fmt::Display for Основной_Вид_Расширения {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Основной_Вид_Расширения::Книга(вид) => {
+                write!(f, "книга({})", вид)
+            }
+            Основной_Вид_Расширения::Архив(вид) => {
+                write!(f, "архив({})", вид)
+            }
+            Основной_Вид_Расширения::Изображение(вид) => {
+                write!(f, "изображение({})", вид)
+            }
+            Основной_Вид_Расширения::Видео(вид) => {
+                write!(f, "видео({})", вид)
+            }
+            Основной_Вид_Расширения::Разметка_Паутины(вид) =>
+            {
+                write!(f, "разметка_паутины({})", вид)
+            }
+            Основной_Вид_Расширения::Мусорные_Разметка(
+                вид,
+            ) => write!(f, "мусорная_разметка({})", вид),
+            Основной_Вид_Расширения::Word(вид) => {
+                write!(f, "word({})", вид)
+            }
+            Основной_Вид_Расширения::Excel(вид) => {
+                write!(f, "excel({})", вид)
+            }
+            Основной_Вид_Расширения::XML => write!(f, "xml"),
+            Основной_Вид_Расширения::JS(вид) => write!(f, "js({})", вид),
+            Основной_Вид_Расширения::Pdf => write!(f, "pdf"),
+            Основной_Вид_Расширения::Прочее => write!(f, "прочее"),
+            Основной_Вид_Расширения::Шрифты(вид) => {
+                write!(f, "шрифты({})", вид)
+            }
+            Основной_Вид_Расширения::MIME => write!(f, "mime"),
+             Основной_Вид_Расширения::Простая_письменность(вид) => write!(f, "простая_письменность({})", вид),
+            Основной_Вид_Расширения::Приказы(вид) => {
+                write!(f, "приказы({})", вид)
+            }
+            Основной_Вид_Расширения::Пусто => write!(f, "пусто"),
+            Основной_Вид_Расширения::Без_Названия => {
+                write!(f, "без_названия")
+            }
+            Основной_Вид_Расширения::Справка(вид) => {
+                write!(f, "справка({})", вид)
+            }
+            Основной_Вид_Расширения::Не_определено => {
+                write!(f, "не_определено")
+            }
         }
     }
 }
@@ -563,15 +820,9 @@ impl Основной_Вид_Расширения {
             Основной_Вид_Расширения::Разметка_Паутины(
                 содержимое,
             ) => match содержимое {
-                Вид_Разметки_Паутины::Html | Вид_Разметки_Паутины::Htm => {
-                    true
-                }
-                Вид_Разметки_Паутины::Html | Вид_Разметки_Паутины::Html => {
-                    true
-                }
-                Вид_Разметки_Паутины::Html | Вид_Разметки_Паутины::XHTML => {
-                    true
-                }
+                Вид_Разметки_Паутины::Htm
+                | Вид_Разметки_Паутины::Htm
+                | Вид_Разметки_Паутины::Xhtml => true,
                 _ => false,
             },
             _ => false,
@@ -600,6 +851,16 @@ impl Default for Основной_Вид_Расширения {
 pub enum Вид_простой_письменности {
     Txt,
     Log,
+}
+
+impl fmt::Display for Вид_простой_письменности {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_простой_письменности::Txt => write!(f, "txt"),
+            Вид_простой_письменности::Log => write!(f, "log"),
+            //Вид_простой_письменности::Csv => write!(f, "csv"),
+        }
+    }
 }
 //пути
 #[derive(Debug, Clone)]
@@ -1076,6 +1337,28 @@ pub struct Ячейка_замены_переносов {
     pub конец: &'static str,
     // pub счёчтки:usize,
 }
+//замена объявления
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_переносов_Epub {
+    pub образцы_конца: Vec<Ячейка_замены_Epub>,
+    pub образцы_начала: Vec<Ячейка_замены_Epub>,
+    // pub счёчтки:usize,
+}
+#[derive(Debug, Clone)]
+pub struct Ячейка_замены_Epub {
+    pub искомое_слово: Умная_Строка,
+    pub re_образец: Regex,
+    // pub счёчтки:usize,
+}
+impl Default for Ячейка_замены_Epub {
+    fn default() -> Self {
+        Self {
+            искомое_слово: Умная_Строка::default(),
+            re_образец: Regex::new(r"(?i)").unwrap(),
+        }
+    }
+}
+
 //замена объявления
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_объявления<'a> {
