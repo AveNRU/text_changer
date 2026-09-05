@@ -11,6 +11,8 @@ use std::ops::{Index, IndexMut};
 use std::sync::LazyLock;
 pub const КОЛИЧЕСТВО_БУКВ_ПОСЛЕ_РАЗДЕЛИТЕЛЯ: usize = 3;
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[warn(non_camel_case_types)]
+#[allow(non_camel_case_types)]
 pub enum Значение_Ячейки_XLSX {
     Пустое_значение,
     Строка(String),
@@ -20,6 +22,7 @@ pub enum Значение_Ячейки_XLSX {
     Вещественное(f64),
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[allow(non_camel_case_types)]
 pub enum Умная_Строка {
     Пусто,
     Значение(String),
@@ -100,6 +103,7 @@ impl Default for Умная_Строка {
 // Добавляем методы напрямую для Vec<Умная_Строка>
 // Определяем свой трейт
 // Определяем трейт
+#[allow(non_camel_case_types)]
 pub trait Умные_Строки_Ряд {
     fn в_умные(self) -> Vec<Умная_Строка>;
 }
@@ -112,8 +116,8 @@ impl Умные_Строки_Ряд for Vec<String> {
             .collect()
     }
 }
-pub fn в_умные_строки<S: Into<String>>(
-    строки: Vec<S>
+pub fn _в_умные_строки<S: Into<String>>(
+    строки: Vec<S>,
 ) -> Vec<Умная_Строка> {
     строки
         .into_iter()
@@ -167,6 +171,7 @@ impl Умная_Строка {
         }
     }
     //
+    #[allow(non_snake_case)]
     pub fn вложить_значение_XLSX_либо_ошибка(
         &mut self,
         ячейка: impl Into<Значение_Ячейки_XLSX>,
@@ -217,11 +222,10 @@ impl Умная_Строка {
             Умная_Строка::Значение(значение) => значение.as_str(),
         }
     }
+    #[allow(non_snake_case)]
     pub fn создать_значение_из_XLSX(
         ячейка: impl Into<Значение_Ячейки_XLSX>,
     ) -> Self {
-        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
-            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
         let ячейка = ячейка.into(); // получаем Значение_Ячейки_XLSX
         match ячейка {
             Значение_Ячейки_XLSX::Пустое_значение => {
@@ -245,11 +249,10 @@ impl Умная_Строка {
         }
     }
 
+    #[allow(non_snake_case)]
     pub fn создать_значение_из_XLSX_заменить_точки_на_нижние_подчёркивания(
         ячейка: impl Into<Значение_Ячейки_XLSX>,
     ) -> Self {
-        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
-            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
         let ячейка = ячейка.into(); // получаем Значение_Ячейки_XLSX
         match ячейка {
             Значение_Ячейки_XLSX::Пустое_значение => {
@@ -391,6 +394,7 @@ impl fmt::Display for Умная_Строка {
     }
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[allow(non_camel_case_types)]
 pub struct Словарь_разделителей {
     //pub содержимое: [Ячейка_замены_с_разделителями; РАЗМЕР_РАЗДЕЛИТЕЛЕЙ], //одиночные слова
     pub содержимое: Vec<Ячейка_замены_с_разделителями>, //одиночные слова
@@ -450,6 +454,7 @@ impl Default for Словарь_разделителей {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(default)] // Добавляем это для всей структуры
 //словарь
+#[allow(non_camel_case_types)]
 pub struct Ячейка_замены_с_разделителями {
     pub искомое_слово: Умная_Строка,
     #[serde(skip)]
@@ -487,6 +492,7 @@ impl Default for Ячейка_замены_с_разделителями {
 }
 //
 
+#[allow(non_camel_case_types)]
 pub trait Возможности_ячейки_замены_с_разделителями {
     fn добавить_re_пропуски_изнутри(&self) -> Vec<Regex>;
     fn добавить_re_обязательства_изнутри(&self) -> Vec<Regex>;

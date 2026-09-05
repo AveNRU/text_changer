@@ -630,8 +630,6 @@ impl Умная_Строка {
     pub fn создать_значение_из_XLSX_заменить_точки_на_нижние_подчёркивания(
         ячейка: impl Into<Значение_Ячейки_XLSX>,
     ) -> Self {
-        static ОБРАЗЦЫ_RE: LazyLock<[Regex; 1]> =
-            LazyLock::new(|| [Regex::new("(?i)Пусто$").unwrap()]);
         let ячейка = ячейка.into(); // получаем Значение_Ячейки_XLSX
         match ячейка {
             Значение_Ячейки_XLSX::Пустое_значение => {
@@ -821,7 +819,7 @@ impl Основной_Вид_Расширения {
                 содержимое,
             ) => match содержимое {
                 Вид_Разметки_Паутины::Htm
-                | Вид_Разметки_Паутины::Htm
+                | Вид_Разметки_Паутины::Html
                 | Вид_Разметки_Паутины::Xhtml => true,
                 _ => false,
             },
@@ -1269,7 +1267,7 @@ pub const РАЗМЕР_РАЗДЕЛИТЕЛЕЙ: usize = 352;
 
 //
 //
-use serde::{Deserialize, Serialize};
+//use serde::{Deserialize, Serialize};
 use std::ops::{Index, IndexMut};
 #[derive(Clone, Debug)] //Serialize, Deserialize,
 //#[serde(default)] // Добавляем это для всей структуры
@@ -1344,17 +1342,33 @@ pub struct Ячейка_замены_переносов_Epub {
     pub образцы_начала: Vec<Ячейка_замены_Epub>,
     // pub счёчтки:usize,
 }
+/*#[derive(Debug, Clone)]
+pub struct Ячейка_замены_Epub_начала {
+    pub искомое_слово: Умная_Строка,
+    pub re_образец: Regex,
+    // pub счёчтки:usize,
+}
+impl Default for Ячейка_замены_Epub_начала {
+    fn default() -> Self {
+        Self {
+            искомое_слово: Умная_Строка::default(),
+            re_образец: Regex::new(r"(?i)").unwrap(),
+        }
+    }
+}*/
 #[derive(Debug, Clone)]
 pub struct Ячейка_замены_Epub {
     pub искомое_слово: Умная_Строка,
-    pub re_образец: Regex,
+    pub re_образец_поиска: Regex,
+    pub re_образец_замены: Regex,
     // pub счёчтки:usize,
 }
 impl Default for Ячейка_замены_Epub {
     fn default() -> Self {
         Self {
             искомое_слово: Умная_Строка::default(),
-            re_образец: Regex::new(r"(?i)").unwrap(),
+            re_образец_поиска: Regex::new(r"(?i)").unwrap(),
+            re_образец_замены: Regex::new(r"(?i)").unwrap(),
         }
     }
 }
@@ -1396,17 +1410,38 @@ impl Default for Ячейка_замены {
 //словарь
 #[derive(Clone, Debug)]
 //#[serde(default)] // Добавляем это для всей структуры
+pub struct Образцы_Исключений_Разделителей<'a> {
+    pub ряд_re_пропуски: &'a Vec<Regex>,
+    pub ряд_re_обязательства: &'a Vec<Regex>,
+}
+#[derive(Clone, Debug)]
+pub enum Вид_Слов_Разделителей {
+    Пропуски,
+    Обязательства,
+}
+impl fmt::Display for Вид_Слов_Разделителей {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Вид_Слов_Разделителей::Пропуски => write!(f, "Пропуски"),
+            Вид_Слов_Разделителей::Обязательства => {
+                write!(f, "Обязательства")
+            }
+        }
+    }
+}
+//словарь
+#[derive(Clone, Debug)]
+//#[serde(default)] // Добавляем это для всей структуры
 pub struct Ячейка_замены_с_разделителями {
     pub искомое_слово: Умная_Строка,
     // #[serde(skip)]
-    pub ряд_re_пропуски: Vec<Regex>,
-    //  #[serde(skip)]
     pub re_образец_для_поиска: Regex,
     pub замена: Умная_Строка,
+    //
     pub ряд_пропусков: Vec<Умная_Строка>,
+    pub ряд_re_пропуски: Vec<Regex>,
     //
     pub ряд_обязательств: Vec<Умная_Строка>,
-    //  #[serde(skip)]
     pub ряд_re_обязательства: Vec<Regex>,
     // pub счёчтки:usize,
     //   #[serde(skip)]

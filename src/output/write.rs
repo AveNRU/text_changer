@@ -3,7 +3,7 @@
 #![allow(non_camel_case_types)]
 //use std::any::Any;
 //use std::fs::read_to_string;
-use crate::utils::regex::{md_fs_yml, изображение_расширение_с_точкой};
+use crate::utils::regex::изображение_расширение_с_точкой;
 use crate::utils::zip::{
     zip_архив_в_память, Архив_в_озу, вложить_в_zip_из_озу
 };
@@ -16,7 +16,7 @@ use encoding_rs::{
     WINDOWS_1252,
     //    DecoderResult
 };
-use rapidhash::RapidHashMap;
+//use rapidhash::RapidHashMap;
 //use foldhash::{rapidhash::fast::RapidHashMap, HashSet, HashSetExt, fast::RandomState};
 use rust_xlsxwriter::*;
 use std::fs::{self, File};
@@ -588,7 +588,7 @@ pub fn сохранить_книги_с_разделениями(
         стопки_книг
             .par_iter()
             .enumerate()
-            .flat_map(|(указатель_книги, сама_книга)| {
+            .flat_map(|(_указатель_книги, сама_книга)| {
                 //for i in 0..стопки_книг.len() {
                 let сообщения_запись_и_чтение: Mutex<Text_Changer::Сообщения_для_книги> =
                     Mutex::new(Default::default());
@@ -1309,8 +1309,8 @@ pub fn вывод_повтоно_найденных_слов_замен(
 pub fn вывод_словаря_куч_в_xls(
     словари_исходные: &(Text_Changer::Полный_Словарь, Text_Changer::Словарь_Куч),
 
-    куча_словарь: &Куча_Словарь,
-    счётчики_словаря: &Счётчики_Словаря,
+    _куча_словарь: &Куча_Словарь,
+    _счётчики_словаря: &Счётчики_Словаря,
     //mode: String,           //Стопка из файла .xlsx взята или самостоятельно высчитана
     //path_name_spd: &String, //имя .spd файла
 ) -> Result<(), rust_xlsxwriter::XlsxError> {
@@ -2989,7 +2989,7 @@ pub fn вывод_страницы_словаря_кучи(
             &словарь,
             &раздел_словаря,
         );
-    let слова_которых_нет_в_куче_замены: Vec<String> =
+    let _слова_которых_нет_в_куче_замены: Vec<String> =
         найти_слова_которые_нет_в_куче_замены(
             &указатели.0,
             &указатели.1,
