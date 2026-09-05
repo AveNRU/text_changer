@@ -80,3 +80,6 @@ regex = "*"
 convert_case = "*"
 rust_xlsxwriter = "*"
 stringzilla = "*"
+
+[env]
+RUST_MIN_STACK = "14388608"
