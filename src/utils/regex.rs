@@ -12,8 +12,8 @@ use Text_Changer::{
 use rayon::prelude::*;
 //use std::borrow::Cow;
 use std::sync::{
-    atomic::{AtomicUsize, Ordering},
     Arc,
+    atomic::{AtomicUsize, Ordering},
 };
 //use std::thread;
 //use std::time::{Duration, Instant};
@@ -2362,6 +2362,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "со".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "солог".to_string(),
                     "сотни".to_string(),
                     "сотня".to_string(),
                     "сотен".to_string(),
@@ -5934,6 +5935,7 @@ fn создать_разделы_словаря_переносов() -> Слов
 
     const МНОГОБУКВЕННЫЕ_РЯД: [&'static str;
         Text_Changer::СЛОВАРЬ_ПЕРЕНОСОВ_МНОГОБУКВЕННЫЕ] = [
+        "-солога",
         "-ройства ",
         "-вязывающего ",
         "-ближенный ",
