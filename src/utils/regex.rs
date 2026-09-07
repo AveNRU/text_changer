@@ -12,8 +12,8 @@ use Text_Changer::{
 use rayon::prelude::*;
 //use std::borrow::Cow;
 use std::sync::{
-    Arc,
     atomic::{AtomicUsize, Ordering},
+    Arc,
 };
 //use std::thread;
 //use std::time::{Duration, Instant};
@@ -2538,10 +2538,24 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                     ),
                 ряд_пропусков: vec![
                     "болеющ".to_string(),
+                    "болеван".to_string(),
+                    "болеет".to_string(),
+                    "болет".to_string(),
+                    "болеваем".to_string(),
+                    "болеван".to_string(),
+                    "болеющ".to_string(),
                     "болезн".to_string(),
                     "болево".to_string(),
                 ]
                 .в_умные(),
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "сладо".to_string(),
+                    ),
+
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
@@ -4062,6 +4076,8 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "на".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "наташ".to_string(),
+                    "натал".to_string(),
                     "надет".to_string(),
                     "надев".to_string(),
                     "нагл".to_string(),
@@ -4634,6 +4650,14 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                 искомое_слово:
                     Text_Changer::Умная_Строка::создать_значение(
                         "низко".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "вредо".to_string(),
                     ),
 
                 ..Default::default()
