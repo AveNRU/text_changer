@@ -1778,6 +1778,54 @@ pub fn создать_словарь_разделителей() -> Result<Сло
             Ячейка_замены_с_разделителями {
                 искомое_слово:
                     Text_Changer::Умная_Строка::создать_значение(
+                        "десять".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "девять".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "восемь".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "семь".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "шесть".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
+                        "пять".to_string(),
+                    ),
+
+                ..Default::default()
+            },
+            Ячейка_замены_с_разделителями {
+                искомое_слово:
+                    Text_Changer::Умная_Строка::создать_значение(
                         "градо".to_string(),
                     ),
 
@@ -1789,6 +1837,9 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "во".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "вор".to_string(),
+                    "волг".to_string(),
+                    "волж".to_string(),
                     "ворон".to_string(),
                     "воев".to_string(),
                     "вос".to_string(),
@@ -1891,6 +1942,13 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "по".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "попом".to_string(),
+                    "попу".to_string(),
+                    "попе".to_string(),
+                    "попов".to_string(),
+                    "попам".to_string(),
+                    "попах".to_string(),
+                    "попы".to_string(),
                     "постгул".to_string(),
                     "почти".to_string(),
                     "полит".to_string(),
@@ -1943,6 +2001,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "пол".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "поличн".to_string(),
                     "полист".to_string(),
                     "полков".to_string(),
                     "полег".to_string(),
@@ -2105,6 +2164,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "за".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "зампр".to_string(),
                     "замок".to_string(),
                     "замком".to_string(),
                     "замков".to_string(),
@@ -3252,8 +3312,13 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                     Text_Changer::Умная_Строка::создать_значение(
                         "строй".to_string(),
                     ),
-                ряд_пропусков: vec!["стройн".to_string(), "стройст".to_string()]
-                    .в_умные(),
+                ряд_пропусков: vec![
+                    "стройн".to_string(),
+                    "стройст".to_string(),
+                    "стройка".to_string(),
+                    "стройко".to_string(),
+                ]
+                .в_умные(),
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
@@ -3367,6 +3432,10 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "пре".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "преком".to_string(),
+                    "преков".to_string(),
+                    "прекам".to_string(),
+                    "прекну".to_string(),
                     "прежде".to_string(),
                     "прещ".to_string(),
                     "прет".to_string(), // убрал - претворив исключение
@@ -4321,7 +4390,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                     Text_Changer::Умная_Строка::создать_значение(
                         "верхо".to_string(),
                     ),
-
+                ряд_пропусков: vec!["верховн".to_string()].в_умные(),
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
@@ -4562,6 +4631,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                     "свето".to_string(),
                 ]
                 .в_умные(),
+                ряд_обязательств: vec!["сначал".to_string()].в_умные(),
                 ..Default::default()
             },
             Ячейка_замены_с_разделителями {
@@ -4996,6 +5066,98 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                     Text_Changer::Умная_Строка::создать_значение(
                         "в".to_string(),
                     ),
+                ряд_пропусков: vec![
+                    "виня".to_string(),
+                    "вина".to_string(),
+                    "вино".to_string(),
+                    "вину".to_string(),
+                    "виг".to_string(),
+                    "век".to_string(),
+                    "важн".to_string(),
+                    "ванн".to_string(),
+                    "вик".to_string(),
+                    "вели".to_string(),
+                    "вела".to_string(),
+                    "вщик".to_string(),
+                    "веж".to_string(),
+                    "вещ".to_string(),
+                    "взр".to_string(),
+                    "вече".to_string(),
+                    "веча".to_string(),
+                    "вечн".to_string(),
+                    "вечу".to_string(),
+                    "вечи".to_string(),
+                    "вест".to_string(),
+                    "вал".to_string(),
+                    "вер".to_string(),
+                    "вить".to_string(),
+                    "витель".to_string(),
+                    "вечер".to_string(),
+                    // "вчераш".to_string(),
+                    "вчера".to_string(),
+                    "висел".to_string(),
+                    "висет".to_string(),
+                    "висил".to_string(),
+                    "висим".to_string(),
+                    "вед".to_string(),
+                    "вид".to_string(),
+                    "верх".to_string(),
+                    "во".to_string(),
+                    "вещ".to_string(),
+                    "вищ".to_string(),
+                    // "восьми".to_string(),
+                    "выше".to_string(),
+                    "все".to_string(),
+                    "власт".to_string(),
+                    "влад".to_string(),
+                    "втор".to_string(),
+                    "вник".to_string(),
+                    "взят".to_string(),
+                    "вых".to_string(),
+                    "валют".to_string(),
+                    "вожд".to_string(),
+                    "вык".to_string(),
+                    "вор".to_string(),
+                    "высок".to_string(),
+                    "весн".to_string(),
+                    "всег".to_string(),
+                    "видо".to_string(),
+                    "воз".to_string(),
+                    "вино".to_string(),
+                    "ветхо".to_string(),
+                    "вредо".to_string(),
+                    "впереди".to_string(),
+                    "верно".to_string(),
+                    "верхне".to_string(),
+                    "верхо".to_string(),
+                    "взаимно".to_string(),
+                    "воздухо".to_string(),
+                    "взрыво".to_string(),
+                    "вы".to_string(),
+                    "востоко".to_string(),
+                    "восточно".to_string(),
+                    "веро".to_string(),
+                    "выгодо".to_string(),
+                    "винто".to_string(),
+                    "выгодо".to_string(),
+                    "все".to_string(),
+                    "водно".to_string(),
+                    "водо".to_string(),
+                    "везде".to_string(),
+                    "всплеско".to_string(),
+                    "велико".to_string(),
+                    "вновь".to_string(),
+                    "внутри".to_string(),
+                    "вне".to_string(),
+                    "второ".to_string(),
+                    "военно".to_string(),
+                    "варёно".to_string(),
+                    "варено".to_string(),
+                    "волно".to_string(),
+                    "время".to_string(),
+                    "време".to_string(),
+                ]
+                .в_умные(),
                 ряд_обязательств: vec!["враз".to_string()].в_умные(),
                 ..Default::default()
             },
@@ -5013,6 +5175,7 @@ pub fn создать_словарь_разделителей() -> Result<Сло
                         "о".to_string(),
                     ),
                 ряд_пропусков: vec![
+                    "омон".to_string(),
                     "омск".to_string(),
                     "олег".to_string(),
                     "оль".to_string(),
