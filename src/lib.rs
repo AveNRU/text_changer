@@ -1079,15 +1079,16 @@ impl Display for Вид_Словаря {
 }
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Имена_страниц {
-    Простая_стр,
-    Cоставное_стр,
-    Составное_важное_стр,
-    Огласовки_стр,
-    Вездесущее_стр,
-    Неизменные_стр,
-    Неизменные_длинные_стр,
-    Неизменные_короткие_стр,
+    Простые,
+    Cоставные,
+    Составные_важные,
+    Огласовки,
+    Вездесущее,
+    Неизменные,
+    Неизменные_длинные,
+    Неизменные_короткие,
     Запятые,
+    Перевести,
     //
 }
 
@@ -1098,18 +1099,19 @@ use std::fmt::Display;
 impl fmt::Display for Имена_страниц {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Имена_страниц::Простая_стр => write!(f, "Простые"),
-            Имена_страниц::Cоставное_стр => write!(f, "Составные"),
-            Имена_страниц::Составное_важное_стр => {
+            Имена_страниц::Перевести => write!(f, "Перевести"),
+            Имена_страниц::Простые => write!(f, "Простые"),
+            Имена_страниц::Cоставные => write!(f, "Составные"),
+            Имена_страниц::Составные_важные => {
                 write!(f, "Составные важные")
             }
-            Имена_страниц::Огласовки_стр => write!(f, "Огласовки"),
-            Имена_страниц::Вездесущее_стр => write!(f, "Вездесущие"),
-            Имена_страниц::Неизменные_стр => write!(f, "Неизменные"),
-            Имена_страниц::Неизменные_длинные_стр => {
+            Имена_страниц::Огласовки => write!(f, "Огласовки"),
+            Имена_страниц::Вездесущее => write!(f, "Вездесущие"),
+            Имена_страниц::Неизменные => write!(f, "Неизменные"),
+            Имена_страниц::Неизменные_длинные => {
                 write!(f, "Неизменные длинные")
             }
-            Имена_страниц::Неизменные_короткие_стр => {
+            Имена_страниц::Неизменные_короткие => {
                 write!(f, "Неизменные короткие")
             }
             Имена_страниц::Запятые => {
@@ -1149,9 +1151,11 @@ impl fmt::Display for Кодировка {
 //словарь
 #[derive(Debug, Default, Clone)]
 pub struct Словарь {
-    pub путь: String,                             //путь до книги
-    pub имя: String,                              //имя книги
-    pub разрешение: String,                       //формат
+    pub путь: String,       //путь до книги
+    pub имя: String,        //имя книги
+    pub разрешение: String, //формат
+    //
+    pub перевести: Vec<Ячейка_словаря>,           //одиночные слова
     pub простое: Vec<Ячейка_словаря>,             //одиночные слова
     pub составное: Vec<Ячейка_словаря>,           //сложные и составные
     pub составное_важное: Vec<Ячейка_словаря>,    //сложные и составные (в 1 очередь)
@@ -1207,11 +1211,11 @@ impl Default for Ячейка_словаря {
 }
 
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ: usize = 7;
-pub static СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ: usize = 75;
-pub static СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ: usize = 135;
-pub static СЛОВАРЬ_ПЕРЕНОСОВ_МНОГОБУКВЕННЫЕ: usize = 92;
-pub static СЛОВАРЬ_ПЕРЕНОСОВ_ЦЕЛИКОВЫЕ: usize = 246;
-pub static СЛОВАРЬ_ПЕРЕНОСОВ_ИСКЛЮЧЕНИЯ: usize = 17;
+pub static СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ: usize = 77;
+pub static СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ: usize = 147;
+pub static СЛОВАРЬ_ПЕРЕНОСОВ_МНОГОБУКВЕННЫЕ: usize = 108;
+pub static СЛОВАРЬ_ПЕРЕНОСОВ_ЦЕЛИКОВЫЕ: usize = 299;
+pub static СЛОВАРЬ_ПЕРЕНОСОВ_ИСКЛЮЧЕНИЯ: usize = 18;
 //
 pub static РЯД_СО_ЗНАЧЕНИЯМИ: [usize; 6] = [
     СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ,
@@ -1250,6 +1254,7 @@ pub enum Значение_Ячейки_XLSX {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Раздел_Словаря {
+    Перевести,
     Простые,
     Составные,
     Составные_важные,
@@ -1265,6 +1270,7 @@ pub enum Раздел_Словаря {
 impl fmt::Display for Раздел_Словаря {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Раздел_Словаря::Перевести => write!(f, "Перевести"),
             Раздел_Словаря::Простые => write!(f, "Простые"),
             Раздел_Словаря::Составные => write!(f, "Составные"),
             Раздел_Словаря::Составные_важные => {
@@ -1620,11 +1626,12 @@ pub struct Куча_Словарь {
 }
 #[derive(Debug, Default, Clone)]
 pub struct Куча_Словарь_Искомые {
-    pub простое: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub перевести: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_важное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub вездесущее: rapidhash::fast::RapidHashSet<String>, //одиночные слова
-    pub запятые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub неизменное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub огласовки: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1632,8 +1639,9 @@ pub struct Куча_Словарь_Искомые {
 }
 #[derive(Debug, Default, Clone)]
 pub struct Куча_Словарь_Замены {
-    pub простое: rapidhash::fast::RapidHashSet<String>, //одиночные слова
-    pub запятые: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub перевести: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
+    pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_важное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub вездесущее: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1644,7 +1652,21 @@ pub struct Куча_Словарь_Замены {
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
+pub struct Два_Слова {
+    pub все_строчные: String,
+    pub с_заглавной: String,
+}
+//итоговый общий словарь
+#[derive(Debug, Default, Clone)]
+pub struct Три_Слова {
+    pub все_строчные: String,
+    pub с_заглавной: String,
+    pub все_заглавные: String,
+}
+//итоговый общий словарь
+#[derive(Debug, Default, Clone)]
 pub struct Полный_Словарь {
+    pub перевести: Vec<Ячейка_словаря>, //одиночные слова
     //одиночные
     pub простое: Vec<Ячейка_словаря>, //одиночные слова
     //сложные
