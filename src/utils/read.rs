@@ -1552,19 +1552,20 @@ pub fn удалить_переходы_в_epub(
     static НАЧАЛО_СТРОКИ_С_ЧЕРТЫ: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r##"^-"##).unwrap());
     //сами ряды пошли
-    static ИСКЛЮЧЕНИЯ: LazyLock<Ячейка_замены_переносов_Epub> = LazyLock::new(|| {
-        Ячейка_замены_переносов_Epub {
-            //началаа
-            образцы_начала: vec![Ячейка_замены_Epub {
-                искомое_слово:
-                    Text_Changer::Умная_Строка::создать_значение(
-                        "</span></p>".to_string(),
-                    ),
-                re_образец_поиска: Regex::new(r"(?i)</span></p>$").unwrap(),
-                re_образец_замены: Regex::new(r"(?i)\s*</span></p>$").unwrap(),
-            }],
-            //образцы конца
-            образцы_конца: vec![
+    static ИСКЛЮЧЕНИЯ: LazyLock<Ячейка_замены_переносов_Epub> =
+        LazyLock::new(|| {
+            Ячейка_замены_переносов_Epub {
+                //началаа
+                образцы_начала: vec![Ячейка_замены_Epub {
+                    искомое_слово:
+                        Text_Changer::Умная_Строка::создать_значение(
+                            "</span></p>".to_string(),
+                        ),
+                    re_образец_поиска: Regex::new(r"(?i)</span></p>$").unwrap(),
+                    re_образец_замены: Regex::new(r"(?i)\s*</span></p>$").unwrap(),
+                }],
+                //образцы конца
+                образцы_конца: vec![
                 //
                 Ячейка_замены_Epub {
                     искомое_слово:
@@ -1572,27 +1573,41 @@ pub fn удалить_переходы_в_epub(
                             r##"<p><span class="font2">"##.to_string(),
                         ),
                     re_образец_поиска: Regex::new(
-                        r##"^<p><span class=\"font2">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
+                        r##"^<p><span class=\"font2\">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
                     )
                     .unwrap(),
-                    re_образец_замены: Regex::new(r##"^<p><span class=\"font2">\s*"##)
+                    re_образец_замены: Regex::new(r##"^<p><span class=\"font2\">\s*"##)
                         .unwrap(),
                 },
+                //
                 Ячейка_замены_Epub {
                     искомое_слово:
                         Text_Changer::Умная_Строка::создать_значение(
-                            r##"<p><span class="font6">"##.to_string(),
+                            r##"<p><span class="font5">"##.to_string(),
+                        ),
+                    re_образец_поиска: Regex::new(
+                        r##"^<p><span class=\"font5\">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
+                    )
+                    .unwrap(),
+                    re_образец_замены: Regex::new(r##"^<p><span class=\"font5\">\s*"##)
+                        .unwrap(),
+                },
+                //
+                Ячейка_замены_Epub {
+                    искомое_слово:
+                        Text_Changer::Умная_Строка::создать_значение(
+                            r##"<p><span class=\"font6\">"##.to_string(),
                         ),
                     re_образец_поиска: Regex::new(
                         r##"^<p><span class=\"font6">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
                     )
                     .unwrap(),
-                    re_образец_замены: Regex::new(r##"^<p><span class=\"font6">\s*"##)
+                    re_образец_замены: Regex::new(r##"^<p><span class=\"font6\">\s*"##)
                         .unwrap(),
                 },
             ],
-        }
-    });
+            }
+        });
     //круго-ворот поиска
     'главный_указатель: for указатель in 0..итог.len() {
         //

@@ -7,6 +7,7 @@ edition = "2024"
 #build = "build.rs"
 
 [dependencies]
+gpui-kit = "*"
 #для замера ОЗУ
 cap = "*"
 rmp-serde = "*"
