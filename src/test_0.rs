@@ -38,10 +38,17 @@ pub fn сравнить_основной_и_запасной_словари(
         .filter_map(|ячейка| Some(ячейка.искомое_слово.as_str()))
         .collect::<rapidhash::fast::RapidHashSet<&str>>();
     //
-    ///
+    //
     let куча_составных_сложных_слов: rapidhash::fast::RapidHashSet<&str> =
         основной_словарь
             .составное_важное
+            .par_iter()
+            .filter_map(|ячейка| Some(ячейка.искомое_слово.as_str()))
+            .collect::<rapidhash::fast::RapidHashSet<&str>>();
+    //
+    let куча_неизменных_коротких_слов: rapidhash::fast::RapidHashSet<&str> =
+        основной_словарь
+            .неизменное_короткое
             .par_iter()
             .filter_map(|ячейка| Some(ячейка.искомое_слово.as_str()))
             .collect::<rapidhash::fast::RapidHashSet<&str>>();
@@ -66,6 +73,7 @@ pub fn сравнить_основной_и_запасной_словари(
                     //если в составных словах тоже отсутствует
                     if !куча_составных_слов.contains(ячейка.искомое_слово.as_str())
                         & !куча_составных_сложных_слов.contains(ячейка.искомое_слово.as_str())
+                        & !куча_неизменных_коротких_слов.contains(ячейка.искомое_слово.as_str())
                     {
                         Some(указатель)
                     } else {
