@@ -7,9 +7,6 @@ use chrono::*;
 //use unirust::*;
 //use std::collections::HashMap;
 use cap::Cap;
-use gpui_kit::component::button::*;
-use gpui_kit::component::*;
-use gpui_kit::*;
 use std::alloc;
 use std::env;
 use std::time::{
@@ -25,6 +22,7 @@ pub mod import;
 //pub mod lib;
 pub mod output;
 pub mod test_0;
+pub mod ui_gpui;
 pub mod utils;
 pub mod xlsx;
 //use time::*; //{self,OffsetDateTime};
@@ -32,29 +30,52 @@ use crate::output::write;
 use crate::utils::functions_add::system_pause;
 use console::style;
 //use rayon::scope;
-pub struct HelloWorld;
-impl Render for HelloWorld {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .v_flex()
-            .gap_2()
-            .size_full()
-            .items_center()
-            .justify_center()
-            .child("Hello, World!")
-            .child(
-                Button::new("ok")
-                    .primary()
-                    .label("Let's Go!")
-                    .on_click(|_, _, _| println!("Clicked!")),
-            )
-    }
-}
+//
+
 #[global_allocator]
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
-//use std::thread;
-#[tokio::main] // или #[async_std::main]
-async fn main() {
+//
+use crate::ui_gpui::gpui_main::*;
+use gpui_kit::assets::Assets;
+use gpui_kit::component::{
+    button::Button,
+    h_flex,
+    switch::Switch,
+    text::{TextView, TextViewState},
+    v_flex, *,
+};
+use gpui_kit::*;
+fn main() {
+    let оболочка = gpui_kit::application().with_assets(gpui_kit::assets::Assets);
+
+    оболочка.run(move |содержимое| {
+        // This must be called before using any GPUI Component features.
+        gpui_kit::init(содержимое);
+        содержимое.activate(true);
+
+        содержимое
+            .spawn(async move |cx| {
+                cx.open_window(WindowOptions::default(), |window, cx| {
+                    let view = cx.new(
+                        |_| Данные_при_загрузке::default(), /*{
+                                                                включить_перевод: true,
+                                                                включить_разделители: false,
+                                                            }*/
+                    );
+                    // This first level on the window, should be a Root.
+                    cx.new(|cx| Root::new(view, window, cx))
+                })
+                .expect("Failed to open window");
+            })
+            .detach();
+    });
+    println!("Конец");
+}
+
+//async
+fn main2(
+    данные_при_загрузке: Данные_при_загрузке
+) -> Result<(), ()> {
     use Text_Changer::Вид_Словаря;
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]
@@ -131,15 +152,20 @@ async fn main() {
             полный_словарь,
             исходная_книга.книги,
             сообщения,
-        )
-        .await;
+            &данные_при_загрузке,
+        );
+    // .await;
     //let выходные_книги: Vec<Text_Changer::Книги> = итог_замены_слов_в_книгах.0;
     let mut сообщения: Text_Changer::Сообщения = итог_замены_слов_в_книгах.1;
     //
     /*let (tx,mut rx) = mpsc::unbounded_channel();
         let handle = thread::spawn(move|| {
     */
-    let результат = write::сохранить_книги_с_разделениями(книги_вывод).unwrap();
+    let результат = write::сохранить_книги_с_разделениями(
+        книги_вывод,
+        &данные_при_загрузке,
+    )
+    .unwrap();
     //println!("Прошёл шаг!!!!!!!!");
     /*      tx.send(результат).unwrap_or(());
     });
@@ -157,7 +183,11 @@ async fn main() {
     //время затраченное в итоге
     //вывод сообщений
     //println!("Выделено памяти(main)6: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    write::вывод_всей_стопки_сообщений_в_txt(сообщения).unwrap();
+    write::вывод_всей_стопки_сообщений_в_txt(
+        сообщения,
+        &данные_при_загрузке,
+    )
+    .unwrap();
     //output времени затраченного в итоге
     println!(
         "{}",
@@ -171,4 +201,5 @@ async fn main() {
 
     system_pause();
     println!();
+    Ok(())
 }

@@ -8,6 +8,8 @@ use std::fmt::{self};
 use std::hash::{Hash, Hasher};
 use std::sync::LazyLock;
 use std::sync::atomic::AtomicUsize;
+
+//
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
     Исходное,

@@ -5,8 +5,8 @@ version = "0.1.2"
 description = "Заменитель слов по словарю"
 edition = "2024"
 #build = "build.rs"
-
 [dependencies]
+#find-msvc-tools = "*"
 gpui-kit = "*"
 #для замера ОЗУ
 cap = "*"
@@ -41,6 +41,7 @@ xml-rs = "*"
 pretty_assertions = "*"
 console = "*"
 rand = "*"
+smol = "*"
 dhat = "*"
 #sha2 = "*"
 #blake3 = "*"
@@ -84,3 +85,4 @@ stringzilla = "*"
 
 [env]
 RUST_MIN_STACK = "14388608"
+#объявление раздела gpui
