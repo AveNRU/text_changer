@@ -77,6 +77,7 @@ fn main() {
 fn main2(
     данные_при_загрузке: Данные_при_загрузке
 ) -> Result<(), ()> {
+    println!("|{:?}|", данные_при_загрузке);
     use Text_Changer::Вид_Словаря;
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]

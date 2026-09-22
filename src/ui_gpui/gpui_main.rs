@@ -1,5 +1,5 @@
 //
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy)]
 pub struct Данные_при_загрузке {
     pub включить_перевод: bool,
     pub включить_разделители: bool,
@@ -9,13 +9,14 @@ pub struct Данные_при_загрузке {
     pub вывод_словаря_разделителей: bool,
     pub сохранить_книги_с_разделителями: bool,
     pub вывод_найденных_повторов_слов_в_заменах: bool,
+    pub вывод_пропусков: bool,
     pub общий_ход: bool,
 }
 
 impl Default for Данные_при_загрузке {
     fn default() -> Self {
         Self {
-            включить_перевод: true,
+            включить_перевод: false,
             включить_разделители: false,
             вывод_всех_словарей: false,
             вывод_словарей_куч: false,
@@ -23,6 +24,7 @@ impl Default for Данные_при_загрузке {
             вывод_словаря_разделителей: false,
             сохранить_книги_с_разделителями: false,
             вывод_найденных_повторов_слов_в_заменах: false,
+            вывод_пропусков: false,
             общий_ход: false,
         }
     }
@@ -47,7 +49,19 @@ impl Render for Данные_при_загрузке {
         главное_содержимое: &mut Context<Self>,
     ) -> impl IntoElement {
         div()
-            .v_flex()
+            .size_full()
+            .child(
+                // Render custom title bar on top of Root view.
+                TitleBar::new().child(
+                    h_flex()
+                        .w_full()
+                        .pr_2()
+                        .justify_between()
+                        .child("Заменитель слов")
+                        .child("Исполнение начальное"),
+                ),
+            )
+            /* .v_flex()
             .gap_2()
             .size_full()
             .items_center()
@@ -55,11 +69,14 @@ impl Render for Данные_при_загрузке {
             //
             .size_full()
             .p_4()
-            .gap_4()
+            .gap_4()*/
             .child(
-                h_flex()
-                    .w_full()
-                    .gap_4()
+                div()
+                    .id("window-body")
+                    .p_5()
+                    .size_full()
+                    .items_center()
+                    .justify_center()
                     //
                     .child(
                         Button::new("Кнопка_2")
@@ -183,6 +200,17 @@ impl Render for Данные_при_загрузке {
                                 |ячейка, значение: &bool, _, содержимое| {
                                     ячейка.вывод_найденных_повторов_слов_в_заменах =
                                         *значение;
+                                    содержимое.notify();
+                                },
+                            )),
+                    )
+                    .child(
+                        Switch::new("вывод_пропусков")
+                            .checked(self.вывод_пропусков)
+                            .label("вывод_пропусков")
+                            .on_click(главное_содержимое.listener(
+                                |ячейка, значение: &bool, _, содержимое| {
+                                    ячейка.вывод_пропусков = *значение;
                                     содержимое.notify();
                                 },
                             )),
