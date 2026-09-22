@@ -624,6 +624,9 @@ pub fn определить_расширение_подробно(
     расширение: &str,
     куча: &mut rapidhash::fast::RapidHashSet<String>,
 ) -> Text_Changer::Основной_Вид_Расширения {
+    if расширение.is_empty() {
+        return Text_Changer::Основной_Вид_Расширения::Пусто;
+    }
     match расширение {
         "md"=>Text_Changer::Основной_Вид_Расширения::Разметка_Паутины(Text_Changer::Вид_Разметки_Паутины::Md),
         "ncx"=>Text_Changer::Основной_Вид_Расширения::Разметка_Паутины(Text_Changer::Вид_Разметки_Паутины::Ncx),
