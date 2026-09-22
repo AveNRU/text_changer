@@ -28,13 +28,14 @@ impl Default for Данные_при_загрузке {
 //
 use crate::main2;
 //
-use gpui_kit::assets::Assets;
+//use gpui_kit::assets::Assets;
 use gpui_kit::component::{
     button::Button,
     h_flex,
     switch::Switch,
-    text::{TextView, TextViewState},
-    v_flex, *,
+    //text::{TextView, TextViewState},
+    //v_flex,
+    *,
 };
 use gpui_kit::*;
 impl Render for Данные_при_загрузке {
@@ -62,7 +63,7 @@ impl Render for Данные_при_загрузке {
                             .outline()
                             .label("Запуск перевода")
                             .on_click(главное_содержимое.listener(
-                                move |ячейка, _, окно, содержимое| {
+                                move |ячейка, _, _окно, _содержимое| {
                                     //println!("запустить");
                                     let стопка = ячейка.clone();
                                     //

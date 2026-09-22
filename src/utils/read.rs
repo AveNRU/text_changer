@@ -930,13 +930,13 @@ fn удаление_script_мусора_после_разбиения_строк
             re_образец_начала: Regex::new(r#"(^|[^'])<footer"#).unwrap(),
             начало_простое: r"<footer",
         });
-    static РАЗДЕЛИТЕЛЬ_INPUT: LazyLock<Ячейка_замены_переносов> =
-        LazyLock::new(|| Ячейка_замены_переносов {
-            конец: "</input>",
-            re_образец_конца: Regex::new(r"</input>").unwrap(),
-            re_образец_начала: Regex::new(r#"(^|[^'])<input"#).unwrap(),
-            начало_простое: r"<input",
-        });
+    /*static РАЗДЕЛИТЕЛЬ_INPUT: LazyLock<Ячейка_замены_переносов> =
+    LazyLock::new(|| Ячейка_замены_переносов {
+        конец: "</input>",
+        re_образец_конца: Regex::new(r"</input>").unwrap(),
+        re_образец_начала: Regex::new(r#"(^|[^'])<input"#).unwrap(),
+        начало_простое: r"<input",
+    });*/
     static РАЗДЕЛИТЕЛЬ_H1: LazyLock<Ячейка_замены_переносов> =
         LazyLock::new(|| Ячейка_замены_переносов {
             конец: "</h1>",
@@ -1698,13 +1698,13 @@ pub fn приведение_примечаний_к_общему_виду(
     ряд: Vec<String>,
 ) -> Vec<String> {
     const НАЧАЛО: &str = "<!--";
-    const КОНЕЦ_2: &str = "[-->";
+    //const КОНЕЦ_2: &str = "[-->";
     const КОНЕЦ_1: &str = "-->";
     //re образцы
     static RE_НАЧАЛО: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(?i)\s*(<!--)\s*$").unwrap());
-    static RE_КОНЕЦ_2: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^(?i)\s*(\[-->)\s*$").unwrap());
+    /*static RE_КОНЕЦ_2: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^(?i)\s*(\[-->)\s*$").unwrap());*/
     static RE_КОНЕЦ_1: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(?i)\s*(-->)\s*$").unwrap());
 

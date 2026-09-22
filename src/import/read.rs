@@ -12,6 +12,7 @@ use crate::utils::functions::вывод_сообщения_на_экран_и_в
 use crate::utils::read::*;
 use crate::utils::zip::zip_архив_в_память;
 use crate::utils::zip::Архив_в_озу;
+use Text_Changer::ВСЕГО_ШАГОВ;
 use console::style;
 use std::sync::LazyLock;
 use std::time::{
@@ -99,7 +100,10 @@ pub fn считать_книги(
     let куча_нераспознанных_расширений: Arc<Mutex<rapidhash::fast::RapidHashSet<String>>> =
         Arc::new(Mutex::new(rapidhash::fast::RapidHashSet::default()));
     //вывод этапа
-    println!("{}", style(format!("\t[1/4]: Считывание книг")).yellow(),);
+    println!(
+        "{}",
+        style(format!("\t[1/{ВСЕГО_ШАГОВ}]: Считывание книг")).yellow(),
+    );
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //let полный_путь: String = полный_путь_до_файла().unwrap();
     //let стопки_книг: Mutex<Vec<Text_Changer::Книги>> = Mutex::new(Vec::new());
@@ -553,7 +557,7 @@ pub fn считать_книги(
     println!(
         "{}{}",
         style(format!(
-            "\tВыделено памяти на этапе [1/4]: Считывание книг:  "
+            "\tВыделено памяти на этапе [1/{ВСЕГО_ШАГОВ}]: Считывание книг:  "
         ))
         .bold(),
         style(format!("Мегабайт: {}", количество_мегабайт))

@@ -555,11 +555,11 @@ pub fn замена_слов_через_кучу(
     _расширение: &str,
     куча_пропусков: &rapidhash::fast::RapidHashSet<usize>,
     словарь_куча: &rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
-    _этап: usize,
+    //_этап: usize,
     _указатель_содержимого: usize,
     _количество_вложений: usize,
     _вложенный_ли_файл_к_html: bool,
-    раздел_словаря: Text_Changer::Раздел_Словаря,
+    _раздел_словаря: Text_Changer::Раздел_Словаря,
 ) {
     // const СТРОКА_ИСКОМАЯ: &str = "фазовая модуляция формы";
 
@@ -6428,6 +6428,10 @@ pub fn создать_счётчики_словаря(
             .map(|_| AtomicUsize::new(0))
             .collect(),
         составное_важное: (0..полный_словарь.составное_важное.len())
+            .into_par_iter()
+            .map(|_| AtomicUsize::new(0))
+            .collect(),
+        составное_длинное: (0..полный_словарь.составное_длинное.len())
             .into_par_iter()
             .map(|_| AtomicUsize::new(0))
             .collect(),

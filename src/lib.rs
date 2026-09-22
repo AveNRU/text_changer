@@ -8,7 +8,7 @@ use std::fmt::{self};
 use std::hash::{Hash, Hasher};
 use std::sync::LazyLock;
 use std::sync::atomic::AtomicUsize;
-
+pub const ВСЕГО_ШАГОВ: usize = 5;
 //
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
@@ -1102,6 +1102,7 @@ pub enum Имена_страниц {
     Простая_стр,
     Cоставная_стр,
     Составные_важные_стр,
+    Составные_длинные_стр,
     Огласовки_стр,
     Вездесущее_стр,
     Неизменные_стр,
@@ -1124,6 +1125,9 @@ impl fmt::Display for Имена_страниц {
             Имена_страниц::Cоставная_стр => write!(f, "Составные"),
             Имена_страниц::Составные_важные_стр => {
                 write!(f, "Составные важные")
+            }
+            Имена_страниц::Составные_длинные_стр => {
+                write!(f, "Составные длинные")
             }
             Имена_страниц::Огласовки_стр => write!(f, "Огласовки"),
             Имена_страниц::Вездесущее_стр => write!(f, "Вездесущие"),
@@ -1177,8 +1181,9 @@ pub struct Словарь {
     //
     pub перевести: Vec<Ячейка_словаря>,           //одиночные слова
     pub простое: Vec<Ячейка_словаря>,             //одиночные слова
-    pub составное: Vec<Ячейка_словаря>,           //сложные и составные
-    pub составное_важное: Vec<Ячейка_словаря>,    //сложные и составные (в 1 очередь)
+    pub составное: Vec<Ячейка_словаря>,           //сложные и составные (в 3 очередь)
+    pub составное_важное: Vec<Ячейка_словаря>,    //сложные и составные (в 2 очередь)
+    pub составное_длинное: Vec<Ячейка_словаря>,   //сложные и составные (в 1 очередь)
     pub вездесущее: Vec<Ячейка_словаря>,          //сложные и составные
     pub неизменное: Vec<Ячейка_словаря>,          //
     pub огласовки: Vec<Ячейка_словаря>,           //
@@ -1229,7 +1234,7 @@ impl Default for Ячейка_словаря {
         }
     }
 }
-
+pub static КОЛИЧЕСТВО_ПРОХОДОВ_СЛОВАРЯ: usize = 10;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ: usize = 7;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ: usize = 77;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ: usize = 147;
@@ -1278,6 +1283,7 @@ pub enum Раздел_Словаря {
     Простые,
     Составные,
     Составные_важные,
+    Составные_длинные,
     Огласовки,
     Неизменные,
     Неизменные_короткие,
@@ -1295,6 +1301,9 @@ impl fmt::Display for Раздел_Словаря {
             Раздел_Словаря::Составные => write!(f, "Составные"),
             Раздел_Словаря::Составные_важные => {
                 write!(f, "Составные важные")
+            }
+            Раздел_Словаря::Составные_длинные => {
+                write!(f, "Составные длинные")
             }
             Раздел_Словаря::Огласовки => write!(f, "Огласовки"),
             Раздел_Словаря::Вездесущие => write!(f, "Вездесущие"),
@@ -1636,6 +1645,8 @@ pub struct Куча_Словарь {
     pub запятые: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub составное_важное:
         rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub составное_длинное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub вездесущее: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub неизменное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub огласовки: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
@@ -1650,6 +1661,7 @@ pub struct Куча_Словарь_Искомые {
     pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_важное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub составное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub вездесущее: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub неизменное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1663,6 +1675,7 @@ pub struct Куча_Словарь_Замены {
     pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+    pub составное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_важное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub вездесущее: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1709,6 +1722,7 @@ pub struct Полный_Словарь {
     pub простое: Vec<Ячейка_словаря>, //одиночные слова
     //сложные
     pub составное: Vec<Ячейка_словаря>, //сложные и составные
+    pub составное_длинное: Vec<Ячейка_словаря>, //сложные и составные
     pub запятые: Vec<Ячейка_словаря>,   //сложные и составные
     //сложные в 1 очередь
     pub составное_важное: Vec<Ячейка_словаря>, //сложные и составные (в 1 очередь)
@@ -1739,9 +1753,11 @@ pub trait Clear {
 
 impl Clear for Полный_Словарь {
     fn clear(&mut self) {
+        self.запятые.clear();
         self.простое.clear();
         self.составное.clear();
         self.составное_важное.clear();
+        self.составное_длинное.clear();
         self.вездесущее.clear();
         self.неизменное.clear();
         self.огласовки.clear();
@@ -1755,6 +1771,7 @@ pub struct Счётчики_Словаря {
     pub простое: Vec<AtomicUsize>,             //одиночные слова
     pub составное: Vec<AtomicUsize>,           //одиночные слова
     pub составное_важное: Vec<AtomicUsize>,    //одиночные слова
+    pub составное_длинное: Vec<AtomicUsize>,   //одиночные слова
     pub вездесущее: Vec<AtomicUsize>,          //одиночные слова
     pub неизменное: Vec<AtomicUsize>,          //одиночные слова
     pub огласовки: Vec<AtomicUsize>,           //одиночные слова
@@ -1773,4 +1790,9 @@ pub struct Быстрый_Словарь {
 pub struct Слова_с_Вложениями {
     pub слово: String,
     pub вложения: String,
+}
+#[derive(Debug, Default, Clone)]
+pub struct Прогон_замены {
+    pub книги: Vec<Книги>,
+    pub сообщения: Сообщения,
 }

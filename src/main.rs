@@ -17,7 +17,7 @@ use std::time::{
 //use xml::Encoding::Default;
 
 pub mod check_1;
-pub mod dictionary_0;
+pub mod dictionary;
 pub mod import;
 //pub mod lib;
 pub mod output;
@@ -36,13 +36,14 @@ use console::style;
 static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
 //
 use crate::ui_gpui::gpui_main::*;
-use gpui_kit::assets::Assets;
+//use gpui_kit::assets::Assets;
 use gpui_kit::component::{
-    button::Button,
-    h_flex,
-    switch::Switch,
-    text::{TextView, TextViewState},
-    v_flex, *,
+    //button::Button,
+    //h_flex,
+    //switch::Switch,
+    //text::{TextView, TextViewState},
+    //v_flex,
+    *,
 };
 use gpui_kit::*;
 fn main() {
@@ -95,22 +96,6 @@ fn main2(
         текущая_время_дата.format("%d-%m-%Y время: %H:%M:%S")
     );
     //
-    /*gpui_kit::application().run(move |cx| {
-        // This must be called before using any GPUI Component features.
-        gpui_kit::init(cx);
-
-        cx.spawn(async move |cx| {
-            cx.open_window(WindowOptions::default(), |window, cx| {
-                let view = cx.new(|_| HelloWorld);
-                // This first level on the window, should be a Root.
-                cx.new(|cx| Root::new(view, window, cx))
-            })
-            .expect("Failed to open window");
-        })
-        .detach();
-    });
-    system_pause();*/
-    //
     let mut сообщения: Text_Changer::Сообщения = Default::default();
     //подсчёт начала запуска времени
     //начало нового
@@ -147,8 +132,8 @@ fn main2(
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
-    let итог_замены_слов_в_книгах: (Vec<Text_Changer::Книги>, Text_Changer::Сообщения) =
-        dictionary_0::заменить_слова_в_книге_и_их_вывод(
+    let итог_замены_слов_в_книгах: Text_Changer::Прогон_замены =
+        dictionary::заменить_слова_в_книге_и_их_вывод(
             полный_словарь,
             исходная_книга.книги,
             сообщения,
@@ -156,27 +141,18 @@ fn main2(
         );
     // .await;
     //let выходные_книги: Vec<Text_Changer::Книги> = итог_замены_слов_в_книгах.0;
-    let mut сообщения: Text_Changer::Сообщения = итог_замены_слов_в_книгах.1;
+    let mut сообщения: Text_Changer::Сообщения = итог_замены_слов_в_книгах.сообщения;
     //
     /*let (tx,mut rx) = mpsc::unbounded_channel();
         let handle = thread::spawn(move|| {
     */
-    let результат = write::сохранить_книги_с_разделениями(
+    let итог = write::сохранить_книги_с_разделениями(
         книги_вывод,
         &данные_при_загрузке,
     )
     .unwrap();
-    //println!("Прошёл шаг!!!!!!!!");
-    /*      tx.send(результат).unwrap_or(());
-    });
-    let result = handle.join().unwrap();
-    let сообщения2=match rx.try_recv() {
-        Ok(сообщения) => сообщения,
-        Err(ошибка) => {println!("Сохранить книги с разделителями еще не готов : {}",ошибка); Default::default()},
-    };*/
-    //
     // сообщения.вложить(сообщения2);
-    сообщения.вложить(результат);
+    сообщения.вложить(итог);
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //write::сохранить_книги(&выходные_книги, &mut сообщения).unwrap();
 
