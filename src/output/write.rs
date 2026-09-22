@@ -1320,10 +1320,15 @@ pub fn вывод_всех_словарей_в_xls(
     );
     Ok(())
 }
-pub fn вывод_повтоно_найденных_слов_замен(
+pub fn вывод_повторно_найденных_слов_замен(
     куча_замен: &rapidhash::fast::RapidHashMap<String, usize>,
     путь_сохранения: String,
+    данные_при_загрузке: &Данные_при_загрузке,
 ) -> Result<(), rust_xlsxwriter::XlsxError> {
+    if !данные_при_загрузке.вывод_найденных_повторов_слов_в_заменах
+    {
+        return Ok(());
+    }
     //
     let mut книга: Workbook = Workbook::new();
     let страница = книга.add_worksheet().set_name("Замены").unwrap();
