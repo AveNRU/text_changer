@@ -128,6 +128,10 @@ pub enum Вид_приказов {
     Cgi,
 }
 #[derive(Debug, Clone)]
+pub enum Вид_рекламы_HTML {
+    Ru,
+}
+#[derive(Debug, Clone)]
 pub enum Основной_Вид_Расширения {
     Книга(Вид_Книги),
     Архив(Вид_Архива),
@@ -139,6 +143,7 @@ pub enum Основной_Вид_Расширения {
     Excel(Вид_Excel),
     XML,
     RTF,
+    Реклама_html(Вид_рекламы_HTML),
     JS(Вид_JS),
     Pdf,
     Прочее,
@@ -359,6 +364,14 @@ impl fmt::Display for Вид_Слова {
         }
     }
 }
+// Вид_Видео
+impl fmt::Display for Вид_рекламы_HTML {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Вид_рекламы_HTML::Ru => write!(f, "ru"),
+        }
+    }
+}
 
 // Вид_Видео
 impl fmt::Display for Вид_Видео {
@@ -560,6 +573,9 @@ impl fmt::Display for Основной_Вид_Расширения {
         match self {
             Основной_Вид_Расширения::Книга(вид) => {
                 write!(f, "книга({})", вид)
+            }
+            Основной_Вид_Расширения::Реклама_html(вид) => {
+                write!(f, "реклама html({})", вид)
             }
             Основной_Вид_Расширения::Архив(вид) => {
                 write!(f, "архив({})", вид)
