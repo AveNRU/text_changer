@@ -56,16 +56,25 @@ fn main() {
 
         содержимое
             .spawn(async move |cx| {
-                cx.open_window(WindowOptions::default(), |window, cx| {
-                    let view = cx.new(
-                        |_| Данные_при_загрузке::default(), /*{
-                                                                включить_перевод: true,
-                                                                включить_разделители: false,
-                                                            }*/
-                    );
-                    // This first level on the window, should be a Root.
-                    cx.new(|cx| Root::new(view, window, cx))
-                })
+                cx.open_window(
+                    WindowOptions {
+                        titlebar: Some(TitlebarOptions {
+                            title: Some("Переводчик слова по словарю".into()),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    },
+                    |окно, cx| {
+                        let отображение = cx.new(
+                            |_| Данные_при_загрузке::default(), /*{
+                                                                    включить_перевод: true,
+                                                                    включить_разделители: false,
+                                                                }*/
+                        );
+                        // This first level on the window, should be a Root.
+                        cx.new(|cx| Root::new(отображение, окно, cx))
+                    },
+                )
                 .expect("Failed to open window");
             })
             .detach();

@@ -3,6 +3,7 @@ use std::sync::LazyLock;
 use stringzilla::stringzilla::bytesum;
 //use clap::error::ErrorKind::Format;
 //use crate::import::functions::преобразовать_слово_с_чертой_в_начале;
+use crate::ui_gpui::gpui_main::Данные_при_загрузке;
 use Text_Changer::{
     Словарь_Переносов, Счётчики_Словаря, Ячейка_замены_с_исключением
 };
@@ -1328,11 +1329,17 @@ pub fn убрать_переносы(
         });
     //println!("счётчики замен: {:?}",счётчики_замен.двубуквенные);
 }
-pub fn создать_словарь_разделителей() -> Result<Словарь_разделителей, String> {
+pub fn создать_словарь_разделителей(
+    данные_при_загрузке: &Данные_при_загрузке,
+) -> Result<Словарь_разделителей, String> {
     use Text_Changer::Умные_Строки_Ряд;
     //use std::default::Default;
     //use crate::dictionary_0::проверка_ряда_regex;
     use Text_Changer::Ячейка_замены_с_разделителями;
+    //
+    if !данные_при_загрузке.включить_разделители {
+        return Ok(Default::default());
+    }
     let mut итоговый_словарь: Словарь_разделителей = Словарь_разделителей {
         содержимое: vec![
             Ячейка_замены_с_разделителями {
