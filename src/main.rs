@@ -116,7 +116,7 @@ fn main2(
     //книги
     //println!("Выделено памяти2(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     let исходные_книги: Text_Changer::Книги_в_ОЗУ =
-        import::read::считать_книги(&mut сообщения);
+        import::read::считать_книги(&mut сообщения, &данные_при_загрузке);
     //словари
     //println!("Выделено памяти(main)3: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //словарь со словами в виде заглвных букв и маленьких

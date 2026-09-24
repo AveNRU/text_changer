@@ -62,7 +62,7 @@ static RE_РАСШИРЕНИЕ_ФАЙЛА_3_Й_СЛУЧАЙ: LazyLock<Regex> =
 //static RE_ИМЯ_ФАЙЛА: LazyLock<Regex> =
 //  LazyLock::new(|| Regex::new(r"\.\*/*книги\\*/*(.+)\.(?:[\d\w&&[^\.]]+)").unwrap());*/
 //имя словаря вырезать
-
+use crate::ui_gpui::gpui_main::Данные_при_загрузке;
 use crate::utils::read::получить_содержимое;
 //Чтение файлов
 //1 - книги, 2 - словари
@@ -77,6 +77,7 @@ pub fn считать_словари() -> Vec<String> {
 
 pub fn считать_книги(
     сообщения_приход: &mut Text_Changer::Сообщения,
+    данные_при_загрузке: &Данные_при_загрузке,
 ) -> Text_Changer::Книги_в_ОЗУ {
     // use crate::utils::functions::*;
     //use crate::utils::functions_add::прочитать_содержимое_построчно;
@@ -91,6 +92,11 @@ pub fn считать_книги(
     let точка_отсчёта_по_времени: Instant = Instant::now();
     // Set the limit to 30000MiB.
     ALLOCATOR.set_limit(30000 * 1024 * 1024).unwrap();
+    //если не надо переводить
+    if !данные_при_загрузке.включить_перевод {
+        println!("Считывание книг отменено");
+        return Default::default();
+    }
     // ...
     // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //основной путь

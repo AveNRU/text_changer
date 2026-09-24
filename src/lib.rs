@@ -1035,7 +1035,7 @@ impl Default for Пути_Общие {
         }
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Книги_в_ОЗУ {
     //файлы
     pub книги: Vec<Книга_целиковая>,
