@@ -1871,7 +1871,7 @@ impl Clear for Полный_Словарь {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Счётчики_Словаря {
     pub простое: Vec<AtomicUsize>,             //одиночные слова
     pub составное: Vec<AtomicUsize>,           //одиночные слова
@@ -1884,6 +1884,7 @@ pub struct Счётчики_Словаря {
     pub неизменное_длинное: Vec<AtomicUsize>,  //одиночные слова
     pub запятые: Vec<AtomicUsize>,             //одиночные слова
 }
+//impl Default for
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
 pub struct Быстрый_Словарь {
