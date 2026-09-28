@@ -7,7 +7,9 @@ edition = "2024"
 #build = "build.rs"
 [dependencies]
 #find-msvc-tools = "*"
-gpui-kit = "*"
+#gpui-kit = "*"
+gpui-kit = { path = "E:/Rust/gpui-kit/crates/kit" }
+gpui-component-story = { path = "E:/Rust/gpui-kit/crates/story" }
 #для замера ОЗУ
 cap = "*"
 rmp-serde = "*"
@@ -86,3 +88,5 @@ stringzilla = "*"
 [env]
 RUST_MIN_STACK = "14388608"
 #объявление раздела gpui
+[patch.crates-io]
+rquickjs = { path = "E:/Rust/gpui-kit/crates/shell/rquickjs-compat" }
