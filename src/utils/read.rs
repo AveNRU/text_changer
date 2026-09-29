@@ -1605,6 +1605,32 @@ pub fn удалить_переходы_в_epub(
                     re_образец_замены: Regex::new(r##"^<p><span class=\"font6\">\s*"##)
                         .unwrap(),
                 },
+                //
+                Ячейка_замены_Epub {
+                    искомое_слово:
+                        Text_Changer::Умная_Строка::создать_значение(
+                            r##"<p><span class=\"font10\">"##.to_string(),
+                        ),
+                    re_образец_поиска: Regex::new(
+                        r##"^<p><span class=\"font10">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
+                    )
+                    .unwrap(),
+                    re_образец_замены: Regex::new(r##"^<p><span class=\"font10\">\s*"##)
+                        .unwrap(),
+                },
+                //
+                Ячейка_замены_Epub {
+                    искомое_слово:
+                        Text_Changer::Умная_Строка::создать_значение(
+                            r##"<p><span class=\"font1\">"##.to_string(),
+                        ),
+                    re_образец_поиска: Regex::new(
+                        r##"^<p><span class=\"font1">\s*([абвгджзеёийклмнопрстуфхцчшщъыьэюя-]+)"##,
+                    )
+                    .unwrap(),
+                    re_образец_замены: Regex::new(r##"^<p><span class=\"font1\">\s*"##)
+                        .unwrap(),
+                },
             ],
             }
         });
