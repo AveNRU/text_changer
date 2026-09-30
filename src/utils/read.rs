@@ -2797,6 +2797,7 @@ static RE_SHY: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)&shy;|­|\u{00AD}|\u{200B}").unwrap());
 static RE_NBSP: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)&nbsp;| |\u{00A0}|&#xA0;").unwrap());
+static RE_AMP_БОЛЬШОЙ: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)&amp;amp;").unwrap());
 static RE_AMP: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)&amp;").unwrap());
 static RE_QUOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"(?i)&quot;|"|&#x22;"#).unwrap());
 static RE_APOS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)&#x27;").unwrap());
@@ -2832,6 +2833,7 @@ fn удалить_shy_из_ряда_умных_строк(
             // Благодаря (?i) удалит и &shy;, и &SHY;, и &Shy;
             рукопись = RE_SHY.replace_all(&рукопись, "").into_owned();
             рукопись = RE_NBSP.replace_all(&рукопись, " ").into_owned();
+            рукопись = RE_AMP_БОЛЬШОЙ.replace_all(&рукопись, "&").into_owned();
             рукопись = RE_AMP.replace_all(&рукопись, "&").into_owned();
             рукопись = RE_QUOT.replace_all(&рукопись, "\"").into_owned();
             рукопись = RE_APOS.replace_all(&рукопись, "'").into_owned();
