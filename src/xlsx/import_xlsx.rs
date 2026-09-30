@@ -40,6 +40,10 @@ pub fn загрузка_словарей(
     #[cfg(feature = "dhat-ad-hoc")]
     dhat::ad_hoc_event(100);
     use crate::dictionary::вложижить_слова_замены_в_кучу_словарь;
+    if !данные_при_загрузке.загрузить_словари {
+        println!("Загрузка словарей отменена");
+        return Default::default();
+    }
     let куча_словарь_искомые: Arc<Mutex<[Куча_Словарь_Искомые; 3]>> =
         Arc::new(Mutex::new(Default::default()));
     let куча_словарь_замены: Arc<Mutex<[Куча_Словарь_Замены; 3]>> =

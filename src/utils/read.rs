@@ -2791,49 +2791,58 @@ let строки: Vec<String> = строки
         })
         .collect()
 }*/
+
+// Компилируем регулярные выражения один раз при старте
+static RE_SHY: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)&shy;|­|\u{00AD}|\u{200B}").unwrap());
+static RE_NBSP: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)&nbsp;| |\u{00A0}|&#xA0;").unwrap());
+static RE_AMP: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)&amp;").unwrap());
+static RE_QUOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"(?i)&quot;|"|&#x22;"#).unwrap());
+static RE_APOS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)&#x27;").unwrap());
+static RE_CDATA: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)/\*\s*<!\[CDATA\[\s*\*/|/\*\s*\]\]>\s*\*/|/\*\s*IMG\s*\*/").unwrap()
+});
+
 fn удалить_shy_из_ряда_умных_строк(
     строки: &[Text_Changer::Умная_Строка],
 ) -> Vec<Text_Changer::Умная_Строка> {
-    let строки: Vec<Text_Changer::Умная_Строка> = строки
+    // Первый проход (копирует вашу логику sz_найти_в_умной_строке)
+    let строки_шаг_1: Vec<Text_Changer::Умная_Строка> = строки
         .iter()
         .map(|строка| {
             if sz_найти_в_умной_строке(&строка, "\u{00A0}")
                 && !нет_ссылки_на_папку(&строка)
             {
-                строка.replace("\u{00A0}", " ") // Unicode символ
+                // Здесь возвращается обычная String (или тип вашего конвертера)
+                Text_Changer::Умная_Строка::from(строка.replace("\u{00A0}", " "))
             } else {
                 строка.clone()
             }
         })
         .collect();
-    строки
-        .iter()
+
+    // Второй проход — глубокая очистка через Regex
+    строки_шаг_1
+        .into_iter()
         .map(|строка| {
-            строка
-                .replace("&shy;", "")
-                .replace("­", "")
-                .replace("&nbsp;", " ")
-                .replace("\u{00AD}", "")
-                .replace("&#8209;", "-")
-                .replace("\u{2011}", "-")
-                .replace("&#160;", " ") // числовая форма
-                //.replace("\u{00A0}", " ") // Unicode символ
-                .replace("&#xA0;", " ") // шестнадцатеричная форма
-                // <
-                //.replace("&lt;", "<") - убрано 10.05.2026, так как убирает нужную скобку, которая для текста нужна
-                //.replace("&gt;", ">") // больше  - убрано 10.05.2026, так как убирает нужную скобку, которая для текста нужна
-                .replace("&amp;", "&") // амперсанд
-                .replace("&quot;", "\"") // двойная кавычка
-                //.replace("&#39;", "'") // одинарная кавычка
-                .replace("&#x27;", "'") // одинарная кавычка (hex)
-                //>
-                //двойная кавычка
-                .replace("&#34;", "\"") // числовая форма
-                .replace("&#x22;", "\"") // шестнадцатеричная форма
-                //удаление /* <![CDATA[ */ - внутри script
-                .replace("/* <![CDATA[ */", "")
-                .replace("/* ]]> */", "")
-                .replace("/* IMG */", "")
+            // Переводим в промежуточную строку для применения regex
+            let mut рукопись = строка.to_string();
+
+            // Благодаря (?i) удалит и &shy;, и &SHY;, и &Shy;
+            рукопись = RE_SHY.replace_all(&рукопись, "").into_owned();
+            рукопись = RE_NBSP.replace_all(&рукопись, " ").into_owned();
+            рукопись = RE_AMP.replace_all(&рукопись, "&").into_owned();
+            рукопись = RE_QUOT.replace_all(&рукопись, "\"").into_owned();
+            рукопись = RE_APOS.replace_all(&рукопись, "'").into_owned();
+
+            // Очистка CDATA с учётом возможных лишних пробелов внутри /* <![CDATA[ */
+            рукопись = RE_CDATA.replace_all(&рукопись, "").into_owned();
+
+            // Стандартные символьные замены (без регистра)
+            рукопись = рукопись.replace("‑", "-").replace("\u{2011}", "-");
+
+            Text_Changer::Умная_Строка::создать_значение(рукопись)
         })
         .collect()
 }

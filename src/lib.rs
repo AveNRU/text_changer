@@ -156,6 +156,12 @@ pub enum Основной_Вид_Расширения {
     Не_определено,
 }
 impl Основной_Вид_Расширения {
+    pub fn txt(&self) -> bool {
+        match self {
+            Основной_Вид_Расширения::Простая_письменность(Txt) => true,
+            _ => false,
+        }
+    }
     pub fn без_названия(&self) -> bool {
         match self {
             Основной_Вид_Расширения::Без_Названия => true,
@@ -1116,7 +1122,7 @@ pub struct Указатель_на_две_кучи_словаря<'a> {
     pub искомая: &'a rapidhash::fast::RapidHashSet<String>,
     pub замена: &'a rapidhash::fast::RapidHashSet<String>,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Словари_с_кучами {
     //файлы
     pub сам: Полный_Словарь,
@@ -1504,6 +1510,7 @@ use std::ops::{Index, IndexMut};
 
 use crate::Вид_Архивной_Книги::{Epub, Fb3};
 use crate::Вид_одичноной_книги::Fb2;
+use crate::Вид_простой_письменности::Txt;
 #[derive(Clone, Debug)] //Serialize, Deserialize,
 //#[serde(default)] // Добавляем это для всей структуры
 pub struct Словарь_разделителей {
