@@ -89,7 +89,7 @@ fn main() {
 
 //async
 fn main2(
-    данные_при_загрузке: Данные_при_загрузке
+    данные_при_загрузке: Данные_при_загрузке, //отмена: Arc<AtomicBool>,
 ) -> Result<(), ()> {
     //println!("|{:?}|", данные_при_загрузке);
     use Text_Changer::Вид_Словаря;
@@ -110,6 +110,10 @@ fn main2(
         исполнение,
         текущая_время_дата.format("%d-%m-%Y время: %H:%M:%S")
     );
+    //
+    /*if отмена.load(Ordering::Relaxed) {
+        return Ok(());
+    }*/
     //
     let mut сообщения: Text_Changer::Сообщения = Default::default();
     //подсчёт начала запуска времени
@@ -151,7 +155,7 @@ fn main2(
         .unwrap();
     }
     //сохранение исходных книг - с разделениями
-    let книги_вывод = исходные_книги.книги.clone();
+    let книги_вывод: Vec<Text_Changer::Книга_целиковая> = исходные_книги.книги.clone();
     //замена слов в книге
     //сама замена слов
     //println!("Выделено памяти(main)4: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
@@ -169,11 +173,12 @@ fn main2(
     /*let (tx,mut rx) = mpsc::unbounded_channel();
         let handle = thread::spawn(move|| {
     */
-    let итог = write::сохранить_книги_с_разделениями(
-        книги_вывод,
-        &данные_при_загрузке,
-    )
-    .unwrap();
+    let итог: Text_Changer::Сообщения =
+        write::сохранить_книги_с_разделениями(
+            книги_вывод,
+            &данные_при_загрузке,
+        )
+        .unwrap();
     // сообщения.вложить(сообщения2);
     сообщения.вложить(итог);
     //println!("Выделено памяти(main)5: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
@@ -197,6 +202,17 @@ fn main2(
         .true_color(154, 136, 252)
         .blink()
     );
+    //очистка
+    /*let сообщения: Text_Changer::Сообщения = Default::default();
+    let исходные_книги: Text_Changer::Книги_в_ОЗУ = Default::default();
+    let полный_словарь: Text_Changer::Словари_с_кучами =
+        Text_Changer::Словари_с_кучами {
+            сам: Default::default(),
+            кучи: Default::default(),
+        };
+    let итог: Text_Changer::Сообщения = Default::default();
+    let книги_вывод: Vec<Text_Changer::Книга_целиковая> = Default::default();
+    let итог_замены_слов_в_книгах: Text_Changer::Прогон_замены = Default::default();*/
 
     system_pause();
     println!();
