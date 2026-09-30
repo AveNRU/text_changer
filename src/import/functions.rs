@@ -2,11 +2,11 @@
 use crate::xlsx::import_xlsx::{
     найти_особые_знаки, обратно_убрать_особые_знаки
 };
-use convert_case::{Case, Casing};
+use convert_case::Case;
 //use foldhash::{HashMap, HashMapExt, HashSet};
 
 pub fn два_слова_из_одного_для_словаря(
-    иходное_слово: &String,
+    иходное_слово: &Text_Changer::Умная_Строка,
 ) -> Text_Changer::Два_Слова {
     /* {
         static куча: rapidhash::fast::RapidHashSet<char> =
@@ -51,23 +51,31 @@ pub fn два_слова_из_одного_для_словаря(
     };
 }
 pub fn преобразовать_слово_с_чертой_в_начале(
-    слово: String,
-) -> String {
+    слово: Text_Changer::Умная_Строка,
+) -> Text_Changer::Умная_Строка {
     let mut знаки: Vec<char> = слово.chars().collect();
     if let Some(знак) = знаки.get_mut(1) {
         *знак = знак.to_uppercase().next().unwrap_or(*знак);
     }
-    знаки.iter().collect()
+    Text_Changer::Умная_Строка::создать_значение(
+        Text_Changer::Умная_Строка::создать_значение(
+            знаки.iter().collect::<String>(),
+        ),
+    )
 }
 //
 pub fn преобразовать_слово_с_чертой_в_конце(
-    слово: String,
-) -> String {
+    слово: Text_Changer::Умная_Строка,
+) -> Text_Changer::Умная_Строка {
     let mut знаки: Vec<char> = слово.chars().collect();
     if let Some(знак) = знаки.get_mut(0) {
         *знак = знак.to_uppercase().next().unwrap_or(*знак);
     }
-    знаки.iter().collect()
+    Text_Changer::Умная_Строка::создать_значение(
+        Text_Changer::Умная_Строка::создать_значение(
+            знаки.iter().collect::<String>(),
+        ),
+    )
 }
 //
 pub fn преобразовать_слово_с_чертой_в_конце_в_умную_строку(
@@ -88,7 +96,7 @@ pub fn преобразовать_слово_с_чертой_в_конце_в_у
 }
 
 pub fn три_слова_из_одного_для_словаря(
-    иходное_слово: &String,
+    иходное_слово: &Text_Changer::Умная_Строка,
 ) -> Text_Changer::Три_Слова {
     /*{
         static куча: rapidhash::fast::RapidHashSet<char> =
@@ -132,7 +140,7 @@ pub fn три_слова_из_одного_для_словаря(
     };
 }
 pub fn если_слово_начинается_с_особых_знаков(
-    иходное_слово: &String,
+    иходное_слово: &Text_Changer::Умная_Строка,
 ) -> bool {
     let временный_составной_ряд: Text_Changer::Слово_и_знаки =
         найти_особые_знаки(&иходное_слово);

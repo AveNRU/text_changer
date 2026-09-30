@@ -34,7 +34,7 @@ use console::style;
 //
 
 #[global_allocator]
-static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
+static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::MAX);
 //
 use crate::ui_gpui::gpui_main::*;
 //use gpui_kit::assets::Assets;
@@ -91,7 +91,7 @@ fn main() {
 fn main2(
     данные_при_загрузке: Данные_при_загрузке
 ) -> Result<(), ()> {
-    println!("|{:?}|", данные_при_загрузке);
+    //println!("|{:?}|", данные_при_загрузке);
     use Text_Changer::Вид_Словаря;
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]

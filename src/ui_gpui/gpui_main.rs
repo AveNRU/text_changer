@@ -1,4 +1,5 @@
 //
+#[allow(non_camel_case_types)]
 #[derive(Clone, Debug, Copy)]
 pub struct Данные_при_загрузке {
     pub включить_перевод: bool,

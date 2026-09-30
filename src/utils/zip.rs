@@ -76,7 +76,7 @@ impl Zips {
     }
 }
 pub fn zip_архив_в_память(
-    путь: &String,
+    путь: &Text_Changer::Умная_Строка,
     mut virt_fs: Архив_в_озу,
 ) -> Result<Архив_в_озу, Box<dyn std::error::Error>> {
     //rapidhash::fast::RapidHashMap<String, Vec<u8>>{
@@ -85,7 +85,7 @@ pub fn zip_архив_в_память(
         Ok(_zip) => (),
         Err(ZipsError::Пустойфайл) => return Err(format!("Пустой файл").into()),
         Err(ошибка) => {
-            panic!("Ошибка при распаковке файла в архив: {путь}. Ошибка: {ошибка}")
+            panic!("Ошибка при распаковке файла в архив |{путь}|. Ошибка: {ошибка}")
         }
     }
     for (путь, содержимое) in zips.хранение_в_озу.iter() {
