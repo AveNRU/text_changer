@@ -12,7 +12,7 @@ gpui-kit = { path = "E:/Rust/gpui-kit/crates/kit" }
 gpui-component-story = { path = "E:/Rust/gpui-kit/crates/story" }
 #для замера ОЗУ
 cap = "*"
-rmp-serde = "*"
+#rmp-serde = "*"
 #смешные лица
 indicatif = {version = "*", features = ["rayon"]}
 #постоянные данные
@@ -42,7 +42,7 @@ rayon = "*"
 #quick-xml = "*"
 #pretty_assertions = "*"
 console = "*"
-rand = "*"
+#rand = "*"
 smol = "*"
 #dhat = "*"
 #sha2 = "*"
@@ -50,8 +50,8 @@ smol = "*"
 rapidhash = "*"
 serde = { version = "*", features = ["derive"] }
 unicode-segmentation = "*"
-tokio = { version = "*", features = ["full"]  }
-tokio-macros = "*"
+#tokio = { version = "*", features = ["full"]  }
+#okio-macros = "*"
 [workspace]
 members = [
     "rzhavchina_proc_macro",

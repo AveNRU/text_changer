@@ -6521,6 +6521,11 @@ pub fn создать_счётчики_словаря(
             .into_par_iter()
             .map(|_| AtomicUsize::new(0))
             .collect(),
+        //
+        запятые_длинные: (0..полный_словарь.запятые_длинные.len())
+            .into_par_iter()
+            .map(|_| AtomicUsize::new(0))
+            .collect(),
     });
 }
 

@@ -1304,6 +1304,7 @@ pub enum Имена_страниц {
     Неизменные_длинные_стр,
     Неизменные_короткие_стр,
     Запятые_стр,
+    Запятые_длинные_стр,
     Перевести_стр,
     //
 }
@@ -1335,6 +1336,9 @@ impl fmt::Display for Имена_страниц {
             }
             Имена_страниц::Запятые_стр => {
                 write!(f, "Запятые")
+            }
+            Имена_страниц::Запятые_длинные_стр => {
+                write!(f, "Запятые_длинные")
             }
         }
     }
@@ -1385,6 +1389,7 @@ pub struct Словарь {
     pub неизменное_короткое: Vec<Ячейка_словаря>, //
     pub неизменное_длинное: Vec<Ячейка_словаря>,  //
     pub запятые: Vec<Ячейка_словаря>,             //
+    pub запятые_длннные: Vec<Ячейка_словаря>,     //
 }
 
 //словарь переносов
@@ -1429,7 +1434,7 @@ impl Default for Ячейка_словаря {
         }
     }
 }
-pub static КОЛИЧЕСТВО_ПРОХОДОВ_СЛОВАРЯ: usize = 10;
+pub static КОЛИЧЕСТВО_ПРОХОДОВ_СЛОВАРЯ: usize = 11;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ОДНОБУКВЕННЫЕ: usize = 7;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ДВУБУКВЕННЫЕ: usize = 77;
 pub static СЛОВАРЬ_ПЕРЕНОСОВ_ТРЕХБУКВЕННЫЕ: usize = 147;
@@ -1484,6 +1489,7 @@ pub enum Раздел_Словаря {
     Неизменные_короткие,
     Неизменные_длинные,
     Запятые,
+    Запятые_длинные,
     Вездесущие,
     Не_является_разделом,
 }
@@ -1508,6 +1514,9 @@ impl fmt::Display for Раздел_Словаря {
             }
             Раздел_Словаря::Запятые => {
                 write!(f, "Запятые")
+            }
+            Раздел_Словаря::Запятые_длинные => {
+                write!(f, "Запятые длинные")
             }
             Раздел_Словаря::Неизменные_короткие => {
                 write!(f, "Неизменные короткие")
@@ -1842,6 +1851,8 @@ pub struct Куча_Словарь {
     pub простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub запятые: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub запятые_длинные:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub составное_важное:
         rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub составное_длинное:
@@ -1863,6 +1874,7 @@ pub struct Куча_Словарь_Искомые {
     pub составное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub вездесущее: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
+    pub запятые_длинные: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub огласовки: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1873,6 +1885,7 @@ pub struct Куча_Словарь_Замены {
     pub перевести: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
+    pub запятые_длинные: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub составное_важное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1923,6 +1936,7 @@ pub struct Полный_Словарь {
     pub составное: Vec<Ячейка_словаря>, //сложные и составные
     pub составное_длинное: Vec<Ячейка_словаря>, //сложные и составные
     pub запятые: Vec<Ячейка_словаря>,   //сложные и составные
+    pub запятые_длинные: Vec<Ячейка_словаря>, //сложные и составные
     //сложные в 1 очередь
     pub составное_важное: Vec<Ячейка_словаря>, //сложные и составные (в 1 очередь)
     //вездесущие слова в 1 очередь
@@ -1952,6 +1966,7 @@ pub trait Clear {
 
 impl Clear for Полный_Словарь {
     fn clear(&mut self) {
+        self.запятые_длинные.clear();
         self.запятые.clear();
         self.простое.clear();
         self.составное.clear();
@@ -1977,6 +1992,7 @@ pub struct Счётчики_Словаря {
     pub неизменное_короткое: Vec<AtomicUsize>, //одиночные слова
     pub неизменное_длинное: Vec<AtomicUsize>,  //одиночные слова
     pub запятые: Vec<AtomicUsize>,             //одиночные слова
+    pub запятые_длинные: Vec<AtomicUsize>,     //одиночные слова
 }
 //impl Default for
 //итоговый общий словарь

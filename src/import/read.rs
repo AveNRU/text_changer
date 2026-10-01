@@ -625,7 +625,6 @@ pub fn считать_книги(
             точка_отсчёта_по_времени.elapsed()
         ))
         .true_color(154, 136, 252)
-        .blink()
     );
     //
     let куча_нераспознанных_расширений: rapidhash::fast::RapidHashSet<String> =
