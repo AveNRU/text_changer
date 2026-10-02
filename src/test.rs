@@ -1,6 +1,7 @@
+use regex::Regex;
+use std::sync::LazyLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
-
 //use clap::builder::Str;
 //use convert_case::{Case, Casing};
 //use rapidhash::*;
@@ -134,6 +135,396 @@ pub fn сравнить_основной_и_запасной_словари(
     )
     .unwrap();
 
+    Ok(())
+}
+//
+pub fn найти_недостающие_слова(
+    основной_словарь: &Text_Changer::Словари_с_кучами,
+    вид_словаря: &Text_Changer::Вид_Словаря,
+) -> Result<(), ()> {
+    #![allow(non_snake_case, non_camel_case_types)]
+    let время_отсчёта: Instant = Instant::now();
+    use crate::utils::stringzilla::sz_упорядочить_кучу_строк_rapid_в_ряд_строк;
+    //
+    pub struct Окончания_включающие {
+        начально: &'static [Regex],
+        конец: &'static [&'static str],
+    }
+
+    static RE_НАЧАЛЬНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 20]> = LazyLock::new(|| {
+        [
+            //само слово и 1 буква дополнительно
+            Regex::new(r"(?i)ван$").unwrap(),
+            Regex::new(r"(?i)вана$").unwrap(),
+            Regex::new(r"(?i)вано$").unwrap(),
+            Regex::new(r"(?i)ваны$").unwrap(),
+            //а
+            Regex::new(r"(?i)ванная$").unwrap(),
+            //у
+            Regex::new(r"(?i)ванную$").unwrap(),
+            //о
+            Regex::new(r"(?i)ванное$").unwrap(),
+            Regex::new(r"(?i)ванного$").unwrap(),
+            Regex::new(r"(?i)ванном$").unwrap(),
+            Regex::new(r"(?i)ванному$").unwrap(),
+            Regex::new(r"(?i)ванность$").unwrap(),
+            Regex::new(r"(?i)ванности$").unwrap(),
+            Regex::new(r"(?i)ванностей$").unwrap(),
+            Regex::new(r"(?i)ванностям$").unwrap(),
+            Regex::new(r"(?i)ванностями$").unwrap(),
+            Regex::new(r"(?i)ванностях$").unwrap(),
+            //ы
+            Regex::new(r"(?i)ванным$").unwrap(),
+            Regex::new(r"(?i)ванными$").unwrap(),
+            Regex::new(r"(?i)ванных$").unwrap(),
+            Regex::new(r"(?i)ванные$").unwrap(),
+        ]
+    });
+
+    /*static RE_КОНЕЧНЫЕ_ОКОНЧАНИЯ_О: LazyLock<[Regex; 19]> = LazyLock::new(|| {
+        [
+            Regex::new(r"(?i)вана$").unwrap(),
+            Regex::new(r"(?i)вано$").unwrap(),
+            Regex::new(r"(?i)ваны$").unwrap(),
+            Regex::new(r"(?i)ванная$").unwrap(),
+            Regex::new(r"(?i)ванную$").unwrap(),
+            //о
+            Regex::new(r"(?i)ванное$").unwrap(),
+            Regex::new(r"(?i)ванного$").unwrap(),
+            //глаголы
+            Regex::new(r"(?i)ванном$").unwrap(),
+            Regex::new(r"(?i)ванному$").unwrap(),
+            Regex::new(r"(?i)ванность$").unwrap(),
+            Regex::new(r"(?i)ванности$").unwrap(),
+            Regex::new(r"(?i)ванностей$").unwrap(),
+            Regex::new(r"(?i)ванностям$").unwrap(),
+            Regex::new(r"(?i)ванностями$").unwrap(),
+            Regex::new(r"(?i)ванностях$").unwrap(),
+            //ы
+            Regex::new(r"(?i)ванным$").unwrap(),
+            Regex::new(r"(?i)ванными$").unwrap(),
+            Regex::new(r"(?i)ванных$").unwrap(),
+            Regex::new(r"(?i)ванные$").unwrap(),
+        ]
+    });*/
+    const КОНЕЧНЫЕ_ОКОНЧАНИЯ_ВАН: [&'static str; 19] = [
+        "вана",
+        "вано",
+        "ваны",
+        "ванная",
+        "ванную",
+        //о
+        "ванное",
+        "ванного",
+        //глаголы
+        "ванном",
+        "ванному",
+        "ванность",
+        "ванности",
+        "ванностей",
+        "ванностям",
+        "ванностями",
+        "ванностях",
+        //ы
+        "ванным",
+        "ванными",
+        "ванных",
+        "ванные",
+    ];
+
+    // где-то в коде, один раз:
+    let стопка_ван: Окончания_включающие = Окончания_включающие {
+        начально: &*RE_НАЧАЛЬНЫЕ_ОКОНЧАНИЯ_ВАН, // &[Regex; 1] → &[Regex] через coercion
+        конец: &КОНЕЧНЫЕ_ОКОНЧАНИЯ_ВАН,
+    };
+    //
+    //
+    //
+    println!(
+        "{}",
+        style(format!("\t Проверка недостающих окончаний")).blue(),
+    );
+    //
+    let куча_1: rapidhash::fast::RapidHashSet<String> = основной_словарь.кучи.куча_словарь_искомые
+        [0]
+    .простое
+    .iter()
+    .flat_map(|слово_в_куче| {
+        стопка_ван
+            .начально
+            .iter()
+            .flat_map(|образец_re| {
+                //есть ли окончание по образцу в слове из кучи - если нет, то следующее слово
+                if !образец_re.is_match(слово_в_куче) {
+                    return rapidhash::fast::RapidHashSet::default();
+                }
+                //выделяем само слово без окончания
+                let обрезок: String = стопка_ван.начально[0]
+                    .replace(слово_в_куче, "")
+                    .into_owned();
+                //проверяем всю кучу на предмет недостающих окончаний
+                стопка_ван
+                    .конец
+                    .iter()
+                    .filter_map(|образец| {
+                        let новое_слово = format!("{обрезок}{образец}");
+                        if !основной_словарь.кучи.куча_словарь_искомые[0]
+                            .простое
+                            .contains(&новое_слово)
+                        {
+                            Some(format!("{новое_слово}"))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<rapidhash::fast::RapidHashSet<String>>()
+            })
+            .collect::<rapidhash::fast::RapidHashSet<String>>()
+        //
+        /*if !стопка_ван.начально[0].is_match(слово_в_куче) {
+            return rapidhash::fast::RapidHashSet::default();
+        }
+
+        let обрезок: String = стопка_ван.начально[0]
+            .replace(слово_в_куче, "")
+            .into_owned();
+
+        стопка_ван
+            .конец
+            .iter()
+            .filter_map(|образец| {
+                let новое_слово = format!("{обрезок}{образец}");
+                if !основной_словарь.кучи.куча_словарь_искомые[0]
+                    .простое
+                    .contains(&новое_слово)
+                {
+                    Some(format!("{новое_слово}"))
+                } else {
+                    None
+                }
+            })
+            .collect::<rapidhash::fast::RapidHashSet<String>>()*/
+    })
+    .collect();
+    let ряд_упорядоченный: Vec<String> =
+        sz_упорядочить_кучу_строк_rapid_в_ряд_строк(куча_1);
+    //
+    for ошибка in ряд_упорядоченный.iter() {
+        println!(
+            "{}{}{}{}",
+            style(format!("Словарь ")),
+            style(format!("|{вид_словаря}|")).red(),
+            style(format!("не содержит ")),
+            style(format!("|{ошибка}|")).cyan(),
+        );
+    }
+
+    /*println!(
+        "Длина кучи слов, подлежащих переводу - |{}|",
+    );*/
+    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ: LazyLock<[Regex; 58]> = LazyLock::new(|| {
+        [
+            //----------------------------------
+            //ван
+            //а
+            Regex::new(r"(?i)ваная$").unwrap(),
+            //одиночн
+            Regex::new(r"(?i)ванн$").unwrap(),
+            Regex::new(r"(?i)ванна$").unwrap(),
+            Regex::new(r"(?i)ванно$").unwrap(),
+            Regex::new(r"(?i)ванны$").unwrap(),
+            //ую
+            Regex::new(r"(?i)ваную$").unwrap(),
+            //о
+            Regex::new(r"(?i)ваное$").unwrap(),
+            Regex::new(r"(?i)ваного$").unwrap(),
+            //глаголы
+            Regex::new(r"(?i)ваном$").unwrap(),
+            Regex::new(r"(?i)ваному$").unwrap(),
+            Regex::new(r"(?i)ваность$").unwrap(),
+            Regex::new(r"(?i)ваности$").unwrap(),
+            Regex::new(r"(?i)ваностей$").unwrap(),
+            Regex::new(r"(?i)ваностям$").unwrap(),
+            Regex::new(r"(?i)ваностями$").unwrap(),
+            Regex::new(r"(?i)ваностях$").unwrap(),
+            //ы
+            Regex::new(r"(?i)ваным$").unwrap(),
+            Regex::new(r"(?i)ваными$").unwrap(),
+            Regex::new(r"(?i)ваных$").unwrap(),
+            Regex::new(r"(?i)ваные$").unwrap(),
+            //----------------------------------
+            //ен
+            //а
+            Regex::new(r"(?i)еная$").unwrap(),
+            //одиночн
+            Regex::new(r"(?i)енн$").unwrap(),
+            Regex::new(r"(?i)енна$").unwrap(),
+            Regex::new(r"(?i)енно$").unwrap(),
+            Regex::new(r"(?i)енны$").unwrap(),
+            //ую
+            Regex::new(r"(?i)еную$").unwrap(),
+            //о
+            Regex::new(r"(?i)еное$").unwrap(),
+            Regex::new(r"(?i)еного$").unwrap(),
+            //глаголы
+            Regex::new(r"(?i)еном$").unwrap(),
+            Regex::new(r"(?i)еному$").unwrap(),
+            Regex::new(r"(?i)еность$").unwrap(),
+            Regex::new(r"(?i)ености$").unwrap(),
+            Regex::new(r"(?i)еностей$").unwrap(),
+            Regex::new(r"(?i)еностям$").unwrap(),
+            Regex::new(r"(?i)еностями$").unwrap(),
+            Regex::new(r"(?i)еностях$").unwrap(),
+            //ы
+            Regex::new(r"(?i)еным$").unwrap(),
+            Regex::new(r"(?i)еными$").unwrap(),
+            Regex::new(r"(?i)еных$").unwrap(),
+            Regex::new(r"(?i)еные$").unwrap(),
+            //----------------------------------
+            //он
+            Regex::new(r"(?i)оная$").unwrap(),
+            //одиночн
+            Regex::new(r"(?i)онн$").unwrap(),
+            Regex::new(r"(?i)онна$").unwrap(),
+            // Regex::new(r"(?i)онно$").unwrap(),
+            Regex::new(r"(?i)онны$").unwrap(),
+            //ую
+            Regex::new(r"(?i)оную$").unwrap(),
+            //о
+            Regex::new(r"(?i)оное$").unwrap(),
+            Regex::new(r"(?i)оного$").unwrap(),
+            //глаголы
+            //Regex::new(r"(?i)оном$").unwrap(),
+            Regex::new(r"(?i)оному$").unwrap(),
+            Regex::new(r"(?i)оность$").unwrap(),
+            Regex::new(r"(?i)оности$").unwrap(),
+            Regex::new(r"(?i)оностей$").unwrap(),
+            Regex::new(r"(?i)оностям$").unwrap(),
+            Regex::new(r"(?i)оностями$").unwrap(),
+            Regex::new(r"(?i)оностях$").unwrap(),
+            //ы
+            Regex::new(r"(?i)оным$").unwrap(),
+            Regex::new(r"(?i)оными$").unwrap(),
+            Regex::new(r"(?i)оных$").unwrap(),
+            Regex::new(r"(?i)оные$").unwrap(),
+        ]
+    });
+    //
+    println!(
+        "{}",
+        style(format!("\t Проверка недопустимых окончаний")).yellow(),
+    );
+    //
+    for образец in RE_ЛОЖНЫЕ_ОКОНЧАНИЯ.iter() {
+        //
+        let куча_1: rapidhash::fast::RapidHashSet<String> =
+            основной_словарь.кучи.куча_словарь_искомые[0]
+                .простое
+                .iter()
+                .filter_map(|слово_в_куче| {
+                    if образец.is_match(слово_в_куче.as_str()) {
+                        Some(слово_в_куче.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<rapidhash::fast::RapidHashSet<String>>();
+        //
+        let ряд_упорядоченный: Vec<String> =
+            sz_упорядочить_кучу_строк_rapid_в_ряд_строк(куча_1);
+        //
+        for ошибка in ряд_упорядоченный.iter() {
+            println!(
+                "{}{}{}{}",
+                style(format!("Словарь ")),
+                style(format!("|{вид_словаря}|")).red(),
+                style(format!("Не верное окончание в слове ")),
+                style(format!("|{ошибка}|")).cyan(),
+            );
+        }
+    }
+    //
+    //
+    //проверка что переведенное слово из переведенные слова .xls нет в главном словаре
+    /*let куча_указателей_на_словарь_запасной: rapidhash::fast::RapidHashSet<usize> =
+        запасной_словарь
+            .простое
+            .par_iter()
+            .enumerate() //.filter(|(указатель,ячейка)|!ячейка.искомое_слово.is_empty())
+            .filter_map(|(указатель, ячейка)| {
+                //если нет искомого слова из запасного словаря - то добавить его указатель в кучу
+                let ряд_знаков: Vec<char> = ячейка.искомое_слово.chars().collect();
+                //если первый знак большой - вернуть отказ
+                if ряд_знаков[0].is_uppercase() {
+                    return None;
+                }
+                //если протсые слова в главном словаре не содержат слово переведённое - вывести
+                if !куча_простых_слов.contains(ячейка.искомое_слово.as_str())
+                {
+                    //если в составных словах тоже отсутствует
+                    if !куча_составных_слов.contains(ячейка.искомое_слово.as_str())
+                        & !куча_составных_сложных_слов.contains(ячейка.искомое_слово.as_str())
+                        & !куча_неизменных_коротких_слов.contains(ячейка.искомое_слово.as_str())
+                    {
+                        Some(указатель)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect::<rapidhash::fast::RapidHashSet<usize>>();
+    //проверка что переведенное слово из переведенные слова .xls нет в главном словаре
+    let куча_указателей_на_страницу_не_переведённых_слов_главного_словаря: rapidhash::fast::RapidHashSet<usize> =
+        основной_словарь
+            .перевести
+            .par_iter()
+            .enumerate() //.filter(|(указатель,ячейка)|!ячейка.искомое_слово.is_empty())
+            .filter_map(|(указатель, ячейка)| {
+                //если нет искомого слова из запасного словаря - то добавить его указатель в кучу
+                let ряд_знаков: Vec<char> = ячейка.искомое_слово.chars().collect();
+                //если первый знак большой - вернуть отказ
+                if ряд_знаков[0].is_uppercase() {
+                    return None;
+                }
+                //если протсые слова в главном словаре не содержат слово переведённое - вывести
+                if !куча_переведенных_слов_в_запасном_словаре.contains(ячейка.искомое_слово.as_str())
+                {
+                    Some(указатель)
+                } else {
+                    None
+                }
+            })
+            .collect::<rapidhash::fast::RapidHashSet<usize>>();
+    //
+    println!(
+        "Количество слов запасного словаря, которые отсутствуют в основном - |{}|",
+        куча_указателей_на_словарь_запасной.len(),
+    );
+    println!(
+        "куча_указателей_на_страницу_не_переведённых_слов_главного_словаря - |{}|",
+        куча_указателей_на_страницу_не_переведённых_слов_главного_словаря.len(),
+    );
+    //
+    crate::output::write::вывод_запасного_словаря_почищенного(
+        &запасной_словарь,
+        &куча_указателей_на_словарь_запасной,
+        //
+        &куча_указателей_на_страницу_не_переведённых_слов_главного_словаря,
+        &основной_словарь,
+        //
+    )
+    .unwrap();*/
+    //output времени затраченного в итоге
+    println!(
+        "{}",
+        style(format!(
+            "⌚  Время занятое всего выполнения (от начала до конца): {:.2?}",
+            время_отсчёта.elapsed()
+        ))
+        .true_color(198, 100, 72)
+    );
     Ok(())
 }
 #[allow(non_camel_case_types)]
