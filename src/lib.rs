@@ -91,7 +91,6 @@ pub enum Вид_Разметки_Паутины {
     Mht,
     Opf,
     Ncx,
-    Не_определено,
 }
 #[derive(Debug, Clone)]
 pub enum Вид_Архивной_Книги {
@@ -101,7 +100,6 @@ pub enum Вид_Архивной_Книги {
 #[derive(Debug, Clone)]
 pub enum Вид_одичноной_книги {
     Fb2,
-    Pdf,
 }
 #[derive(Debug, Clone)]
 pub enum Вид_Книги {
@@ -156,6 +154,14 @@ pub enum Основной_Вид_Расширения {
     Не_определено,
 }
 impl Основной_Вид_Расширения {
+    pub fn книга_ли(&self) -> bool {
+        match self {
+            Основной_Вид_Расширения::Книга(_) =>  true,
+            Основной_Вид_Расширения::Простая_письменность(_)=>true,
+             Основной_Вид_Расширения::Разметка_Паутины(_)=>true,
+            _=>false,
+        }
+    }
     pub fn реклама_html(&self) -> bool {
         match self {
             Основной_Вид_Расширения::Реклама_html(_) => true,
@@ -541,9 +547,6 @@ impl fmt::Display for Вид_Разметки_Паутины {
             Вид_Разметки_Паутины::Xhtml => write!(f, "xhtml"),
             Вид_Разметки_Паутины::Mhtml => write!(f, "mhtml"),
             Вид_Разметки_Паутины::Mht => write!(f, "mht"),
-            Вид_Разметки_Паутины::Не_определено => {
-                write!(f, "не_определено")
-            }
         }
     }
 }
@@ -563,7 +566,6 @@ impl fmt::Display for Вид_одичноной_книги {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Вид_одичноной_книги::Fb2 => write!(f, "fb2"),
-            Вид_одичноной_книги::Pdf => write!(f, "pdf"),
         }
     }
 }
@@ -2011,4 +2013,338 @@ pub struct Слова_с_Вложениями {
 pub struct Прогон_замены {
     pub книги: Vec<Книга_целиковая>,
     pub сообщения: Сообщения,
+}
+pub mod Кучи_Раздел {
+    use std::sync::LazyLock;
+    pub struct Имена_Страниц_Куча {
+        pub простое: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub составное: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub составное_важное: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub составное_длинное: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub вездесущее: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub неизменное: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub огласовки: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub неизменное_короткое: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub неизменное_длинное: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub запятые: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub перевести: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+        pub запятые_длинные: rapidhash::fast::RapidHashSet<&'static str>, //одиночные слова
+    }
+    //
+    pub static ИМЕНА_СТР_ВСЕ: LazyLock<Имена_Страниц_Куча> =
+        LazyLock::new(|| Имена_Страниц_Куча {
+            простое: ИМЕНА_СТР_ПРОСТЫЕ_СЛОВА.clone(),
+            составное: ИМЕНА_СТР_СОСТАВНЫЕ_СЛОВА.clone(),
+            составное_важное:
+                ИМЕНА_СТР_СОСТАВНЫЕ_ВАЖНЫЕ_СЛОВА.clone(),
+            составное_длинное:
+                ИМЕНА_СТР_СОСТАВНЫЕ_ДЛИННЫЕ_СЛОВА.clone(),
+            вездесущее: ИМЕНА_СТР_ВЕЗДЕСУЩИЕ_СЛОВА.clone(),
+            неизменное: ИМЕНА_СТР_НЕИЗМЕННЫЕ_СЛОВА.clone(),
+            огласовки: ИМЕНА_СТР_ОГЛАСОВКИ.clone(),
+            неизменное_короткое:
+                ИМЕНА_СТР_НЕИЗМЕННЫЕ_КОРОТКИЕ_СЛОВА.clone(),
+            неизменное_длинное:
+                ИМЕНА_СТР_НЕИЗМЕННЫЕ_ДЛИННЫЕ_СЛОВА.clone(),
+            запятые: ИМЕНА_СТР_ЗАПЯТЫЕ.clone(),
+            запятые_длинные: ИМЕНА_СТР_ЗАПЯТЫЕ_ДЛИННЫЕ.clone(),
+            перевести: ИМЕНА_СТР_ПЕРЕВЕСТИ.clone(),
+        });
+    //
+    impl Имена_Страниц_Куча {
+        /// Проверяет, есть ли слово хотя бы в одном из наборов.
+        pub fn содержит(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.простое.contains(слово.получить_ссылку())
+                    || self.составное.contains(слово.получить_ссылку())
+                    || self.составное_важное.contains(слово.получить_ссылку())
+                    || self.составное_длинное.contains(слово.получить_ссылку())
+                    || self.вездесущее.contains(слово.получить_ссылку())
+                    || self.неизменное.contains(слово.получить_ссылку())
+                    || self.огласовки.contains(слово.получить_ссылку())
+                    || self.неизменное_короткое.contains(слово.получить_ссылку())
+                    || self.неизменное_длинное.contains(слово.получить_ссылку())
+                    || self.запятые.contains(слово.получить_ссылку())
+                    || self.запятые_длинные.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn определить_имя_страницы(
+            &self,
+            имя_страницы: &super::Умная_Строка,
+        ) -> Result<super::Имена_страниц, String> {
+            if !имя_страницы.не_пусто() {
+                panic!("Пустое имя страницы");
+            }
+            let имя_страницы_ссылка = имя_страницы.получить_ссылку();
+
+            if self.простое.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Простая_стр);
+            }
+            if self.составное.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Cоставная_стр);
+            }
+            if self.составное_длинное.contains(имя_страницы_ссылка)
+            {
+                return Ok(super::Имена_страниц::Составные_длинные_стр);
+            }
+            if self.составное_важное.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Составные_важные_стр);
+            }
+            if self.вездесущее.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Вездесущее_стр);
+            }
+            if self.неизменное.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Неизменные_стр);
+            }
+            if self.огласовки.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Огласовки_стр);
+            }
+            if self.неизменное_короткое.contains(имя_страницы_ссылка)
+            {
+                return Ok(super::Имена_страниц::Неизменные_короткие_стр);
+            }
+            if self.неизменное_длинное.contains(имя_страницы_ссылка)
+            {
+                return Ok(super::Имена_страниц::Неизменные_длинные_стр);
+            }
+            if self.запятые.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Запятые_стр);
+            }
+            if self.запятые_длинные.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Запятые_длинные_стр);
+            }
+            if self.перевести.contains(имя_страницы_ссылка) {
+                return Ok(super::Имена_страниц::Перевести_стр);
+            }
+
+            Err(format!("Не определён вид страницы: |{имя_страницы}|"))
+        }
+        pub fn простое(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.простое.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn составное(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.составное.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn составное_важное(
+            &self, слово: &super::Умная_Строка
+        ) -> bool {
+            if слово.не_пусто() {
+                self.составное_важное.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn составное_длинное(
+            &self, слово: &super::Умная_Строка
+        ) -> bool {
+            if слово.не_пусто() {
+                self.составное_длинное.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn вездесущее(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.вездесущее.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn неизменное(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.неизменное.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn неизменное_короткое(
+            &self, слово: &super::Умная_Строка
+        ) -> bool {
+            if слово.не_пусто() {
+                self.неизменное_короткое.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn неизменное_длинное(
+            &self, слово: &super::Умная_Строка
+        ) -> bool {
+            if слово.не_пусто() {
+                self.неизменное_длинное.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn огласовки(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.огласовки.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn запятые(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.запятые.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn запятые_длинные(
+            &self, слово: &super::Умная_Строка
+        ) -> bool {
+            if слово.не_пусто() {
+                self.запятые_длинные.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+        pub fn перевести(&self, слово: &super::Умная_Строка) -> bool {
+            if слово.не_пусто() {
+                self.перевести.contains(слово.получить_ссылку())
+            } else {
+                false
+            }
+        }
+    }
+    //use rapidhash::*;
+
+    //
+    /* pub static ИМЕНА_СТР_ВСЕ: LazyLock<[rapidhash::fast::RapidHashSet<&'static str>; 12]> =
+    LazyLock::new(|| {
+        [
+            &ИМЕНА_СТР_ПРОСТЫЕ_СЛОВА,
+            &ИМЕНА_СТР_СОСТАВНЫЕ_СЛОВА,
+            &ИМЕНА_СТР_СОСТАВНЫЕ_ДЛИННЫЕ_СЛОВА,
+            &ИМЕНА_СТР_СОСТАВНЫЕ_ВАЖНЫЕ_СЛОВА,
+            &ИМЕНА_СТР_ВЕЗДЕСУЩИЕ_СЛОВА,
+            &ИМЕНА_СТР_НЕИЗМЕННЫЕ_СЛОВА,
+            &ИМЕНА_СТР_НЕИЗМЕННЫЕ_КОРОТКИЕ_СЛОВА,
+            &ИМЕНА_СТР_НЕИЗМЕННЫЕ_ДЛИННЫЕ_СЛОВА,
+            &ИМЕНА_СТР_ОГЛАСОВКИ,
+            &ИМЕНА_СТР_ЗАПЯТЫЕ,
+            &ИМЕНА_СТР_ПЕРЕВЕСТИ,
+            &ИМЕНА_СТР_ЗАПЯТЫЕ_ДЛИННЫЕ,
+        ]
+    });*/
+    //
+    pub static ИМЕНА_СТР_ПРОСТЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| {
+            rapidhash::fast::RapidHashSet::from_iter([
+                "Простые",
+                "одиночные",
+                "Одиночные",
+                "простые",
+                "простые слова",
+                "Простые слова",
+                "простые_слова",
+                "Простые_слова",
+            ])
+        });
+    //
+    pub static ИМЕНА_СТР_СОСТАВНЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| {
+            rapidhash::fast::RapidHashSet::from_iter([
+                "Составные",
+                "составные",
+                "сложные слова",
+                "Сложные слова",
+                "сложные_слова",
+                "Сложные_слова",
+            ])
+        });
+    pub static ИМЕНА_СТР_СОСТАВНЫЕ_ДЛИННЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Составные_длинные",
+            "Составные_Длинные",
+            "составные_длинные",
+            "Составные длинные",
+            "Составные Длинные",
+            "составные длинные",
+        ])
+    });
+    pub static ИМЕНА_СТР_СОСТАВНЫЕ_ВАЖНЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Составные_важные",
+            "Составные_Важные",
+            "составные_важные",
+            "Составные важные",
+            "Составные Важные",
+            "составные важные",
+        ])
+    });
+    pub static ИМЕНА_СТР_ВЕЗДЕСУЩИЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| {
+            rapidhash::fast::RapidHashSet::from_iter([
+                "Вездесущие",
+                "вездесущие",
+                "вездесущие слова",
+                "Вездесущие слова",
+                "вездесущие_слова",
+                "Вездесущие_слова",
+            ])
+        });
+    pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| {
+            rapidhash::fast::RapidHashSet::from_iter([
+                "Неизменные",
+                "неизменные",
+                "неизменные слова",
+                "Неизменные слова",
+                "неизменные_слова",
+                "Неизменные_слова",
+            ])
+        });
+    pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_КОРОТКИЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "неизменные_короткие",
+            "Неизменные_короткие",
+            "неизменные короткие",
+            "Неизменные_Короткие",
+            "Неизменные Короткие",
+        ])
+    });
+    pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_ДЛИННЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "неизменные_длинные",
+            "Неизменные_длинные",
+            "Неизменные длинные",
+            "Неизменные_Длинные",
+            "Неизменные Длинные",
+        ])
+    });
+    pub static ИМЕНА_СТР_ОГЛАСОВКИ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Огласовки", "огласовки"]));
+    pub static ИМЕНА_СТР_ЗАПЯТЫЕ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Запятые", "запятые"]));
+    pub static ИМЕНА_СТР_ПЕРЕВЕСТИ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Перевести", "перевести"]));
+    pub static ИМЕНА_СТР_ЗАПЯТЫЕ_ДЛИННЫЕ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+        LazyLock::new(|| {
+            rapidhash::fast::RapidHashSet::from_iter([
+                "Запятые_длинные",
+                "Запятые_Длинные",
+                "запятые_длинные",
+                "Запятые длинные",
+                "Запятые Длинные",
+                "запятые длинные",
+            ])
+        });
 }
