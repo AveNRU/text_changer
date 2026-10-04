@@ -1,4 +1,5 @@
 use regex::Regex;
+use rust_xlsxwriter::workbook::Workbook;
 use std::sync::LazyLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
@@ -144,7 +145,15 @@ pub fn найти_недостающие_слова(
 ) -> Result<(), ()> {
     #![allow(non_snake_case, non_camel_case_types)]
     let время_отсчёта: Instant = Instant::now();
+    use crate::dictionary::выделить_кучу_из_ряда_для_словаря_без_вырезания_окончания;
     use crate::utils::stringzilla::sz_упорядочить_кучу_строк_rapid_в_ряд_строк;
+    use Text_Changer::Слова_с_Вложениями;
+    //
+    let пути_общие: Text_Changer::Пути_Общие = Text_Changer::Пути_Общие::default();
+    let mut книга: Workbook = Workbook::new();
+    //
+    let куча_с_указателями:rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>=
+        выделить_кучу_из_ряда_для_словаря_без_вырезания_окончания(&основной_словарь.кучи.куча_словарь_искомые[0].простое,&основной_словарь.сам.простое);
     //
     pub struct Окончания_включающие {
         начально: &'static [Regex],
@@ -308,8 +317,33 @@ pub fn найти_недостающие_слова(
     .collect();
     let ряд_упорядоченный: Vec<String> =
         sz_упорядочить_кучу_строк_rapid_в_ряд_строк(куча_1);
+    let стопка: Vec<Слова_с_Вложениями> = ряд_упорядоченный
+        .into_iter()
+        .map(|слово| {
+            let mut слово_замена: Text_Changer::Умная_Строка =
+                Text_Changer::Умная_Строка::Пусто;
+            let вложения = if let Some(значения) = куча_с_указателями.get(&слово)
+            {
+                for указатель in значения.iter() {
+                    слово_замена =
+                        Text_Changer::Умная_Строка::создать_значение(
+                            основной_словарь.сам.простое[*указатель].замена.clone(),
+                        );
+                }
+            };
+            Слова_с_Вложениями {
+                вложения: слово_замена,
+                слово: Text_Changer::Умная_Строка::создать_значение(
+                    слово,
+                ),
+            }
+        })
+        .collect();
+
     //
-    for ошибка in ряд_упорядоченный.iter() {
+
+    //
+    /*for ошибка in ряд_упорядоченный.iter() {
         println!(
             "{}{}{}{}",
             style(format!("Словарь ")),
@@ -317,7 +351,7 @@ pub fn найти_недостающие_слова(
             style(format!("не содержит ")),
             style(format!("|{ошибка}|")).cyan(),
         );
-    }
+    }*/
 
     /*println!(
         "Длина кучи слов, подлежащих переводу - |{}|",
@@ -433,7 +467,7 @@ pub fn найти_недостающие_слова(
         let ряд_упорядоченный: Vec<String> =
             sz_упорядочить_кучу_строк_rapid_в_ряд_строк(куча_1);
         //
-        for ошибка in ряд_упорядоченный.iter() {
+        /*for ошибка in ряд_упорядоченный.iter() {
             println!(
                 "{}{}{}{}",
                 style(format!("Словарь ")),
@@ -441,7 +475,7 @@ pub fn найти_недостающие_слова(
                 style(format!("Не верное окончание в слове ")),
                 style(format!("|{ошибка}|")).cyan(),
             );
-        }
+        }*/
     }
     //
     //
