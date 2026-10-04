@@ -29,6 +29,7 @@ use std::time::Instant;
 use Text_Changer::ВСЕГО_ШАГОВ;
 //загрузка словаря
 use crate::ui_gpui::gpui_main::Данные_при_загрузке;
+use crate::utils::functions::вывод_сообщения_на_экран;
 //
 pub fn загрузка_словарей(
     // ряд_пути_до_словарей: &Vec<String>,
@@ -296,16 +297,22 @@ pub fn загрузка_словарей(
             .unwrap()
             .into_inner()
             .unwrap();
-
+    //
+    let сообщения_повторных_искомых_слов: Vec<Text_Changer::Умная_Строка> =
+        crate::utils::stringzilla::sz_упорядочить_кучу_строк_rapid_в_ряд_умных_строк(
+            сообщения_повторных_искомых_слов,
+        );
+    //
     let сообщения_повторных_слов_замен: rapidhash::fast::RapidHashMap<String, usize> =
         Arc::try_unwrap(сообщения_повторных_слов_замен)
             .unwrap()
             .into_inner()
             .unwrap();
+
     //вывод на экран сообщений
     rayon::spawn(move || {
-        вывод_кучи_сообщения_на_экран(
-            &Text_Changer::Умная_Строка::создать_значение(format!(
+        вывод_сообщения_на_экран(
+            Text_Changer::Умная_Строка::создать_значение(format!(
                 "{}",
                 style(format!("Повторно найденные искомые слова в словаре:")).yellow()
             )),
