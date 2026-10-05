@@ -256,3 +256,6 @@ Text_Changer::Умная_Строка::создать_значение(
 
 05.10.2026
 анние - недопустимо
+
+RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>
+.0

@@ -1,5 +1,4 @@
 #![allow(non_snake_case, non_camel_case_types)]
-use rapidhash::RapidHashSet;
 //use foldhash::{rapidhash::fast::RapidHashMap,  fast::RandomState,*};
 //use rapidhash::*;
 use regex::Regex;
@@ -13,17 +12,32 @@ pub const ВСЕГО_ШАГОВ: usize = 5;
 #[derive(Debug, Clone)]
 pub enum Вид_окончаний {
     Запрещённое,
-    Недостающиее,
+    Недостающее,
 }
 impl Вид_окончаний {
     pub fn получить_имя_страницы_для_xlsx(&self) -> String {
         return match self {
             Вид_окончаний::Запрещённое => "Запрещённое".to_string(),
-            Вид_окончаний::Недостающиее => "Недостающиее".to_string(),
+            Вид_окончаний::Недостающее => "Недостающиее".to_string(),
         };
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum Ошибка_Сохранения {
+    Запись_в_Буфер, // save_to_buffer
+    Чтение_Буфера,  // прочитать_xlsx_из_буфера
+    Чтение_Диска,   // прочитать_xlsx_с_диска
+    Запись,         // содержимое.save
+    Создание_папки, // содержимое.save
+}
+
+#[derive(Debug, Clone)]
+pub enum Итог_Сохранения {
+    Совпало,
+    Перезаписано,
+    Создано,
+}
 #[derive(Debug, Clone)]
 pub enum Вид_Слова {
     Исходное,
@@ -1194,7 +1208,13 @@ pub struct Книги_в_ОЗУ {
 }
 
 #[derive(Debug, Clone)]
-pub struct Указатель_на_две_кучи_словаря<'a> {
+pub struct Указатель_на_две_кучи_полные_словаря<'a> {
+    //файлы
+    pub искомая: &'a rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+    pub замена: &'a rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+}
+#[derive(Debug, Clone)]
+pub struct Указатель_на_две_кучи_простых_словаря<'a> {
     //файлы
     pub искомая: &'a rapidhash::fast::RapidHashSet<String>,
     pub замена: &'a rapidhash::fast::RapidHashSet<String>,
@@ -1203,7 +1223,8 @@ pub struct Указатель_на_две_кучи_словаря<'a> {
 pub struct Словари_с_кучами {
     //файлы
     pub сам: Полный_Словарь,
-    pub кучи: Словарь_Куч,
+    pub кучи_полные: Словарь_Куч_полных,
+    pub кучи_простые: Словарь_Куч_простых,
 }
 #[derive(Debug, Clone)]
 pub struct Пути_Вывода {
@@ -1485,6 +1506,12 @@ pub struct Ячейка_словаря {
     pub замена: Умная_Строка,
     // pub счёчтки:usize,
 }
+#[derive(Debug, Clone)]
+pub struct Слово_с_заменой {
+    pub искомое_слово: Умная_Строка,
+    pub замена: Умная_Строка,
+    // pub счёчтки:usize,
+}
 // Ручная реализация PartialEq
 // Ручная реализация PartialEq
 impl PartialEq for Ячейка_словаря {
@@ -1513,6 +1540,36 @@ impl Default for Ячейка_словаря {
         Self {
             искомое_слово: Умная_Строка::Пусто,
             re_образец: Regex::new(r"").unwrap(),
+            замена: Умная_Строка::Пусто,
+            //  счёчтки: 0,
+        }
+    }
+}
+// Ручная реализация PartialEq
+// Ручная реализация PartialEq
+impl PartialEq for Слово_с_заменой {
+    fn eq(&self, other: &Self) -> bool {
+        // Сравните все поля, которые должны определять уникальность
+        self.искомое_слово == other.искомое_слово && self.замена == other.замена
+    }
+}
+
+// Потом пустая реализация Eq (маркерный трейт)
+impl Eq for Слово_с_заменой {} // 👈 ВОТ ТАК ПРАВИЛЬНО!
+
+// Ручная реализация Hash
+impl Hash for Слово_с_заменой {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.искомое_слово.hash(state);
+        self.замена.hash(state);
+    }
+}
+
+impl Default for Слово_с_заменой {
+    fn default() -> Self {
+        Self {
+            искомое_слово: Умная_Строка::Пусто,
+
             замена: Умная_Строка::Пусто,
             //  счёчтки: 0,
         }
@@ -1931,7 +1988,7 @@ pub struct Счётчик_замен {
 
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
-pub struct Куча_Словарь {
+pub struct Куча_Словарь_полный {
     pub простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
     pub запятые: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
@@ -1949,8 +2006,43 @@ pub struct Куча_Словарь {
     pub неизменное_длинное:
         rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
 }
+//итоговый общий словарь
 #[derive(Debug, Default, Clone)]
-pub struct Куча_Словарь_Искомые {
+pub struct Куча_Словарь_простой {
+    pub простое: rapidhash::fast::RapidHashSet<String>,
+    pub составное: rapidhash::fast::RapidHashSet<String>,
+    pub запятые: rapidhash::fast::RapidHashSet<String>,
+    pub запятые_длинные: rapidhash::fast::RapidHashSet<String>,
+    pub составное_важное: rapidhash::fast::RapidHashSet<String>,
+    pub составное_длинное: rapidhash::fast::RapidHashSet<String>,
+    pub вездесущее: rapidhash::fast::RapidHashSet<String>,
+    pub неизменное: rapidhash::fast::RapidHashSet<String>,
+    pub огласовки: rapidhash::fast::RapidHashSet<String>,
+    pub неизменное_короткое: rapidhash::fast::RapidHashSet<String>,
+    pub неизменное_длинное: rapidhash::fast::RapidHashSet<String>,
+}
+#[derive(Debug, Default, Clone)]
+pub struct Куча_Словарь_Искомые_полные {
+    pub перевести: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное_важное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное_длинное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub вездесущее: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub запятые: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub запятые_длинные:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub огласовки: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное_длинное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное_короткое:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+}
+#[derive(Debug, Default, Clone)]
+pub struct Куча_Словарь_Искомые_простые {
     pub перевести: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub составное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
@@ -1965,7 +2057,27 @@ pub struct Куча_Словарь_Искомые {
     pub неизменное_короткое: rapidhash::fast::RapidHashSet<String>, //одиночные слова
 }
 #[derive(Debug, Default, Clone)]
-pub struct Куча_Словарь_Замены {
+pub struct Куча_Словарь_Замены_полные {
+    pub перевести: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub запятые: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub запятые_длинные:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное_длинное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub составное_важное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub вездесущее: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub огласовки: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное_длинное:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+    pub неизменное_короткое:
+        rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>, //одиночные слова
+}
+#[derive(Debug, Default, Clone)]
+pub struct Куча_Словарь_Замены_простые {
     pub перевести: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub простое: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
     pub запятые: rapidhash::fast::RapidHashSet<String>,   //одиночные слова
@@ -1978,6 +2090,24 @@ pub struct Куча_Словарь_Замены {
     pub огласовки: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное_длинное: rapidhash::fast::RapidHashSet<String>, //одиночные слова
     pub неизменное_короткое: rapidhash::fast::RapidHashSet<String>, //одиночные слова
+}
+//
+pub struct Две_Кучи_Словаря<'a> {
+    pub искомая: &'a rapidhash::fast::RapidHashSet<String>,
+    pub куда_вкладывать:
+        &'a mut rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>>,
+}
+
+pub struct Куча_Словаря_с_описанием<'a> {
+    pub сама: &'a rapidhash::fast::RapidHashSet<String>,
+    pub вид: Правописание_слова,
+}
+pub struct Раздел_Словаря_с_Привязкой<'a> {
+    pub главный: &'a Vec<Ячейка_словаря>,
+    pub куча: [Куча_Словаря_с_описанием<'a>; 3],
+    /*pub куча_строчная: &'a rapidhash::fast::RapidHashSet<String>, //&'a Две_Кучи_Словаря<'a>,
+    pub куча_заглавная_первая: &'a rapidhash::fast::RapidHashSet<String>, //&'a Две_Кучи_Словаря<'a>,
+    pub куча_все_заглавные: &'a rapidhash::fast::RapidHashSet<String>, //&'a Две_Кучи_Словаря<'a>,*/
 }
 //итоговый общий словарь
 #[derive(Debug, Default, Clone)]
@@ -2037,11 +2167,18 @@ pub struct Полный_Словарь {
 pub const КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ: usize = 3;
 //
 #[derive(Debug, Default, Clone)]
-pub struct Словарь_Куч {
-    pub куча_словарь_искомые:
-        [Куча_Словарь_Искомые; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
-    pub куча_словарь_замены:
-        [Куча_Словарь_Замены; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
+pub struct Словарь_Куч_полных {
+    pub искомые:
+        [Куча_Словарь_Искомые_полные; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
+    pub замены:
+        [Куча_Словарь_Замены_полные; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
+}
+#[derive(Debug, Default, Clone)]
+pub struct Словарь_Куч_простых {
+    pub искомые:
+        [Куча_Словарь_Искомые_простые; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
+    pub замены:
+        [Куча_Словарь_Замены_простые; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
 }
 // Сначала объявите трейт Clear
 pub trait Clear {
