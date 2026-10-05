@@ -9,7 +9,7 @@ use calamine::{Data, Range, Reader, Xlsx, open_workbook};
 //use convert_case::{Case, Casing};
 use regex::Regex;
 use std::sync::LazyLock;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 extern crate rayon;
 use crate::dictionary::добавить_все_слова_в_словарь;
 use crate::utils::stringzilla::{

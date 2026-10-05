@@ -2173,6 +2173,17 @@ pub struct Словарь_Куч_полных {
     pub замены:
         [Куча_Словарь_Замены_полные; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
 }
+//
+#[derive(Debug, Clone)]
+pub enum Вид_Окончания {
+    Ен,
+    Ён,
+    Ван,
+    Он,
+    Ан,
+    Авш,
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct Словарь_Куч_простых {
     pub искомые:
@@ -2456,31 +2467,33 @@ pub mod Кучи_Раздел {
         ]
     });*/
     //
-    pub static ИМЕНА_СТР_ПРОСТЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| {
-            rapidhash::fast::RapidHashSet::from_iter([
-                "Простые",
-                "одиночные",
-                "Одиночные",
-                "простые",
-                "простые слова",
-                "Простые слова",
-                "простые_слова",
-                "Простые_слова",
-            ])
-        });
+    pub static ИМЕНА_СТР_ПРОСТЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Простые",
+            "одиночные",
+            "Одиночные",
+            "простые",
+            "простые слова",
+            "Простые слова",
+            "простые_слова",
+            "Простые_слова",
+        ])
+    });
     //
-    pub static ИМЕНА_СТР_СОСТАВНЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| {
-            rapidhash::fast::RapidHashSet::from_iter([
-                "Составные",
-                "составные",
-                "сложные слова",
-                "Сложные слова",
-                "сложные_слова",
-                "Сложные_слова",
-            ])
-        });
+    pub static ИМЕНА_СТР_СОСТАВНЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Составные",
+            "составные",
+            "сложные слова",
+            "Сложные слова",
+            "сложные_слова",
+            "Сложные_слова",
+        ])
+    });
     pub static ИМЕНА_СТР_СОСТАВНЫЕ_ДЛИННЫЕ_СЛОВА: LazyLock<
         rapidhash::fast::RapidHashSet<&'static str>,
     > = LazyLock::new(|| {
@@ -2505,28 +2518,30 @@ pub mod Кучи_Раздел {
             "составные важные",
         ])
     });
-    pub static ИМЕНА_СТР_ВЕЗДЕСУЩИЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| {
-            rapidhash::fast::RapidHashSet::from_iter([
-                "Вездесущие",
-                "вездесущие",
-                "вездесущие слова",
-                "Вездесущие слова",
-                "вездесущие_слова",
-                "Вездесущие_слова",
-            ])
-        });
-    pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_СЛОВА: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| {
-            rapidhash::fast::RapidHashSet::from_iter([
-                "Неизменные",
-                "неизменные",
-                "неизменные слова",
-                "Неизменные слова",
-                "неизменные_слова",
-                "Неизменные_слова",
-            ])
-        });
+    pub static ИМЕНА_СТР_ВЕЗДЕСУЩИЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Вездесущие",
+            "вездесущие",
+            "вездесущие слова",
+            "Вездесущие слова",
+            "вездесущие_слова",
+            "Вездесущие_слова",
+        ])
+    });
+    pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_СЛОВА: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Неизменные",
+            "неизменные",
+            "неизменные слова",
+            "Неизменные слова",
+            "неизменные_слова",
+            "Неизменные_слова",
+        ])
+    });
     pub static ИМЕНА_СТР_НЕИЗМЕННЫЕ_КОРОТКИЕ_СЛОВА: LazyLock<
         rapidhash::fast::RapidHashSet<&'static str>,
     > = LazyLock::new(|| {
@@ -2549,21 +2564,25 @@ pub mod Кучи_Раздел {
             "Неизменные Длинные",
         ])
     });
-    pub static ИМЕНА_СТР_ОГЛАСОВКИ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Огласовки", "огласовки"]));
-    pub static ИМЕНА_СТР_ЗАПЯТЫЕ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Запятые", "запятые"]));
-    pub static ИМЕНА_СТР_ПЕРЕВЕСТИ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Перевести", "перевести"]));
-    pub static ИМЕНА_СТР_ЗАПЯТЫЕ_ДЛИННЫЕ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| {
-            rapidhash::fast::RapidHashSet::from_iter([
-                "Запятые_длинные",
-                "Запятые_Длинные",
-                "запятые_длинные",
-                "Запятые длинные",
-                "Запятые Длинные",
-                "запятые длинные",
-            ])
-        });
+    pub static ИМЕНА_СТР_ОГЛАСОВКИ: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Огласовки", "огласовки"]));
+    pub static ИМЕНА_СТР_ЗАПЯТЫЕ: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Запятые", "запятые"]));
+    pub static ИМЕНА_СТР_ПЕРЕВЕСТИ: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["Перевести", "перевести"]));
+    pub static ИМЕНА_СТР_ЗАПЯТЫЕ_ДЛИННЫЕ: LazyLock<
+        rapidhash::fast::RapidHashSet<&'static str>,
+    > = LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "Запятые_длинные",
+            "Запятые_Длинные",
+            "запятые_длинные",
+            "Запятые длинные",
+            "Запятые Длинные",
+            "запятые длинные",
+        ])
+    });
 }
