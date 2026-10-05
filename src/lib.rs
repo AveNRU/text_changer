@@ -2174,7 +2174,7 @@ pub struct Словарь_Куч_полных {
         [Куча_Словарь_Замены_полные; КОЛИЧЕСТВО_УРОВНЕЙ_СЛОВАРЯ_КУЧ],
 }
 //
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Вид_Окончания {
     Ен,
     Ён,
@@ -2182,6 +2182,7 @@ pub enum Вид_Окончания {
     Он,
     Ан,
     Авш,
+    Не_определено,
 }
 
 #[derive(Debug, Default, Clone)]
