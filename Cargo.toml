@@ -9,7 +9,7 @@ edition = "2024"
 #find-msvc-tools = "*"
 #gpui-kit = "*"
 gpui-kit = { path = "E:/Rust/gpui-kit/crates/kit" }
-gpui-component-story = { path = "E:/Rust/gpui-kit/crates/story" }
+#gpui-component-story = { path = "E:/Rust/gpui-kit/crates/story" }
 #для замера ОЗУ
 cap = "*"
 #rmp-serde = "*"
