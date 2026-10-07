@@ -5917,9 +5917,11 @@ pub fn найти_замену_для_выдера<'a>(
             .true_color(255, 165, 0) //оранжевый
             .bold()
     } else
-    if !есть_ли_вход_2&&есть_ли_вход_1 {
+    if !есть_ли_вход_2&&!есть_ли_вход_1 {
         style(format!("|нигде нет| ",)).bold()
-    } else {
+    } else if есть_ли_вход_2&&есть_ли_вход_1 {
+         style(format!("|в обоих кучах| ",)).red().bold()
+    }else {
         panic!()
     };
     //вывод оибки
@@ -6027,9 +6029,12 @@ pub fn определение_недопустимых_окончаний(
             },
         ]
     });
+    //
 
-    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЫИ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЫИ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
         [
+            Regex::new(r"(?i)ыго$").unwrap(),
+            Regex::new(r"(?i)ыого$").unwrap(),
             Regex::new(r"(?i)ыи$").unwrap(),
             Regex::new(r"(?i)уый$").unwrap(),
         ]
@@ -6038,8 +6043,11 @@ pub fn определение_недопустимых_окончаний(
     static RE_ИСКЛЮЧЕНИЯ_ЫИ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
         LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
     //
-    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОМ: LazyLock<[Regex; 1]> = LazyLock::new(|| {
-        [Regex::new(r"(?i)оу$").unwrap()]
+    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОМ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+        [
+            Regex::new(r"(?i)оу$").unwrap(),
+            Regex::new(r"(?i)ою$").unwrap(),
+        ]
         //----------------------------------
     });
     static RE_ИСКЛЮЧЕНИЯ_ОМ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
@@ -6053,10 +6061,14 @@ pub fn определение_недопустимых_окончаний(
     static RE_ИСКЛЮЧЕНИЯ_АС: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
         LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
     //
-    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 7]> = LazyLock::new(|| {
         [
+            Regex::new(r"(?i)нныого$").unwrap(),
+            Regex::new(r"(?i)нныо$").unwrap(),
+            Regex::new(r"(?i)ннн$").unwrap(),
             Regex::new(r"(?i)ныи$").unwrap(),
             Regex::new(r"(?i)нм$").unwrap(),
+            Regex::new(r"(?i)ни$").unwrap(),
             Regex::new(r"(?i)нвми$").unwrap(),
         ]
         //----------------------------------
@@ -6064,8 +6076,9 @@ pub fn определение_недопустимых_окончаний(
     static RE_ИСКЛЮЧЕНИЯ_Н: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
         LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
     //
-    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+    static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
         [
+            Regex::new(r"(?i)си$").unwrap(),
             Regex::new(r"(?i)стй$").unwrap(),
             Regex::new(r"(?i)стю$").unwrap(),
             Regex::new(r"(?i)стяях$").unwrap(),
