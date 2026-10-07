@@ -4,6 +4,7 @@
 static ALLOC: dhat::Alloc = dhat::Alloc;
 //use crate::sync::mpsc;
 use chrono::*;
+pub mod endings;
 //use unirust::*;
 //use std::collections::HashMap;
 use cap::Cap;
@@ -21,7 +22,6 @@ pub mod dictionary;
 pub mod import;
 //pub mod lib;
 pub mod output;
-pub mod test;
 pub mod ui_gpui;
 pub mod utils;
 pub mod xlsx;
@@ -150,13 +150,13 @@ fn main2(
                 &данные_при_загрузке,
             );
         //
-        test::сравнить_основной_и_запасной_словари(
+        endings::test::сравнить_основной_и_запасной_словари(
             &полный_словарь.сам,
             &запасной_словарь.сам,
         )
         .unwrap();
         //проверка недостающих и недопустимых слов
-        test::найти_недостающие_слова(
+        endings::test::найти_недостающие_слова(
             &запасной_словарь,
             &Вид_Словаря::Запасной_Словарь,
             &данные_при_загрузке,
@@ -166,7 +166,7 @@ fn main2(
     }
 
     //проверка недостающих и недопустимых слов
-    test::найти_недостающие_слова(
+    endings::test::найти_недостающие_слова(
         &полный_словарь,
         &Вид_Словаря::Основной_Словарь,
         &данные_при_загрузке,
