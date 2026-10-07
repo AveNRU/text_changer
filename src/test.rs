@@ -2671,7 +2671,7 @@ static RE_НАЧАЛЬНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Re_образ�
     ]
 });
 //
-pub const КОНЕЧНЫЕ_ОКОНЧАНИЯ_ВАН: [&'static str; 23] = [
+const КОНЕЧНЫЕ_ОКОНЧАНИЯ_ВАН: [&'static str; 23] = [
     "ван",
     "вана",
     "вано",
@@ -6027,6 +6027,7 @@ pub fn определение_недопустимых_окончаний(
             },
         ]
     });
+
     static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЫИ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
         [
             Regex::new(r"(?i)ыи$").unwrap(),
@@ -6042,7 +6043,7 @@ pub fn определение_недопустимых_окончаний(
         //----------------------------------
     });
     static RE_ИСКЛЮЧЕНИЯ_ОМ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+        LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["шоу"]));
     //
     //
     static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АС: LazyLock<[Regex; 1]> = LazyLock::new(|| {
