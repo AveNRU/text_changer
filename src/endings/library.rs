@@ -17,7 +17,7 @@ pub struct Ложные_окончания_с_исключениями {
     pub ряд_исключений: &'static rapidhash::fast::RapidHashSet<&'static str>,
 }
 pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
-    [Ложные_окончания_с_исключениями; 12],
+    [Ложные_окончания_с_исключениями; 14],
 > = LazyLock::new(|| {
     [
         Ложные_окончания_с_исключениями {
@@ -68,7 +68,42 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
             ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОМ,
             ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_ОМ,
         },
+        Ложные_окончания_с_исключениями {
+            ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕМ,
+            ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_ЕМ,
+        },
+        Ложные_окончания_с_исключениями {
+            ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Ц,
+            ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_Ц,
+        },
     ]
+});
+pub static RE_ИСКЛЮЧЕНИЯ_Ц: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+//
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Ц: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)цеяев").unwrap(),
+        Regex::new(r"(?i)цеяем").unwrap(),
+    ]
+    //----------------------------------
+});
+
+//
+pub static RE_ИСКЛЮЧЕНИЯ_ЕМ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+//
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕМ: LazyLock<[Regex; 7]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)емуемся").unwrap(),
+        Regex::new(r"(?i)емует").unwrap(),
+        Regex::new(r"(?i)емуетя").unwrap(),
+        Regex::new(r"(?i)емуй").unwrap(),
+        Regex::new(r"(?i)емуюсь").unwrap(),
+        Regex::new(r"(?i)емуют").unwrap(),
+        Regex::new(r"(?i)емуются").unwrap(),
+    ]
+    //----------------------------------
 });
 //
 
@@ -141,9 +176,10 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Щ: LazyLock<[Regex; 2]> = LazyLoc
 pub static RE_ИСКЛЮЧЕНИЯ_Щ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АН: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АН: LazyLock<[Regex; 3]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)аности$").unwrap(),
+        Regex::new(r"(?i)анны$").unwrap(),
         Regex::new(r"(?i)аыми").unwrap(),
     ]
     //----------------------------------
@@ -159,8 +195,9 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АС: LazyLock<[Regex; 1]> = LazyL
 pub static RE_ИСКЛЮЧЕНИЯ_АС: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 10]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 11]> = LazyLock::new(|| {
     [
+        Regex::new(r"(?i)наыми").unwrap(),
         Regex::new(r"(?i)нкю").unwrap(),
         Regex::new(r"(?i)наую").unwrap(),
         Regex::new(r"(?i)ныую").unwrap(),
@@ -209,7 +246,7 @@ pub static RE_ИСКЛЮЧЕНИЯ_СТ: LazyLock<rapidhash::fast::RapidHashSet<
     });
 //
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 31]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 32]> = LazyLock::new(|| {
     [
         //----------------------------------
         //ван
@@ -236,6 +273,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 31]> = La
         Regex::new(r"(?i)ваное$").unwrap(),
         Regex::new(r"(?i)ваного$").unwrap(),
         //глаголы
+        Regex::new(r"(?i)ваною$").unwrap(),
         Regex::new(r"(?i)ваном$").unwrap(),
         Regex::new(r"(?i)ваному$").unwrap(),
         Regex::new(r"(?i)ваность$").unwrap(),
@@ -257,13 +295,16 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 31]> = La
 pub static RE_ИСКЛЮЧЕНИЯ_ВАН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["диваном"]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 19]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 22]> = LazyLock::new(|| {
     [
         //ен
         //а
         Regex::new(r"(?i)еая$").unwrap(),
         Regex::new(r"(?i)еная$").unwrap(),
         //одиночн
+        Regex::new(r"(?i)енна$").unwrap(),
+        Regex::new(r"(?i)енно$").unwrap(),
+        Regex::new(r"(?i)енны$").unwrap(),
         Regex::new(r"(?i)енн$").unwrap(),
         //Regex::new(r"(?i)енна$").unwrap(),
         //Regex::new(r"(?i)енно$").unwrap(),
@@ -354,9 +395,10 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЁН: LazyLock<[Regex; 19]> = Lazy
 pub static RE_ИСКЛЮЧЕНИЯ_ЁН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОН: LazyLock<[Regex; 17]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОН: LazyLock<[Regex; 18]> = LazyLock::new(|| {
     [
         //он
+        Regex::new(r"(?i)оеную$").unwrap(),
         Regex::new(r"(?i)оная$").unwrap(),
         //одиночн
         Regex::new(r"(?i)онн$").unwrap(),
