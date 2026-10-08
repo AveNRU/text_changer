@@ -372,10 +372,10 @@ pub fn одинаковы_два_ряда_строк(
         return false;
     }*/
     //
-    let куча_1: rapidhash::fast::RapidHashSet<&str> =
+    /*let куча_1: rapidhash::fast::RapidHashSet<&str> =
         новый_ряд.iter().map(|строка| строка.as_str()).collect();
     let куча_2: rapidhash::fast::RapidHashSet<&str> =
-        исходный_ряд.iter().map(|строка| строка.as_str()).collect();
+        исходный_ряд.iter().map(|строка| строка.as_str()).collect();*/
     if вывод_на_заслон {
         // println!("Путь |{}|", _путь);
         /*if новый_ряд.len() != исходный_ряд.len() {
@@ -402,7 +402,8 @@ pub fn одинаковы_два_ряда_строк(
     }
     //
     //сравнение двух куч - равны они или нет
-    if куча_1 == куча_2 {
+    if новый_ряд == исходный_ряд {
+        //if куча_1 == куча_2 {
         return true;
     } else {
         false
@@ -424,16 +425,21 @@ pub fn сравнение_двух_рядов_построчно_срез_стр
         return false;
     }*/
     //
-    let куча_1: rapidhash::fast::RapidHashSet<&str> = ряд_1.iter().map(|строка| *строка).collect();
+    /*let куча_1: rapidhash::fast::RapidHashSet<&str> = ряд_1.iter().map(|строка| *строка).collect();
     let куча_2: rapidhash::fast::RapidHashSet<&str> =
-        ряд_2.iter().map(|строка| строка.as_str()).collect();
+        ряд_2.iter().map(|строка| строка.as_str()).collect();*/
     //
-    //
-    if куча_1 == куча_2 {
-        return true;
-    } else {
-        false
+    if ряд_1.len() != ряд_2.len() {
+        return false;
     }
+    //сверка ряда
+    for шаг in 0..ряд_1.len() {
+        //
+        if ряд_1[шаг] != ряд_2[шаг].получить_ссылку() {
+            return false;
+        }
+    }
+    true
 }
 
 pub fn сравнение_двух_рядов_побайтово(

@@ -1,13 +1,9 @@
-use crate::ui_gpui::gpui_main::Данные_при_загрузке;
-use crate::utils::stringzilla::{
-    sz_найти, sz_найти_в_str, sz_упорядочить_кучу_строк_rapid_в_ряд_строк,
-};
 use Text_Changer::{
     Вид_Окончания, Вид_ошибки_при_поиске_в_торжке
 };
 use console::style;
-use rapidhash::RapidHashMap;
-use rayon::prelude::*;
+//use rapidhash::RapidHashMap;
+//use rayon::prelude::*;
 use regex::Regex;
 use std::sync::LazyLock;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -17,7 +13,7 @@ pub struct Ложные_окончания_с_исключениями {
     pub ряд_исключений: &'static rapidhash::fast::RapidHashSet<&'static str>,
 }
 pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
-    [Ложные_окончания_с_исключениями; 14],
+    [Ложные_окончания_с_исключениями; 15],
 > = LazyLock::new(|| {
     [
         Ложные_окончания_с_исключениями {
@@ -76,7 +72,34 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
             ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Ц,
             ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_Ц,
         },
+        Ложные_окончания_с_исключениями {
+            ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Л,
+            ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_Л,
+        },
     ]
+});
+pub static RE_ИСКЛЮЧЕНИЯ_Л: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+//
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Л: LazyLock<[Regex; 15]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)льнная").unwrap(),
+        Regex::new(r"(?i)льнную").unwrap(),
+        Regex::new(r"(?i)льнна").unwrap(),
+        Regex::new(r"(?i)льнно").unwrap(),
+        Regex::new(r"(?i)льнны").unwrap(),
+        Regex::new(r"(?i)льнные").unwrap(),
+        Regex::new(r"(?i)льнным").unwrap(),
+        Regex::new(r"(?i)льнными").unwrap(),
+        Regex::new(r"(?i)льнных").unwrap(),
+        Regex::new(r"(?i)льнный").unwrap(),
+        Regex::new(r"(?i)льнном").unwrap(),
+        Regex::new(r"(?i)льнное").unwrap(),
+        Regex::new(r"(?i)льнного").unwrap(),
+        Regex::new(r"(?i)льнной").unwrap(),
+        Regex::new(r"(?i)льнному").unwrap(),
+    ]
+    //----------------------------------
 });
 pub static RE_ИСКЛЮЧЕНИЯ_Ц: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
@@ -155,21 +178,44 @@ pub static RE_ИСКЛЮЧЕНИЯ_ОМ: LazyLock<rapidhash::fast::RapidHashSet<
             "герою",
             "главгерою",
             "антигерою",
+            "строю",
+            "сбою",
+            "застою",
+            "сухостою",
         ])
     });
 //
 pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_И: LazyLock<[Regex; 1]> = LazyLock::new(|| {
-    [Regex::new(r"(?i)иев$").unwrap()]
+    [
+        Regex::new(r"(?i)иев$").unwrap(),
+        //Regex::new(r"(?i)ичн\w{0,2}$").unwrap(),
+    ]
     //----------------------------------
 });
 pub static RE_ИСКЛЮЧЕНИЯ_И: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+    LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "гениев",
+            "кафетериев",
+            "колумбариев",
+            "комментариев",
+            "критериев",
+            "соляриев",
+            "сценариев",
+            "пассионариев",
+            "санаториев",
+            "глоссариев",
+            "репозиториев",
+            "париев",
+        ])
+    });
 //
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Щ: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Щ: LazyLock<[Regex; 3]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)щею$").unwrap(),
         Regex::new(r"(?i)щюю$").unwrap(),
+        Regex::new(r"(?i)щни\w+$").unwrap(),
     ]
     //----------------------------------
 });
@@ -195,7 +241,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АС: LazyLock<[Regex; 1]> = LazyL
 pub static RE_ИСКЛЮЧЕНИЯ_АС: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 11]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 12]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)наыми").unwrap(),
         Regex::new(r"(?i)нкю").unwrap(),
@@ -208,6 +254,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 11]> = LazyLo
         Regex::new(r"(?i)нм$").unwrap(),
         Regex::new(r"(?i)ни$").unwrap(),
         Regex::new(r"(?i)нвми").unwrap(),
+        Regex::new(r"(?i)ностех").unwrap(),
     ]
     //----------------------------------
 });
@@ -219,16 +266,47 @@ pub static RE_ИСКЛЮЧЕНИЯ_Н: LazyLock<rapidhash::fast::RapidHashSet<&'
             "кухни",
             "барышни",
             "болезни",
-            "",
+            "песни",
+            "гортани",
+            "ровни",
+            "знамени",
+            "дни",
+            "ткани",
+            "времени",
+            "камни",
+            "купальни",
+            "харчёвни",
+            "огни",
+            "отмени",
+            "парни",
+            "святыни",
+            "стеклоткани",
+            "уровни",
+            "степени",
+            "ступени",
+            "семени",
+            "сходни",
+            "раздевальни",
+            "перечни",
+            "гавани",
+            "деревни",
+            "бойни",
+            "брильни",
+            "древни",
+            "поварни",
+            "дву-сторонни",
+            "потусторонни",
+            "одно-сторонни",
         ])
     });
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 4]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 5]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)си$").unwrap(),
         Regex::new(r"(?i)стй").unwrap(),
         Regex::new(r"(?i)стю$").unwrap(),
         Regex::new(r"(?i)стяях").unwrap(),
+        Regex::new(r"(?i)стех").unwrap(),
     ]
     //----------------------------------
 });
@@ -242,14 +320,29 @@ pub static RE_ИСКЛЮЧЕНИЯ_СТ: LazyLock<rapidhash::fast::RapidHashSet<
             "такси",
             "шасси",
             "ереси",
+            "записи",
+            "летописи",
+            "лжелетописи",
+            "надписи",
+            "рукописи",
+            "описи",
+            "живописи",
+            "смеси",
+            "помеси",
+            "росписи",
+            "писи",
+            "искоси",
         ])
     });
 //
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 32]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 33]> = LazyLock::new(|| {
     [
         //----------------------------------
         //ван
+        //
+        Regex::new(r"(?i)авыван$").unwrap(),
+        //
         //а
         Regex::new(r"(?i)ваная$").unwrap(),
         //одиночн
@@ -295,16 +388,16 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 32]> = La
 pub static RE_ИСКЛЮЧЕНИЯ_ВАН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["диваном"]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 22]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 19]> = LazyLock::new(|| {
     [
         //ен
         //а
         Regex::new(r"(?i)еая$").unwrap(),
         Regex::new(r"(?i)еная$").unwrap(),
         //одиночн
-        Regex::new(r"(?i)енна$").unwrap(),
-        Regex::new(r"(?i)енно$").unwrap(),
-        Regex::new(r"(?i)енны$").unwrap(),
+        //Regex::new(r"(?i)енна$").unwrap(),
+        //Regex::new(r"(?i)енно$").unwrap(),
+        //Regex::new(r"(?i)енны$").unwrap(),
         Regex::new(r"(?i)енн$").unwrap(),
         //Regex::new(r"(?i)енна$").unwrap(),
         //Regex::new(r"(?i)енно$").unwrap(),
@@ -352,6 +445,15 @@ pub static RE_ИСКЛЮЧЕНИЯ_ЕН: LazyLock<rapidhash::fast::RapidHashSet<
             "голоценом",
             "авиазвеном",
             "промоушеном",
+            "военна",
+            "военно",
+            "гипоаллергенно",
+            "аборигенна",
+            "аборигенно",
+            "аборигенны",
+            "антивоенна",
+            "бедственна",
+            "бедственно",
         ])
     });
 
