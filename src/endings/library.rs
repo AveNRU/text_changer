@@ -399,7 +399,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ВАН: LazyLock<[Regex; 33]> = La
 pub static RE_ИСКЛЮЧЕНИЯ_ВАН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["диваном"]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 19]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 20]> = LazyLock::new(|| {
     [
         //ен
         //а
@@ -433,6 +433,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН: LazyLock<[Regex; 19]> = Lazy
         Regex::new(r"(?i)еными$").unwrap(),
         Regex::new(r"(?i)еных$").unwrap(),
         Regex::new(r"(?i)еные$").unwrap(),
+        Regex::new(r"(?i)енаж").unwrap(),
         //----------------------------------
     ]
 });
