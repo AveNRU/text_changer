@@ -2235,6 +2235,44 @@ pub fn вывод_содержимого_папок_по_умолчанию(
     }
     Ok(())
 }
+pub fn вывод_кучи_строк_в_txt(
+    ряд: &rapidhash::fast::RapidHashSet<String>,
+    путь: &String,
+    mut сообщения: &mut Vec<Text_Changer::Умная_Строка>,
+    условие: bool,
+) -> Result<(), Error> {
+    use crate::output::dir::создать_вложенные_папки;
+    if ряд.len() == 0 {
+        return Ok(());
+    }
+    //сравнение образов
+    /*match запись_если_есть_разница_строк_срез_строк(
+        &путь,
+        &ряд,
+        &mut сообщения,
+        условие,
+        "вывод_строки_txt",
+    ) {
+        Ok(true) => {
+            //println!("Внешне: Перезапись")
+        }
+        Ok(false) => {
+            //println!("Внешне: Отказ от перезаписи");
+            return Ok(());
+        }
+        Err(e) => panic!("{}", e),
+    }*/
+    создать_вложенные_папки(путь).unwrap();
+    let mut вывод = match File::create(путь) {
+        Ok(итог) => итог,
+        Err(ошибка) => panic!("{} , путь: {}", ошибка, путь),
+    };
+    //let mut вывод = File::create(путь).unwrap();
+    for строка in ряд.iter() {
+        writeln!(вывод, "{}", строка).unwrap();
+    }
+    Ok(())
+}
 pub fn вывод_ряда_среза_строк_в_txt(
     ряд: Vec<&str>,
     путь: &Text_Changer::Умная_Строка,
