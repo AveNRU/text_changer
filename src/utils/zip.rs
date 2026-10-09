@@ -64,7 +64,7 @@ impl Zips {
 
         for i in 0..архив.len() {
             let mut файл = архив.by_index(i).unwrap();
-            let имя = файл.mangled_name().to_string_lossy().into_owned();
+            let имя = файл.mangled_name().unwrap().to_string_lossy().into_owned();
 
             if !файл.is_dir() {
                 let mut содержимое = Vec::with_capacity(файл.size() as usize);

@@ -2270,6 +2270,7 @@ pub static КУЧА_ОКОНЧАНИЙ_ВАН: LazyLock<
 > = LazyLock::new(|| {
     rapidhash::fast::RapidHashSet::from_iter([
         "ван",
+        "ваннее",
         "вана",
         "вано",
         "ваны",
