@@ -159,8 +159,11 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ТИ: LazyLock<[Regex; 1]> = LazyL
 pub static RE_ИСКЛЮЧЕНИЯ_Х: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["шерсть", "шерстью"]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Х: LazyLock<[Regex; 1]> = LazyLock::new(|| {
-    [Regex::new(r"(?i)хошл").unwrap()]
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Х: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)хошл").unwrap(),
+        Regex::new(r"(?i)цаз").unwrap(),
+    ]
     //----------------------------------
 });
 pub static RE_ИСКЛЮЧЕНИЯ_Р: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
@@ -300,8 +303,10 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Ц: LazyLock<[Regex; 2]> = LazyLoc
 pub static RE_ИСКЛЮЧЕНИЯ_ЕМ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕМ: LazyLock<[Regex; 7]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕМ: LazyLock<[Regex; 9]> = LazyLock::new(|| {
     [
+        Regex::new(r"(?i)ем$").unwrap(),
+        Regex::new(r"(?i)еми$").unwrap(),
         Regex::new(r"(?i)емуемся").unwrap(),
         Regex::new(r"(?i)емует").unwrap(),
         Regex::new(r"(?i)емуетя").unwrap(),
@@ -314,8 +319,9 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕМ: LazyLock<[Regex; 7]> = LazyL
 });
 //
 
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЫИ: LazyLock<[Regex; 24]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЫИ: LazyLock<[Regex; 25]> = LazyLock::new(|| {
     [
+        Regex::new(r"(?i)аых").unwrap(),
         Regex::new(r"(?i)ыванно").unwrap(),
         Regex::new(r"(?i)ыванными").unwrap(),
         Regex::new(r"(?i)ыванных").unwrap(),
@@ -576,8 +582,9 @@ pub static RE_ИСКЛЮЧЕНИЯ_Н: LazyLock<rapidhash::fast::RapidHashSet<&'
         ])
     });
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 13]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 14]> = LazyLock::new(|| {
     [
+        Regex::new(r"(?i)ост$").unwrap(),
         Regex::new(r"(?i)си$").unwrap(),
         Regex::new(r"(?i)стй").unwrap(),
         Regex::new(r"(?i)стю$").unwrap(),
@@ -2011,7 +2018,7 @@ pub static ТОРЖОК_ОКОНЧАНИЙ: LazyLock<[Окончаний_Тор�
             первая_очередь: vec![
                 Вид_Окончания_со_строкой {
                     строка: "в",
-                    вид_окончания: Вид_Окончания::_В,
+                    вид_окончания: Вид_Окончания::Ва_Во,
                     re_выдер: Regex::new(r"(?i)(в)$").unwrap(),
                 },
                 Вид_Окончания_со_строкой {
