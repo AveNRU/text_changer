@@ -601,6 +601,9 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 14]> = Lazy
 pub static RE_ИСКЛЮЧЕНИЯ_СТ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| {
         rapidhash::fast::RapidHashSet::from_iter([
+            "нарост",
+            "прирост",
+            "рост",
             "звуко-записи",
             "захолустьям",
             "захолустьями",
