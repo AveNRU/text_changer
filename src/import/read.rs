@@ -14,7 +14,7 @@ use crate::utils::read::*;
 use crate::utils::stringzilla::sz_найти_в_умной_строке;
 use crate::utils::zip::zip_архив_в_память;
 use crate::utils::zip::Архив_в_озу;
-use Text_Changer::ВСЕГО_ШАГОВ;
+use Text_Changer::{ВСЕГО_ШАГОВ, ПУТИ_ОБЩИЕ};
 use console::style;
 use std::sync::LazyLock;
 use std::time::{
@@ -69,11 +69,11 @@ use crate::utils::read::получить_содержимое;
 //1 - книги, 2 - словари
 pub fn считать_словари() -> Vec<Text_Changer::Умная_Строка> {
     //основной путь
-    let пути_общие: Text_Changer::Пути_Общие = Default::default();
+    //let пути_общие: Text_Changer::Пути_Общие = Default::default();
     //получение значение корневого доступа к скрипту (где он лежит, как решила ОС)
     //получение словарей
     let пути_до_словарей: Vec<Text_Changer::Умная_Строка> =
-        получить_содержимое(&пути_общие.словари);
+        получить_содержимое(&ПУТИ_ОБЩИЕ.словари);
     return пути_до_словарей;
 }
 
@@ -101,7 +101,7 @@ pub fn считать_книги(
     // ...
     // println!("Выделено памяти: {}B, мегов: {}", ALLOCATOR.allocated(),ALLOCATOR.allocated()/1024);
     //основной путь
-    let пути_общие: Text_Changer::Пути_Общие = Default::default();
+    //let пути_общие: Text_Changer::Пути_Общие = Default::default();
     let содержимое_папки: Arc<Mutex<Text_Changer::Содержимое_папок>> =
         Arc::new(Mutex::new(Text_Changer::Содержимое_папок::default()));
     //
@@ -117,7 +117,7 @@ pub fn считать_книги(
     //let стопки_книг: Mutex<Vec<Text_Changer::Книги>> = Mutex::new(Vec::new());
     //получение книг
     let пути_до_книг: Vec<Text_Changer::Умная_Строка> =
-        получить_содержимое(&пути_общие.книги);
+        получить_содержимое(&ПУТИ_ОБЩИЕ.книги);
     //получение словарей
     //чтение содержимого файлов в разделе книг
     let сообщения: Arc<Mutex<Text_Changer::Сообщения>> =

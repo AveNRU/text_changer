@@ -92,7 +92,7 @@ fn main2(
     данные_при_загрузке: Данные_при_загрузке, //отмена: Arc<AtomicBool>,
 ) -> Result<(), ()> {
     //println!("|{:?}|", данные_при_загрузке);
-    use Text_Changer::Вид_Словаря;
+    use Text_Changer::{Вид_Словаря, ПУТИ_ОБЩИЕ};
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
@@ -116,7 +116,7 @@ fn main2(
     }*/
     //
     let mut сообщения: Text_Changer::Сообщения = Default::default();
-    let пути_общие: Text_Changer::Пути_Общие = Text_Changer::Пути_Общие::default();
+    //let пути_общие: Text_Changer::Пути_Общие = Text_Changer::Пути_Общие::default();
     //подсчёт начала запуска времени
     //начало нового
     let время_отсчёта: Instant = Instant::now();
@@ -167,7 +167,7 @@ fn main2(
             &запасной_словарь,
             &Вид_Словаря::Запасной_Словарь,
             &данные_при_загрузке,
-            &пути_общие,
+            //&ПУТИ_ОБЩИЕ,
         )
         .unwrap();
     }
@@ -177,7 +177,7 @@ fn main2(
         &полный_словарь,
         &Вид_Словаря::Основной_Словарь,
         &данные_при_загрузке,
-        &пути_общие,
+        //&ПУТИ_ОБЩИЕ,
     )
     .unwrap();
 
