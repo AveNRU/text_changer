@@ -378,8 +378,9 @@ pub static RE_ИСКЛЮЧЕНИЯ_ОМ: LazyLock<rapidhash::fast::RapidHashSet<
         ])
     });
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_И: LazyLock<[Regex; 15]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_И: LazyLock<[Regex; 16]> = LazyLock::new(|| {
     [
+        Regex::new(r"(?i)игнут").unwrap(),
         Regex::new(r"(?i)иенами$").unwrap(),
         Regex::new(r"(?i)иев$").unwrap(),
         Regex::new(r"(?i)иархы").unwrap(),
