@@ -2,7 +2,7 @@ use Text_Changer::{
     Вид_Окончания, Вид_ошибки_при_поиске_в_торжке, *
 };
 use console::style;
-use gpui_kit::component::text::Text;
+//use gpui_kit::component::text::Text;
 use rapidhash::RapidHashSet;
 //use rayon::prelude::*;
 use regex::Regex;

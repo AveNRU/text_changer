@@ -881,10 +881,15 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОН: LazyLock<[Regex; 41]> = Lazy
 pub static RE_ИСКЛЮЧЕНИЯ_ОН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| {
         rapidhash::fast::RapidHashSet::from_iter([
+            "репост",
+            "репоста",
             "узаконена",
             "узаконены",
             "узаконено",
             "хвоста",
+            "хвост",
+            "хост",
+            "тост",
             "хоста",
             "тоста",
             "строгих",

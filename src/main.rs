@@ -92,7 +92,7 @@ fn main2(
     данные_при_загрузке: Данные_при_загрузке, //отмена: Arc<AtomicBool>,
 ) -> Result<(), ()> {
     //println!("|{:?}|", данные_при_загрузке);
-    use Text_Changer::{Вид_Словаря, ПУТИ_ОБЩИЕ};
+    use Text_Changer::Вид_Словаря;
     use std::default::Default;
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
