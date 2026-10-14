@@ -6,7 +6,7 @@ pub struct Ложные_окончания_с_исключениями {
     pub ряд_исключений: &'static rapidhash::fast::RapidHashSet<&'static str>,
 }
 pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
-    [Ложные_окончания_с_исключениями; 33],
+    [Ложные_окончания_с_исключениями; 34],
 > = LazyLock::new(|| {
     [
         Ложные_окончания_с_исключениями {
@@ -28,6 +28,10 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
         Ложные_окончания_с_исключениями {
             ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕН,
             ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_ЕН,
+        },
+        Ложные_окончания_с_исключениями {
+            ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОВ,
+            ряд_исключений: &RE_ИСКЛЮЧЕНИЯ_ОВ,
         },
         Ложные_окончания_с_исключениями {
             ряд_re: &*RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОН,
@@ -143,6 +147,11 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
         },
     ]
 });
+pub static RE_ИСКЛЮЧЕНИЯ_ОВ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
+    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+//
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОВ: LazyLock<[Regex; 1]> =
+    LazyLock::new(|| [Regex::new(r"(?i)овов").unwrap()]);
 pub static RE_ИСКЛЮЧЕНИЯ_ЕЧН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
