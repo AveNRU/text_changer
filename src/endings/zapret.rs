@@ -155,8 +155,12 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОВ: LazyLock<[Regex; 1]> =
 pub static RE_ИСКЛЮЧЕНИЯ_ЕЧН: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕЧН: LazyLock<[Regex; 1]> =
-    LazyLock::new(|| [Regex::new(r"(?i)ечнов").unwrap()]);
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ЕЧН: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)ечнов").unwrap(),
+        Regex::new(r"(?i)ечнам").unwrap(),
+    ]
+});
 pub static RE_ИСКЛЮЧЕНИЯ_АМ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
@@ -540,7 +544,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АС: LazyLock<[Regex; 2]> = LazyL
 pub static RE_ИСКЛЮЧЕНИЯ_АС: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 25]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 26]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)ноно$").unwrap(),
         Regex::new(r"(?i)ннкой").unwrap(),
@@ -554,6 +558,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Н: LazyLock<[Regex; 25]> = LazyLo
         Regex::new(r"(?i)ныи").unwrap(),
         Regex::new(r"(?i)нм$").unwrap(),
         Regex::new(r"(?i)ни$").unwrap(),
+        Regex::new(r"(?i)нв$").unwrap(),
         Regex::new(r"(?i)нвми").unwrap(),
         Regex::new(r"(?i)ностех").unwrap(),
         Regex::new(r"(?i)нины").unwrap(),
@@ -615,7 +620,7 @@ pub static RE_ИСКЛЮЧЕНИЯ_Н: LazyLock<rapidhash::fast::RapidHashSet<&'
         ])
     });
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 14]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 15]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)ост$").unwrap(),
         Regex::new(r"(?i)си$").unwrap(),
@@ -631,6 +636,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_СТ: LazyLock<[Regex; 14]> = Lazy
         Regex::new(r"(?i)рстях").unwrap(),
         Regex::new(r"(?i)рстям").unwrap(),
         Regex::new(r"(?i)ствов$").unwrap(),
+        Regex::new(r"(?i)встью").unwrap(),
     ]
     //----------------------------------
 });
