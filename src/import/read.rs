@@ -451,6 +451,7 @@ pub fn считывание_книги_архивной(
     название_книги: &Text_Changer::Умная_Строка,
 ) -> Result<Text_Changer::Книга_с_сообщениями, ()> {
     //
+    #[allow(non_camel_case_types)]
     struct Вложения_с_сообщениями {
         pub вложения: Vec<Text_Changer::Вложения>,
         pub сообщения: Text_Changer::Сообщения_считывания_книг,
