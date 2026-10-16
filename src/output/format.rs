@@ -6,7 +6,7 @@ pub static ПО_СЕРЕДИНЕ_БЕЗ_ПЕРЕНОСА: LazyLock<Format> = Laz
         .set_align(FormatAlign::Center)
 });
 
-pub static по_середине_c_переносом: LazyLock<Format> = LazyLock::new(|| {
+pub static ПО_СЕРЕДИНЕ_C_ПЕРЕНОСОМ: LazyLock<Format> = LazyLock::new(|| {
     Format::new()
         .set_align(FormatAlign::VerticalCenter)
         .set_align(FormatAlign::Center)
