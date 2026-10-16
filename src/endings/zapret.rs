@@ -245,8 +245,11 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АРН: LazyLock<[Regex; 1]> = Laz
 pub static RE_ИСКЛЮЧЕНИЯ_У: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["статуи", "сабантуи", "буржуи"]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_У: LazyLock<[Regex; 1]> = LazyLock::new(|| {
-    [Regex::new(r"(?i)уи$").unwrap()]
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_У: LazyLock<[Regex; 2]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(?i)уи$").unwrap(),
+        Regex::new(r"(?i)иую$").unwrap(),
+    ]
     //----------------------------------
 });
 pub static RE_ИСКЛЮЧЕНИЯ_ЕТ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
