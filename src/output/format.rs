@@ -176,7 +176,13 @@ pub static ПРЕДУПРЕЖДЕНИЕ_ЖЁЛТЫЙ_ЦВЕТ: LazyLock<Format> 
         .set_background_color(Color::RGB(0xFFFF00))
         .set_text_wrap()
 });
-
+pub static БЛЕДНО_ЗЕЛЁНЫЙ_ЦВЕТ: LazyLock<Format> = LazyLock::new(|| {
+    Format::new()
+        .set_align(FormatAlign::VerticalCenter)
+        .set_align(FormatAlign::Center)
+        .set_background_color(Color::RGB(0xD8E4BC))
+        .set_text_wrap()
+});
 pub static ЗЕЛЁНЫЙ_ЦВЕТ: LazyLock<Format> = LazyLock::new(|| {
     Format::new()
         .set_align(FormatAlign::VerticalCenter)
