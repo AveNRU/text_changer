@@ -148,7 +148,23 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
     ]
 });
 pub static RE_ИСКЛЮЧЕНИЯ_ОВ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
+    LazyLock::new(|| {
+        rapidhash::fast::RapidHashSet::from_iter([
+            "словов",
+            "бого-словов",
+            "островов",
+            "покровов",
+            "слововед",
+            "слововеда",
+            "слововедам",
+            "слововедами",
+            "слововедах",
+            "слововеде",
+            "слововеду",
+            "слововеды",
+            "слововедом",
+        ])
+    });
 //
 pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_ОВ: LazyLock<[Regex; 1]> =
     LazyLock::new(|| [Regex::new(r"(?i)овов").unwrap()]);
