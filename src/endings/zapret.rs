@@ -150,6 +150,7 @@ pub static СТОПКА_ЛОЖНЫХ_ОКОНЧАНИЙ: LazyLock<
 pub static RE_ИСКЛЮЧЕНИЯ_ОВ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| {
         rapidhash::fast::RapidHashSet::from_iter([
+            "вызовов",
             "словов",
             "бого-словов",
             "островов",
@@ -290,7 +291,7 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_К: LazyLock<[Regex; 1]> = LazyLoc
     //----------------------------------
 });
 pub static RE_ИСКЛЮЧЕНИЯ_Ш: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
-    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["афишы"]));
+    LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter(["афишы", "кушы", "кэшы"]));
 //
 pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Ш: LazyLock<[Regex; 1]> = LazyLock::new(|| {
     [Regex::new(r"(?i)шы$").unwrap()]
@@ -625,6 +626,7 @@ pub static RE_ИСКЛЮЧЕНИЯ_Н: LazyLock<rapidhash::fast::RapidHashSet<&'
             "ступени",
             "семени",
             "сходни",
+            "преисподни",
             "раздевальни",
             "перечни",
             "гавани",
