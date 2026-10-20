@@ -544,13 +544,16 @@ pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_Щ: LazyLock<[Regex; 3]> = LazyLoc
 pub static RE_ИСКЛЮЧЕНИЯ_Щ: LazyLock<rapidhash::fast::RapidHashSet<&'static str>> =
     LazyLock::new(|| rapidhash::fast::RapidHashSet::from_iter([]));
 //
-pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АН: LazyLock<[Regex; 4]> = LazyLock::new(|| {
+pub static RE_ЛОЖНЫЕ_ОКОНЧАНИЯ_АН: LazyLock<[Regex; 7]> = LazyLock::new(|| {
     [
         Regex::new(r"(?i)аннией$").unwrap(),
         //Regex::new(r"(?i)анией$").unwrap(),
         Regex::new(r"(?i)аности$").unwrap(),
         Regex::new(r"(?i)анны$").unwrap(),
         Regex::new(r"(?i)аыми").unwrap(),
+        Regex::new(r"(?i)анн$").unwrap(),
+        Regex::new(r"(?i)анны$").unwrap(),
+        Regex::new(r"(?i)анно$").unwrap(),
     ]
     //----------------------------------
 });
