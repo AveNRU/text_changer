@@ -2900,11 +2900,11 @@ impl IndexMut<usize> for Ряд_Замен_не_подошедщий_образ�
     }
 }
 #[derive(Debug, Clone, Default)]
-pub struct Ряд_Иключений_торжка {
+pub struct Ряд_ошибок_Иключений_торжка {
     pub ряд: Vec<Ошибка_в_торжке_исключение>,
     pub куча: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<String>>,
 }
-impl Ряд_Иключений_торжка {
+impl Ряд_ошибок_Иключений_торжка {
     pub fn упорядочить(&mut self) -> Result<(), String> {
         //упорядочивание стопки по напряжению >> refdes >> имя цепи
         self.ряд.sort_by(|l, r| {
@@ -3095,7 +3095,7 @@ impl Ряд_Иключений_торжка {
 }
 //
 //
-impl Index<usize> for Ряд_Иключений_торжка {
+impl Index<usize> for Ряд_ошибок_Иключений_торжка {
     type Output = Ошибка_в_торжке_исключение;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -3103,7 +3103,7 @@ impl Index<usize> for Ряд_Иключений_торжка {
     }
 }
 //
-impl IndexMut<usize> for Ряд_Иключений_торжка {
+impl IndexMut<usize> for Ряд_ошибок_Иключений_торжка {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.ряд[index]
     }
@@ -22736,7 +22736,7 @@ impl Разделы_окончаний_Полные {
             &self.ти,
             &self.чи,
             &self.ов,
-            &self.ам,
+            // &self.ам,
             &self.ят,
             //&self.лю_ля,
             &self.ат,
