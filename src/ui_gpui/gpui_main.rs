@@ -1,5 +1,6 @@
 //
 #[allow(non_camel_case_types)]
+//use Text_Changer::Данные_при_загрузке;
 #[derive(Clone, Debug, Copy)]
 pub struct Данные_при_загрузке {
     pub включить_перевод: bool,

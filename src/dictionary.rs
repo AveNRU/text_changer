@@ -46,7 +46,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 //use std::time::Duration;
 //use stringzilla::sz;
-use crate::ui_gpui::gpui_main::Данные_при_загрузке;
+use Text_Changer::Данные_при_загрузке_lib;
+//use crate::ui_gpui::gpui_main::Данные_при_загрузке;
 #[derive(Debug, Default, Clone)]
 pub struct Исключения_для_кучи {
     pub указатель: usize,
@@ -58,7 +59,7 @@ pub fn заменить_слова_в_книге_и_их_вывод(
     словари_исходные: &Text_Changer::Словари_с_кучами,
     mut книги: Vec<Text_Changer::Книга_целиковая>, //книги для изменения
     сообщения: Text_Changer::Сообщения_считывания_книг,
-    данные_при_загрузке: &Данные_при_загрузке,
+    данные_при_загрузке: &Данные_при_загрузке_lib,
 ) -> Text_Changer::Прогон_замены {
     use Text_Changer::{КОЛИЧЕСТВО_ПРОХОДОВ_СЛОВАРЯ, ПУТИ_ОБЩИЕ};
     //если не надо переводить
@@ -914,7 +915,7 @@ pub fn создать_быстрый_словарь(
     слова_из_словаря: &Vec<Ячейка_словаря>,
     вид_слов: &Text_Changer::Имена_страниц,
     // mut счётчик_входа: &mut AtomicUsize,
-    данные_при_загрузке: &Данные_при_загрузке,
+    данные_при_загрузке: &Данные_при_загрузке_lib,
 ) -> rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> {
     use Text_Changer::Слова_с_Вложениями;
 
@@ -1630,7 +1631,7 @@ pub fn проверка_ряда_regex(re_ряд: impl AsRef<[Regex]>, сооб�
 
 fn получить_кучи_из_словарей(
     полный_словарь: &Полный_Словарь,
-    данные_при_загрузке: &Данные_при_загрузке,
+    данные_при_загрузке: &Данные_при_загрузке_lib,
 ) -> Text_Changer::Куча_Словарь_полный {
     // let mut счётчик_входа: AtomicUsize = AtomicUsize::new(0);
     let простое: rapidhash::fast::RapidHashMap<String, rapidhash::fast::RapidHashSet<usize>> =

@@ -29,14 +29,15 @@ use std::time::Instant;
 //use xml::Encoding::Default;
 use Text_Changer::ВСЕГО_ШАГОВ;
 //загрузка словаря
-use crate::ui_gpui::gpui_main::Данные_при_загрузке;
+use Text_Changer::Данные_при_загрузке_lib;
+//use crate::ui_gpui::gpui_main::Данные_при_загрузке;
 use crate::utils::functions::вывод_сообщения_на_экран;
 //
 pub fn загрузка_словарей(
     // ряд_пути_до_словарей: &Vec<String>,
     озу_при_чтении_книг: usize,
     вид_словаря: Вид_Словаря,
-    данные_при_загрузке: &Данные_при_загрузке,
+    данные_при_загрузке: &Данные_при_загрузке_lib,
 ) -> Text_Changer::Словари_с_кучами {
     use std::cell::Cell;
 
