@@ -86,7 +86,6 @@ fn main() {
     });
     println!("Конец");
 }
-use Text_Changer::Данные_при_загрузке_lib;
 //async
 fn main2(
     данные_при_загрузке: Данные_при_загрузке, //отмена: Arc<AtomicBool>,
